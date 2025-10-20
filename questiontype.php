@@ -38,6 +38,14 @@ require_once(dirname(__FILE__) . '/renderer.php');
  * @license    http://opensource.org/licenses/BSD-3-Clause
  */
 class qtype_drawing extends question_type {
+
+    /**
+     * Question is manually graded.
+     */
+    public function is_manual_graded() {
+        return true;
+    }
+
     public function extra_question_fields() {
         return array('qtype_drawing', 'drawingmode', 'backgrounduploaded',
                      'backgroundwidth', 'backgroundheight', 'preservear', 'drawingoptions', 'alloweraser');
