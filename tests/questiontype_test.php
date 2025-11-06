@@ -23,11 +23,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace qtype_drawing;
-
-use advanced_testcase;
-use qtype_drawing;
-use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -42,29 +37,18 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  *
  * @copyright  2018 ETH Zurich
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \qtype_drawing\qtype_drawing
  */
-final class questiontype_test extends advanced_testcase {
-    /**
-     * @var qtype_drawing The question type instance.
-     */
+class qtype_drawing_test extends advanced_testcase {
     protected $qtype;
 
     protected function setUp(): void {
-        parent::setUp();
         $this->qtype = new qtype_drawing();
     }
 
     protected function tearDown(): void {
         $this->qtype = null;
-        parent::tearDown();
     }
 
-     /**
-      * Get test question data.
-      *
-      * @return stdClass
-      */
     protected function get_test_question_data() {
         $q = new stdClass();
         $q->options = new stdClass();
@@ -72,16 +56,17 @@ final class questiontype_test extends advanced_testcase {
         return $q;
     }
 
-    public function test_name(): void {
+    public function test_name() {
         $this->assertEquals($this->qtype->name(), 'drawing');
     }
 
-    public function test_can_analyse_responses(): void {
+    public function test_can_analyse_responses() {
         $this->assertTrue($this->qtype->can_analyse_responses());
     }
 
-    public function test_get_random_guess_score(): void {
+    public function test_get_random_guess_score() {
         $q = $this->get_test_question_data();
         $this->assertEquals(0, $this->qtype->get_random_guess_score($q));
     }
+
 }

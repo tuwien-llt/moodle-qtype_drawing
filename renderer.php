@@ -23,7 +23,6 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use qtype_drawing\local\drawing_blob_data_as_file_stream;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -34,25 +33,13 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://opensource.org/licenses/BSD-3-Clause
  */
 class qtype_drawing_renderer extends qtype_renderer {
-    /**
-     * Translate strings to JavaScript.
-     *
-     * @param moodle_page $page
-     */
+
     public static function translate_to_js($page) {
         foreach (array_keys(get_string_manager()->load_component_strings('qtype_drawing', current_language())) as $string) {
             $page->requires->string_for_js($string, 'qtype_drawing');
         }
     }
 
-    /**
-     * Find substring after needle in haystack.
-     *
-     * @param string $haystack
-     * @param string $needle
-     * @param bool $caseinsensitive
-     * @return string|bool
-     */
     public static function strstr_after($haystack, $needle, $caseinsensitive = false) {
         $strpos = ($caseinsensitive) ? 'stripos' : 'strpos';
         $pos = $strpos($haystack, $needle);
@@ -63,22 +50,10 @@ class qtype_drawing_renderer extends qtype_renderer {
         return $pos;
     }
 
-    /**
-     * Create GD image from string.
-     *
-     * @param string $imgstring
-     * @return string
-     */
     private static function create_gd_image_from_string($imgstring) {
         return  '';
     }
 
-    /**
-     * Check if a color array represents blue.
-     *
-     * @param array $array
-     * @return bool
-     */
     private static function isblue($array) {
         if ($array[0] == 0 && $array[1] == 0 && $array[2] == 255) {
             return true;
@@ -86,12 +61,6 @@ class qtype_drawing_renderer extends qtype_renderer {
         return false;
     }
 
-    /**
-     * Convert GD image to data URI.
-     *
-     * @param resource $gdimage
-     * @return string
-     */
     public static function gdimage_to_datauri($gdimage) {
 
         ob_start();
@@ -99,7 +68,7 @@ class qtype_drawing_renderer extends qtype_renderer {
         $imgdata = ob_get_contents();
         ob_end_clean();
 
-        stream_wrapper_register("BlobDataAsFileStream", "qtype_drawing\local\drawing_blob_data_as_file_stream");
+        stream_wrapper_register("BlobDataAsFileStream", "drawing_blob_data_as_file_stream");
         drawing_blob_data_as_file_stream::$blobdatastream = $imgdata;
         $imagesize = getimagesize('BlobDataAsFileStream://');
         stream_wrapper_unregister("BlobDataAsFileStream");
@@ -107,20 +76,13 @@ class qtype_drawing_renderer extends qtype_renderer {
         return $imgdatauri;
     }
 
-    /**
-     * Render formulation and controls for a drawing question.
-     *
-     * @param question_attempt $qa
-     * @param question_display_options $options
-     * @return string
-     */
     public function formulation_and_controls(question_attempt $qa, question_display_options $options) {
 
         global $CFG, $DB;
         // A unique instance id for this particular canvas presentation. Will help refer back to it afterwards.
         $canvasinstanceid = uniqid();
         $question = $qa->get_question();
-        $canvasinfo = $DB->get_record('qtype_drawing', ['questionid' => $question->id]);
+        $canvasinfo = $DB->get_record('qtype_drawing', array('questionid' => $question->id));
         if (!$canvasinfo) {
             $canvasinfo = new stdClass();
             $canvasinfo->backgroundwidth = 0;
@@ -129,39 +91,39 @@ class qtype_drawing_renderer extends qtype_renderer {
         $currentanswer = $qa->get_last_qt_var('answer');
         $attemptid = $qa->get_last_qt_var('uniqueuattemptid');
         $moodleattempt = optional_param('attempt', null, PARAM_INT);
-        if (!$moodleattempt) {
+        if(!$moodleattempt){
             $raw = (array)$options->questionreviewlink;
-            $attributes = [];
+            $attributes = array();
             foreach ($raw as $attr => $val) {
-                if (is_array($val)) {
+                if(is_array($val)){
                     $moodleattempt = $val['attempt'];
                 }
             }
         }
-        if ($attemptfullrecord = $DB->get_record('quiz_attempts', ['id' => $moodleattempt], 'id, attempt')) {
+        if($attemptfullrecord = $DB->get_record('quiz_attempts', array('id' => $moodleattempt), 'id, attempt')) {
             $attemptcount = $attemptfullrecord->attempt;
         }
-        if (!$attemptfullrecord || !isset($attemptcount)) {
+        if(!$attemptfullrecord || !isset($attemptcount)) {
             $attemptcount = 1;
         }
         // Special and dirty case for the old version of the plugin when annotation was not added yet.
         if ($options->readonly && !$attemptid) {
-            $attemptid = substr(md5($currentanswer), 0, 14) . 'XX';
+            $attemptid = substr(md5($currentanswer), 0, 14).'XX';
         }
         if (!$attemptid) { // First time attempt.
             $attemptid = random_string(16);
         }
 
         $uniqueattemptinputname = $qa->get_qt_field_name('uniqueuattemptid');
-        $uniquefieldnameattemptid = '_' . str_replace(':', '_', $uniqueattemptinputname);
+        $uniquefieldnameattemptid = '_'.str_replace(':', '_', $uniqueattemptinputname);
 
         $step = $qa->get_last_step_with_qt_var('answer');
         $originaluserid = $step->get_user_id();
 
         $inputname = $qa->get_qt_field_name('answer');
         $background = self::get_image_for_question($question);
-        if ($background === null || !isset($background)) {
-            $background = [null, null, null];
+        if($background === null || !isset($background)){
+            $background = array(null, null, null);
         }
         $studentanswer = $qa->get_last_qt_var('answer');
         self::translate_to_js($this->page);
@@ -174,42 +136,41 @@ class qtype_drawing_renderer extends qtype_renderer {
         }
 
         if (!empty($background) && !$options->readonly) {
-            $this->page->requires->yui_module(
-                'moodle-qtype_drawing-form',
-                'Y.Moodle.qtype_drawing.form.attemptquestion',
-                [$question->id, $background[1], $canvasinfo->backgroundwidth, $canvasinfo->backgroundheight, $background[0]]
-            );
+            $this->page->requires->yui_module('moodle-qtype_drawing-form', 'Y.Moodle.qtype_drawing.form.attemptquestion',
+                            array($question->id, $background[1], $canvasinfo->backgroundwidth, $canvasinfo->backgroundheight, $background[0]));
         }
         $canvas = "<input type=\"hidden\"
         name=\"$uniqueattemptinputname\" value = \"$attemptid\">";
         $canvas .= "<input type=\"hidden\" class=\"qtype_drawing_input\" name=\"qtype_drawingsaving_status_" . $question->id . "\"
         value=\"0\" id=\"id_qtype_drawingsaving_status_" . $question->id . "\">";
 
-        $canvas .= "<div class=\"qtype_drawing_id_" . $question->id . "\"
-        data-canvas-instance-id=\"$canvasinstanceid\" id=\"qtype_drawing_attr_id_" . $question->id . "\">";
+        $canvas .= "<div class=\"qtype_drawing_id_" . $question->id ."\"
+        data-canvas-instance-id=\"$canvasinstanceid\" id=\"qtype_drawing_attr_id_" . $question->id ."\">";
         if ($options->readonly) {
             $readonlycanvas = ' readonly-canvas';
+
         } else {
             $readonlycanvas = '';
-            $inputnamelastsaved = $inputname . '_lastsaved';
-            $inputnamewifidata = $inputname . '_wifidata';
+            $inputnamelastsaved = $inputname.'_lastsaved';
+            $inputnamewifidata = $inputname.'_wifidata';
             $canvas .= "<textarea class=\"qtype_drawing_textarea\" name=\"$inputname\"
-            id=\"qtype_drawing_textarea_id_" . $attemptid . $uniquefieldnameattemptid . "\"
+            id=\"qtype_drawing_textarea_id_".$attemptid.$uniquefieldnameattemptid."\"
             style=\"display:none\">$currentanswer</textarea>
 
-            <input type=\"hidden\" name=\"qtype_drawing_drawingevent_" . $attemptid . $uniquefieldnameattemptid . "\"
-            id=\"qtype_drawing_drawingevent_" . $attemptid . $uniquefieldnameattemptid . "\" value=\"\">
-                <input type=\"hidden\" name=\"qtype_drawing_shouldreload_" . $attemptid . $uniquefieldnameattemptid . "\"
-                id=\"qtype_drawing_shouldreload_" . $attemptid . $uniquefieldnameattemptid . "\" value=\"\">";
+            <input type=\"hidden\" name=\"qtype_drawing_drawingevent_".$attemptid.$uniquefieldnameattemptid."\"
+            id=\"qtype_drawing_drawingevent_".$attemptid.$uniquefieldnameattemptid."\" value=\"\">
+                <input type=\"hidden\" name=\"qtype_drawing_shouldreload_".$attemptid.$uniquefieldnameattemptid."\"
+                id=\"qtype_drawing_shouldreload_".$attemptid.$uniquefieldnameattemptid."\" value=\"\">";
         }
         if ($readonlycanvas && $readonlycanvas != '') {
+
             $originalbgtype = $background[0];
 
             if ($background[0] == 'svg') {
                 $background[1] = preg_replace("/<\\?xml.*\\?>/", '', $background[1]);
                 $background[1] = preg_replace("/<\!DOCTYPE.*\>/", '', $background[1]);
                 $background[1] = trim(preg_replace('/\s+/', ' ', $background[1]));
-                $finalbackground = 'data:image/svg+xml;utf8,' . rawurlencode($background[1]);
+                $finalbackground = 'data:image/svg+xml;utf8,'.rawurlencode($background[1]);
             } else {
                 $finalbackground = $background[1];
             }
@@ -220,134 +181,131 @@ class qtype_drawing_renderer extends qtype_renderer {
             }
             $annotatorhideshow = '';
 
-            $studentmergedanswer = str_replace(
-                '<svg',
-                "<svg style='$backgroundstyle;background-repeat: no-repeat;
-                            background-size: $canvasinfo->backgroundwidth" . "px
-                            $canvasinfo->backgroundheight" . "px;' ",
-                $studentanswer
-            );
+            $studentmergedanswer = str_replace('<svg',
+                            "<svg style='$backgroundstyle;background-repeat: no-repeat;
+                            background-size: $canvasinfo->backgroundwidth"."px
+                            $canvasinfo->backgroundheight"."px;' ",
+                            $studentanswer);
             $disabletoggleannotationbtn = 0;
-            if (!$studentmergedanswer) {
+            if(!$studentmergedanswer){
                 $disabletoggleannotationbtn = 1;
             }
             if ($isannotator == 0) {
                 $canvas .= '<div class="qtype_drawing_drawingwrapper"
-                            id="qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '"
-                            style="height:' . $canvasinfo->backgroundheight . 'px;
-                                   width:' . $canvasinfo->backgroundwidth . 'px;' . $annotatorhideshow . '">' .
-                                   $studentmergedanswer .
+                            id="qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'"
+                            style="height:'.$canvasinfo->backgroundheight.'px;
+                                   width:'.$canvasinfo->backgroundwidth.'px;'.$annotatorhideshow.'">'.
+                                   $studentmergedanswer.
                                    '</div>';
                                    $questiontext = $question->format_questiontext($qa);
-                                   $annotationstr = '<div id="qtype_drawing_final_student_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid . '">
+                                   $annotationstr = '<div id="qtype_drawing_final_student_toggle_annotation_'.$attemptid.$uniquefieldnameattemptid.'">
                                        <svg xmlns="http://www.w3.org/2000/svg"
                                        xmlns:xlink="http://www.w3.org/1999/xlink" id="StudentAnnotatedAnswer"
-                                       width="' . $canvasinfo->backgroundwidth . '" height="' . $canvasinfo->backgroundheight . '">';
+                                       width="'.$canvasinfo->backgroundwidth.'" height="'.$canvasinfo->backgroundheight.'">';
 
-                if ($background[0] == 'svg') {
-                    $annotationstr .= $background[1];
-                    $annotationstr .= $studentanswer;
-                } else {
-                    $annotationstr .= '<svg xmlns="http://www.w3.org/2000/svg"
-                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="' . $canvasinfo->backgroundwidth . '"
-                                            height="' . $canvasinfo->backgroundheight . '">';
-                    $annotationstr .= '<image xlink:href="' . $background[1] . '" height="' . $canvasinfo->backgroundheight . '"
-                                              width="' . $canvasinfo->backgroundwidth . '" preserveAspectRatio="none"></image>';
-                    $annotationstr .= '</svg>';
-                    $annotationstr .= $studentanswer;
-                }
+                                   if ($background[0] == 'svg') {
+                                       $annotationstr .= $background[1];
+                                       $annotationstr .= $studentanswer;
+                                   } else {
+
+                                       $annotationstr .= '<svg xmlns="http://www.w3.org/2000/svg"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="'.$canvasinfo->backgroundwidth.'"
+                                            height="'.$canvasinfo->backgroundheight.'">';
+                                       $annotationstr .= '<image xlink:href="'.$background[1].'" height="'.$canvasinfo->backgroundheight.'"
+                                              width="'.$canvasinfo->backgroundwidth.'" preserveAspectRatio="none"></image>';
+                                       $annotationstr .= '</svg>';
+                                       $annotationstr .= $studentanswer;
+
+                                   }
 
                                    // Display annotations to the student, if any.
                                    global $USER;
-                                   $fields = ['questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $USER->id, 'attemptcount' => $attemptcount];
-                if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields)) {
-                    foreach ($annotations as $annotation) {
-                        $annotationstr .= $annotation->annotation;
-                    }
-                } else {
-                    $disabletoggleannotationbtn = 1;
-                }
+                                   $fields = array('questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $USER->id, 'attemptcount' => $attemptcount);
+                                   if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields)) {
+                                       foreach ($annotations as $annotation) {
+                                           $annotationstr .= $annotation->annotation;
+                                       }
+
+                                   } else {
+                                       $disabletoggleannotationbtn = 1;
+                                   }
 
                                    $annotationstr .= '</svg></div>';
 
                                    // If toggle to show only the answer for the student without annotation.
-                                   $divid = 'qtype_drawing_final_student_toggle_answer_' . $attemptid .
-                                       $uniquefieldnameattemptid;
-                                   $annotationstr .= '<div id="' . $divid . '" style="display:none">' .
-                                       $studentmergedanswer . '</div>';
+                                   $annotationstr .= '<div id="qtype_drawing_final_student_toggle_answer_'.$attemptid.$uniquefieldnameattemptid.'" style="display:none">'.$studentmergedanswer.'</div>';
                                    $annotationtogglescript = '
                     <script type="text/javascript">
-                        function qtype_drawing_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid . '(){
-                               var annotationdrawing = document.getElementById("qtype_drawing_final_student_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid . '");
-                               var studentdrawing = document.getElementById("qtype_drawing_final_student_toggle_answer_' . $attemptid . $uniquefieldnameattemptid . '");
-                               var togglebtnanswers = document.getElementById("id_qtype_drawing_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid . '");
+                        function qtype_drawing_toggle_annotation_'.$attemptid.$uniquefieldnameattemptid.'(){
+                               var annotationdrawing = document.getElementById("qtype_drawing_final_student_toggle_annotation_'.$attemptid.$uniquefieldnameattemptid.'");
+                               var studentdrawing = document.getElementById("qtype_drawing_final_student_toggle_answer_'.$attemptid.$uniquefieldnameattemptid.'");
+                               var togglebtnanswers = document.getElementById("id_qtype_drawing_toggle_annotation_'.$attemptid.$uniquefieldnameattemptid.'");
                                if (studentdrawing.style.display === "none") {
                                     studentdrawing.style.display = "block";
                                     annotationdrawing.style.display = "none";
-                                    togglebtnanswers.value = "' . get_string('showannotation', 'qtype_drawing') . '";
+                                    togglebtnanswers.value = "'.get_string('showannotation', 'qtype_drawing').'";
                                 } else {
                                     studentdrawing.style.display = "none";
                                     annotationdrawing.style.display = "block";
-                                    togglebtnanswers.value = "' . get_string('showanswer', 'qtype_drawing') . '";
+                                    togglebtnanswers.value = "'.get_string('showanswer', 'qtype_drawing').'";
                                 }
                         }
                     </script>
                  ';
                                    $tglbtnspan = '';
-                if ($disabletoggleannotationbtn != 1) {
-                    $btnid = 'id_qtype_drawing_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid;
-                    $onclick = 'qtype_drawing_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid . '()';
-                    $tglbtnspan = '<span style="float:right"><input type="button" value="' .
-                        get_string('showanswer', 'qtype_drawing') . '" id="' . $btnid . '" onclick="' .
-                        $onclick . '"></span>';
-                }
+                                   if($disabletoggleannotationbtn != 1) {
+                                       $tglbtnspan = '<span style="float:right"><input type="button" value="'.get_string('showanswer','qtype_drawing').'" id="id_qtype_drawing_toggle_annotation_'.$attemptid.$uniquefieldnameattemptid.'" onclick="qtype_drawing_toggle_annotation_'.$attemptid.$uniquefieldnameattemptid.'()"></span>';
+                                   }
 
-                                   $result = html_writer::tag('div', $annotationtogglescript . $tglbtnspan . $questiontext . $annotationstr, ['class' => 'qtext']);
+                                   $result = html_writer::tag('div', $annotationtogglescript . $tglbtnspan . $questiontext . $annotationstr, array('class' => 'qtext'));
 
-                if ($qa->get_state() == question_state::$invalid) {
-                    $result .= html_writer::nonempty_tag(
-                        'div',
-                        $question->get_validation_error(['answer' => $currentanswer]),
-                        ['class' => 'validationerror']
-                    );
-                }
+                                   if ($qa->get_state() == question_state::$invalid) {
+                                       $result .= html_writer::nonempty_tag('div',
+                                                       $question->get_validation_error(array('answer' => $currentanswer)),
+                                                       array('class' => 'validationerror'));
+                                   }
                                    return $result;
             } else {
-                $canvas .= "<textarea id=\"qtype_drawing_original_bg_id_" . $attemptid . $uniquefieldnameattemptid . "\"
+
+                $canvas .= "<textarea id=\"qtype_drawing_original_bg_id_".$attemptid.$uniquefieldnameattemptid."\"
                 style=\"display:none\">$background[1]</textarea>";
-                $canvas .= "<textarea id=\"qtype_drawing_original_stdanswer_id_" . $attemptid . $uniquefieldnameattemptid . "\"
+                $canvas .= "<textarea id=\"qtype_drawing_original_stdanswer_id_".$attemptid.$uniquefieldnameattemptid."\"
                 style=\"display:none\">$studentanswer</textarea>";
 
                 $annotationstr = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-                                       id="baseSVGannotation" width="' . $canvasinfo->backgroundwidth . '"
-                                       height="' . $canvasinfo->backgroundheight . '">';
+                                       id="baseSVGannotation" width="'.$canvasinfo->backgroundwidth.'"
+                                       height="'.$canvasinfo->backgroundheight.'">';
 
                 $studentmergedanswer = preg_replace("/<\\?xml.*\\?>/", '', $studentmergedanswer);
                 $studentmergedanswer = preg_replace("/<\!DOCTYPE.*\>/", '', $studentmergedanswer);
 
-                $canvas .= "<input type=\"hidden\" id=\"qtype_drawing_real_org_bg_" . $attemptid . $uniquefieldnameattemptid . "\"
+                $canvas .= "<input type=\"hidden\" id=\"qtype_drawing_real_org_bg_".$attemptid.$uniquefieldnameattemptid."\"
                 style=\"display:none\" value=\"$background[0]\">";
 
                 if ($background[0] == 'svg') {
                     $annotationstr .= $background[1];
                     $annotationstr .= $studentanswer;
                 } else {
+
                     $annotationstr .= '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-                                            width="' . $canvasinfo->backgroundwidth . '" height="' . $canvasinfo->backgroundheight . '">';
-                    $annotationstr .= '<image xlink:href="' . $background[1] . '" height="' . $canvasinfo->backgroundheight . '"
-                                              width="' . $canvasinfo->backgroundwidth . '" preserveAspectRatio="none"></image>';
+                                            width="'.$canvasinfo->backgroundwidth.'" height="'.$canvasinfo->backgroundheight.'">';
+                    $annotationstr .= '<image xlink:href="'.$background[1].'" height="'.$canvasinfo->backgroundheight.'"
+                                              width="'.$canvasinfo->backgroundwidth.'" preserveAspectRatio="none"></image>';
                     $annotationstr .= '</svg>';
                     $annotationstr .= $studentanswer;
+
                 }
 
                 // Get all annotations, if any, plus student answer and background.
                 global $USER;
-                $fields = ['questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $originaluserid, 'attemptcount' => $attemptcount];
+                $fields = array('questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $originaluserid, 'attemptcount' => $attemptcount);
                 if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields)) {
+
                     foreach ($annotations as $annotationdrawing) {
+
                         if ($annotationdrawing->annotatedby == $USER->id) {
                             $canvas .= "<textarea class=\"qtype_drawing_textarea\" name=\"$inputname\"
-                            id=\"qtype_drawing_textarea_id_" . $attemptid . $uniquefieldnameattemptid . "\"
+                            id=\"qtype_drawing_textarea_id_".$attemptid.$uniquefieldnameattemptid."\"
                             style=\"display:none\"
                             data-info=\"last_annotation_by_user\">$annotationdrawing->annotation</textarea>";
                             continue;
@@ -361,20 +319,23 @@ class qtype_drawing_renderer extends qtype_renderer {
                     $background[0] = 'svg';
                 } else {
                     $background[0] = 'svg';
-                    $background[1] = $annotationstr . '</svg>';
+                    $background[1] = $annotationstr.'</svg>';
                     $canvas .= "<textarea class=\"qtype_drawing_textarea\" name=\"$inputname\"
-                    id=\"qtype_drawing_textarea_id_" . $attemptid . $uniquefieldnameattemptid . "\"
+                    id=\"qtype_drawing_textarea_id_".$attemptid.$uniquefieldnameattemptid."\"
                                           style=\"display:none\"
                                           data-info=\"original_student_answer\"></textarea>";
+
                 }
+
             }
+
         }
         if (!is_array($background) || !array_key_exists(1, $background)) {
             $background[0] = '';
             $background[1] = '';
         }
         $canvas .= '
-					<script type="text/javascript" src="' . $CFG->wwwroot . '/question/type/drawing/js/embedapi.js"></script>
+					<script type="text/javascript" src="'.$CFG->wwwroot.'/question/type/drawing/js/embedapi.js"></script>
 					<script type="text/javascript">
 					svgCanvas = null;
 					function init_qtype_drawing_embed(qid) {
@@ -392,42 +353,42 @@ class qtype_drawing_renderer extends qtype_renderer {
 							//<![CDATA[
 									YUI().use("node", "event", function(Y) {
 											var doc = Y.one("body");
-											var drawing_iframeid = "#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '";
-											var drawing_toggle_btn = "#qtype_drawing_togglebutton_id_' . $attemptid . $uniquefieldnameattemptid . '";
+											var drawing_iframeid = "#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'";
+											var drawing_toggle_btn = "#qtype_drawing_togglebutton_id_'.$attemptid.$uniquefieldnameattemptid.'";
 
-											var frame = Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '");
+											var frame = Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'");
 											var padding = 150;
 											var lastHeight;
 											var resize = function(e) {
 
     											var viewportHeight =  window.innerHeight;
                           var quiz_timer_div = document.getElementById("quiz-time-left");
-                          var drawing_fullsc_' . $attemptid . $uniquefieldnameattemptid . ' =
-                          document.getElementById("quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid . '");
+                          var drawing_fullsc_'.$attemptid.$uniquefieldnameattemptid.' =
+                          document.getElementById("quiz_timer_drawing_'.$attemptid.$uniquefieldnameattemptid.'");
                           if (quiz_timer_div && quiz_timer_div.innerHTML !== "") {
-                               Y.one("#quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid . '").
+                               Y.one("#quiz_timer_drawing_'.$attemptid.$uniquefieldnameattemptid.'").
                                 setStyle("display", "block");
                                var calculatedheight =  viewportHeight -
-                                    Y.one("#quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid . '").get("clientHeight");
-                               Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '").
+                                    Y.one("#quiz_timer_drawing_'.$attemptid.$uniquefieldnameattemptid.'").get("clientHeight");
+                               Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'").
                                 setStyle("height", calculatedheight+ "px");
                           } else {
                                var calculatedheight = viewportHeight;
-                               Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '").
+                               Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'").
                                setStyle("height", calculatedheight+ "px");
                           }
 
-                          if (!Y.one("#qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '").
+                          if (!Y.one("#qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'").
                             hasClass("qtype_drawing_maximized") &&
                               calculatedheight > 650) {
-                              Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '").
+                              Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'").
                                 setStyle("height", "650px");
-                              Y.one("#qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '").
+                              Y.one("#qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'").
                                 setStyle("height", "650px");
                           } else {
-                              Y.one("#qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '").
+                              Y.one("#qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'").
                               setStyle("height", calculatedheight +"px");
-                              Y.one("#qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '").
+                              Y.one("#qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'").
                               set("height", calculatedheight +"px");
                           }
 
@@ -440,56 +401,56 @@ class qtype_drawing_renderer extends qtype_renderer {
                   	  Y.on("windowresize", resize);
 
                   	  });
-                  setTimeout(function(){ Y.one("#id_qtype_drawingsaving_status_' . $question->id . '").set("value",Math.random()); }, 3000);
-                  function qtype_drawing_fullscreen_' . $attemptid . $uniquefieldnameattemptid . '() {
-                      setTimeout(function(){ Y.one("#id_qtype_drawingsaving_status_' . $question->id . '").set("value",Math.random()); }, 1000);
+                  setTimeout(function(){ Y.one("#id_qtype_drawingsaving_status_'.$question->id.'").set("value",Math.random()); }, 3000);
+                  function qtype_drawing_fullscreen_'.$attemptid.$uniquefieldnameattemptid.'() {
+                      setTimeout(function(){ Y.one("#id_qtype_drawingsaving_status_'.$question->id.'").set("value",Math.random()); }, 1000);
                       var doc = Y.one("body");
-                      var drawing_iframeid = "#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '";
-                      var drawing_toggle_btn = "#qtype_drawing_togglebutton_id_' . $attemptid . $uniquefieldnameattemptid . '";
+                      var drawing_iframeid = "#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'";
+                      var drawing_toggle_btn = "#qtype_drawing_togglebutton_id_'.$attemptid.$uniquefieldnameattemptid.'";
 
-                      var frame = Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '");
+                      var frame = Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'");
                       var padding = 150;
                       var lastHeight;
                       var quiz_is_timed = 0;
-                      Y.one("#qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '").
+                      Y.one("#qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'").
                         toggleClass("qtype_drawing_maximized");
-                      Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '").
+                      Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'").
                         set("height","100%");
 
-                      if (Y.one("#qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '").
+                      if (Y.one("#qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'").
                           hasClass("qtype_drawing_maximized")) {
-                          Y.one("#qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '").
+                          Y.one("#qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'").
                             set("height","100%");
-                          Y.one("#qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '").
+                          Y.one("#qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'").
                             setStyle("height","100%");
 
-                          Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '").
+                          Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'").
                             set("height","100%");
-                          Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '").
+                          Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'").
                             setStyle("height","100%");
 
                           var quiz_timer_div = document.getElementById("quiz-time-left");
-                          var drawing_fullsc_' . $attemptid . $uniquefieldnameattemptid . ' =
-                              document.getElementById("quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid . '");
+                          var drawing_fullsc_'.$attemptid.$uniquefieldnameattemptid.' =
+                              document.getElementById("quiz_timer_drawing_'.$attemptid.$uniquefieldnameattemptid.'");
 
                           if (quiz_timer_div && quiz_timer_div.innerHTML !== "") {
 
-                               drawing_fullsc_' . $attemptid . $uniquefieldnameattemptid . '.appendChild(document.getElementById("quiz-timer"));
+                               drawing_fullsc_'.$attemptid.$uniquefieldnameattemptid.'.appendChild(document.getElementById("quiz-timer"));
 
-                               Y.one("#quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid . '").
+                               Y.one("#quiz_timer_drawing_'.$attemptid.$uniquefieldnameattemptid.'").
                                 setStyle("display", "block");
                                var calculatedheight = doc.get("winHeight") -
-                                   Y.one("#quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid . '").
+                                   Y.one("#quiz_timer_drawing_'.$attemptid.$uniquefieldnameattemptid.'").
                                     get("clientHeight");
-                               Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '").
+                               Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'").
                                 setStyle("height", calculatedheight+ "px");
                           } else {
-                              if (drawing_fullsc_' . $attemptid . $uniquefieldnameattemptid . '.hasChildNodes()) {
-                                  drawing_fullsc_' . $attemptid . $uniquefieldnameattemptid . '.
+                              if (drawing_fullsc_'.$attemptid.$uniquefieldnameattemptid.'.hasChildNodes()) {
+                                  drawing_fullsc_'.$attemptid.$uniquefieldnameattemptid.'.
                                     removeChild(document.getElementById("quiz-timer").cloneNode(true));
                               }
                               var  calculatedheight = doc.get("winHeight");
-                              Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '").
+                              Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'").
                                 setStyle("height", calculatedheight+ "px");
 
                           }
@@ -497,20 +458,20 @@ class qtype_drawing_renderer extends qtype_renderer {
 
                       	var viewportHeight = doc.get("winHeight");
                           if (viewportHeight > 650 || viewportHeight <= 500) viewportHeight = 650;
-                	       Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '").
+                	       Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'").
                           setStyle("height", viewportHeight + "px");
-                          Y.one("#qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '").
+                          Y.one("#qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'").
                           set("height", viewportHeight + "px");
 
-                          Y.one("#qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '").
+                          Y.one("#qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'").
                           setStyle("height", viewportHeight +"px");
-                          Y.one("#qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '").
+                          Y.one("#qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'").
                           set("height", viewportHeight +"px");
 
                           if (document.getElementById("quiz-timer")) {
                                document.getElementById("quiz-timer-wrapper").appendChild(document.getElementById("quiz-timer"));
-                               Y.one("#quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid . '").setStyle("margin-top", "0em");
-                               Y.one("#quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid . '").setStyle("display", "none");
+                               Y.one("#quiz_timer_drawing_'.$attemptid.$uniquefieldnameattemptid.'").setStyle("margin-top", "0em");
+                               Y.one("#quiz_timer_drawing_'.$attemptid.$uniquefieldnameattemptid.'").setStyle("display", "none");
                           }
 
                       }
@@ -521,35 +482,35 @@ class qtype_drawing_renderer extends qtype_renderer {
 
 
 				<textarea style="display:none"
-                  id="qtype_drawing_background_image_value_' . $attemptid . $uniquefieldnameattemptid . '">' .
-                  $background[1] . '</textarea>
+                  id="qtype_drawing_background_image_value_'.$attemptid.$uniquefieldnameattemptid.'">'.
+                  $background[1].'</textarea>
 				<input type="hidden" style="display:none"
-               id="qtype_drawing_background_image_type_' . $attemptid . $uniquefieldnameattemptid . '"
-               value="' . $background[0] . '">
+               id="qtype_drawing_background_image_type_'.$attemptid.$uniquefieldnameattemptid.'"
+               value="'.$background[0].'">
 				<input type="hidden" style="display:none"
-               id="qtype_drawing_background_image_width_' . $attemptid . $uniquefieldnameattemptid . '"
-               value="' . $canvasinfo->backgroundwidth . '">
+               id="qtype_drawing_background_image_width_'.$attemptid.$uniquefieldnameattemptid.'"
+               value="'.$canvasinfo->backgroundwidth.'">
 				<input type="hidden" style="display:none"
-               id="qtype_drawing_background_image_height_' . $attemptid . $uniquefieldnameattemptid . '"
-               value="' . $canvasinfo->backgroundheight . '">
+               id="qtype_drawing_background_image_height_'.$attemptid.$uniquefieldnameattemptid.'"
+               value="'.$canvasinfo->backgroundheight.'">
 				<div class="qtype_drawing_drawingwrapper"
-             id="qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '">
-             <img id="qtype_drawing_loading_image_' . $attemptid . $uniquefieldnameattemptid . '"
-                  src="' . $CFG->wwwroot . '/question/type/drawing/images/loading.gif"
+             id="qtype_drawing_drawingwrapper_'.$attemptid.$uniquefieldnameattemptid.'">
+             <img id="qtype_drawing_loading_image_'.$attemptid.$uniquefieldnameattemptid.'"
+                  src="'.$CFG->wwwroot.'/question/type/drawing/images/loading.gif"
                   alt="Loading">
-        <span id="quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid . '"
+        <span id="quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid .'"
               style="display:none; background-color:#fff"></span>
 				<span class="qtype_drawing_togglebutton"
-              id="qtype_drawing_togglebutton_id_' . $attemptid . $uniquefieldnameattemptid . '"
-              onclick="qtype_drawing_fullscreen_' . $attemptid . $uniquefieldnameattemptid . '()">&nbsp;</span>
+              id="qtype_drawing_togglebutton_id_' . $attemptid . $uniquefieldnameattemptid. '"
+              onclick="qtype_drawing_fullscreen_'.$attemptid.$uniquefieldnameattemptid.'()">&nbsp;</span>
 				<iframe
-          src="' . $CFG->wwwroot . '/question/type/drawing/drawingarea.php?id=' . $question->id .
-          '&attemptid=' . $attemptid . '&stid=' . $originaluserid .
-          '&uniquefieldnameattemptid=' . $uniquefieldnameattemptid .
-          '&attemptcount=' . $attemptcount .
-          '&readonly=' . $options->readonly . '&sesskey=' . sesskey() . '"
-          id="qtype_drawing_editor_' . $attemptid . $uniquefieldnameattemptid . '"
-          onload="init_qtype_drawing_embed(\'' . $attemptid . $uniquefieldnameattemptid . '\')" >
+          src="'.$CFG->wwwroot.'/question/type/drawing/drawingarea.php?id='.$question->id.
+          '&attemptid='.$attemptid.'&stid='.$originaluserid.
+          '&uniquefieldnameattemptid='.$uniquefieldnameattemptid.
+          '&attemptcount='.$attemptcount.
+          '&readonly='.$options->readonly.'&sesskey='.sesskey().'"
+          id="qtype_drawing_editor_'.$attemptid.$uniquefieldnameattemptid.'"
+          onload="init_qtype_drawing_embed(\''.$attemptid.$uniquefieldnameattemptid.'\')" >
         </iframe>
 				</div>
 				';
@@ -558,48 +519,28 @@ class qtype_drawing_renderer extends qtype_renderer {
 
                   $questiontext = $question->format_questiontext($qa);
 
-                  $result = html_writer::tag('div', $questiontext . $canvas, ['class' => 'qtext']);
+                  $result = html_writer::tag('div', $questiontext . $canvas, array('class' => 'qtext'));
 
-        if ($qa->get_state() == question_state::$invalid) {
-            $result .= html_writer::nonempty_tag(
-                'div',
-                $question->get_validation_error(['answer' => $currentanswer]),
-                ['class' => 'validationerror']
-            );
-        }
-                   return $result;
+                  if ($qa->get_state() == question_state::$invalid) {
+                      $result .= html_writer::nonempty_tag('div',
+                                      $question->get_validation_error(array('answer' => $currentanswer)),
+                                      array('class' => 'validationerror'));
+                  }
+                  return $result;
     }
 
-     /**
-      * Get specific feedback for a question attempt.
-      *
-      * @param question_attempt $qa
-      * @return string
-      */
     public function specific_feedback(question_attempt $qa) {
         $question = $qa->get_question();
 
-        $answer = $question->get_matching_answer(['answer' => $qa->get_last_qt_var('answer')]);
+        $answer = $question->get_matching_answer(array('answer' => $qa->get_last_qt_var('answer')));
         if (!$answer || !$answer->feedback) {
             return '';
         }
 
-        return $question->format_text(
-            $answer->feedback,
-            $answer->feedbackformat,
-            $qa,
-            'question',
-            'answerfeedback',
-            $answer->id
-        );
+        return $question->format_text($answer->feedback, $answer->feedbackformat,
+                        $qa, 'question', 'answerfeedback', $answer->id);
     }
 
-     /**
-      * Get the correct response for a drawing question.
-      *
-      * @param question_attempt $qa
-      * @return string
-      */
     public function correct_response(question_attempt $qa) {
         return ''; /* still not sure what kind of text should be given back for this....*/
         $question = $qa->get_question();
@@ -615,28 +556,13 @@ class qtype_drawing_renderer extends qtype_renderer {
 
 
 
-     /**
-      * Get the image for a drawing question.
-      *
-      * @param stdClass $question
-      * @return array|null
-      */
     public static function get_image_for_question($question) {
-        return self::get_image_for_files($question->contextid, 'qtype_drawing', 'qtype_drawing_image_file', $question->id);
+        return self::get_image_for_files($question->contextid,  'qtype_drawing', 'qtype_drawing_image_file', $question->id);
     }
 
-     /**
-      * Get image files from file storage.
-      *
-      * @param int $context
-      * @param string $component
-      * @param string $filearea
-      * @param int $itemid
-      * @return array|null
-      */
     public static function get_image_for_files($context, $component, $filearea, $itemid) {
         $fs = get_file_storage();
-        $files = $fs->get_area_files($context, $component, $filearea, $itemid, 'id');
+        $files = $fs->get_area_files($context,  $component, $filearea, $itemid, 'id');
         if ($files) {
             foreach ($files as $file) {
                 if ($file->is_directory()) {
@@ -646,7 +572,7 @@ class qtype_drawing_renderer extends qtype_renderer {
                     return null;
                 }
                 if ($file->get_mimetype() == 'image/svg+xml') { // SVG.
-                    return ['svg', $file->get_content(), $file->get_filename()];
+                    return array('svg', $file->get_content(), $file->get_filename());
                 }
                 $image = imagecreatefromstring($file->get_content());
                 if ($image === false) {
@@ -654,33 +580,16 @@ class qtype_drawing_renderer extends qtype_renderer {
                 }
                 $imgdatauri = self::gdimage_to_datauri($image);
                 imagedestroy($image);
-                return ['datauri', $imgdatauri, $file->get_filename()];
+                return array('datauri',  $imgdatauri, $file->get_filename());
             }
         }
         return null;
     }
-
-     /**
-      * Check if a data URL is a valid drawing.
-      *
-      * @param string $dataurl
-      * @param int $bgwidth
-      * @param int $bgheight
-      * @return bool
-      */
     public static function isdataurlavaliddrawing($dataurl, $bgwidth, $bgheight) {
         return true;
     }
 
 
-     /**
-      * Check if a GD image is transparent.
-      *
-      * @param resource $gdimage
-      * @param int $width
-      * @param int $height
-      * @return bool
-      */
     private static function isimagetransparent($gdimage, $width, $height) {
         for ($x = 0; $x < $width; $x++) {
             for ($y = 0; $y < $height; $y++) {
@@ -693,4 +602,63 @@ class qtype_drawing_renderer extends qtype_renderer {
         }
         return true;
     }
+
+
+}
+
+class drawing_blob_data_as_file_stream {
+
+    private static $blobdataposition = 0;
+    public static $blobdatastream = '';
+    public $context;
+
+    public static function stream_open($path, $mode, $options, &$openedpath) {
+        static::$blobdataposition = 0;
+        return true;
+    }
+
+    public static function stream_seek($seekoffset, $seekwhence) {
+        $blobdatalength = strlen(static::$blobdatastream);
+        switch ($seekwhence) {
+            case SEEK_SET:
+                $newblobdataposition = $seekoffset;
+                break;
+            case SEEK_CUR:
+                $newblobdataposition = static::$blobdataposition + $seekoffset;
+                break;
+            case SEEK_END:
+                $newblobdataposition = $blobdatalength + $seekoffset;
+                break;
+            default:
+                return false;
+        }
+        if (($newblobdataposition >= 0) AND ($newblobdataposition <= $blobdatalength)) {
+            static::$blobdataposition = $newblobdataposition;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static function stream_tell() {
+        return static::$blobdataposition;
+    }
+
+    public static function stream_read($readbuffersize) {
+        $readdata = substr(static::$blobdatastream, static::$blobdataposition, $readbuffersize);
+        static::$blobdataposition += strlen($readdata);
+        return $readdata;
+    }
+
+    public static function stream_write($writedata) {
+        $writedatalength = strlen($writedata);
+        static::$blobdatastream = substr(static::$blobdatastream, 0, static::$blobdataposition).
+        $writedata.substr(static::$blobdatastream, static::$blobdataposition += $writedatalength);
+        return $writedatalength;
+    }
+
+    public static function stream_eof() {
+        return static::$blobdataposition >= strlen(static::$blobdatastream);
+    }
+
 }

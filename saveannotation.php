@@ -41,39 +41,33 @@ $annotation = required_param('annotation', PARAM_RAW);
 $attemptcount = optional_param('attemptcount', 1, PARAM_INT);
 
 if (!confirm_sesskey()) {
-    echo json_encode(['result' => 'Session lost.']);
+    echo json_encode(array('result' => 'Session lost.'));
     die();
 }
 
 require_once('../../../question/type/questiontypebase.php');
 if (!$question = question_bank::load_question_data($id)) {
-    echo json_encode(['result' => 'Question attempt not found']);
+    echo json_encode(array('result' => 'Question attempt not found'));
     die();
 }
 if (!has_capability('mod/quiz:grade', context::instance_by_id($question->contextid))) {
-    echo json_encode(['result' => 'No permission']);
+    echo json_encode(array('result' => 'No permission'));
     die();
 }
-if (!$fhd = $DB->get_record('qtype_drawing', ['questionid' => $id])) {
-    echo json_encode(['result' => 'Question not found']);
+if (!$fhd = $DB->get_record('qtype_drawing', array('questionid' => $id))) {
+    echo json_encode(array('result' => 'Question not found'));
     die();
 }
 
 // Just in case, remove any <script> if direct saving happens (how?!).
 $annotation = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $annotation);
 // After cleaning from script, is it empty?.
-if (trim($annotation) == '') {
-    echo json_encode(['result' => 'No annotation submitted']);
+if(trim($annotation) == ''){
+    echo json_encode(array('result' => 'No annotation submitted'));
     die();
 }
 // Check if record exists.
-$fields = [
-        'questionid' => $id,
-        'annotatedby' => $USER->id,
-        'annotatedfor' => $stid,
-        'attemptid' => $attemptid,
-        'attemptcount' => $attemptcount,
-];
+$fields = array('questionid' => $id, 'annotatedby' => $USER->id, 'annotatedfor' => $stid, 'attemptid' => $attemptid, 'attemptcount' => $attemptcount);
 if ($recordexists = $DB->get_record('qtype_drawing_annotations', $fields)) {
     // Update annotation.
     $annotationrecord = new stdClass();
@@ -101,7 +95,7 @@ if ($recordexists = $DB->get_record('qtype_drawing_annotations', $fields)) {
     $annotationrecord->attemptcount = $attemptcount;
     $annotationrecord->notes = '';
     $DB->insert_record('qtype_drawing_annotations', $annotationrecord);
-    $result = 'insert ' . $attemptcount;
+    $result = 'insert '.$attemptcount;
 }
 $result = 'OK';
 echo json_encode($result);

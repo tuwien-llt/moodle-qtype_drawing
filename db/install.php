@@ -21,7 +21,7 @@
  * @copyright 2019 ETH Zurich (amr.hourani@let.ethz.ch)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+defined('MOODLE_INTERNAL') || die();
 /**
  * Post install hook implementation for the qtype_drawing plugin.
  */

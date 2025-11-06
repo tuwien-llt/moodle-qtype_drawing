@@ -1,5 +1,5 @@
 @qtype @qtype_drawing @qtype_drawing_backup
-Feature: Test duplicating a quiz containing a drawing question
+Feature: Test duplicating a quiz containing an drawing question
   As a teacher
   In order re-use my courses containing drawing questions
   I need to be able to backup and restore them
@@ -23,18 +23,18 @@ Feature: Test duplicating a quiz containing a drawing question
       | drawing-001 | 1 |
       | drawing-002 | 1 |
       | drawing-003 | 1 |
-    And the following config values are set as admin:
-      | enableasyncbackup | 0 |
 
   @javascript
   Scenario: Backup and restore a course containing one drawing question
-    When I am on the "Course 1" course page logged in as admin
+    When I log in as "admin"
+    And I am on "Course 1" course homepage
     And I backup "Course 1" course using this options:
       | Confirmation | Filename | test_drawing_backup.mbz |
     And I restore "test_drawing_backup.mbz" backup into a new course using this options:
-      | Schema | Course name       | Course 2 |
-      | Schema | Course short name | C2       |
-    And I am on the "Course 2" "core_question > course question bank" page
+      | Schema | Course name | Course 2 |
+    And I navigate to "Question bank" in current page administration
+    And I should see "drawing-001"
+    And I navigate to "Question bank" in current page administration
     And I choose "Edit question" action for "drawing-001" in the question bank
     Then the following fields match these values:
       | id_name                    | drawing-001                                               |

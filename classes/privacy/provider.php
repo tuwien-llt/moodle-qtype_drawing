@@ -14,26 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Privacy provider for question type drawing.
- *
- * @package    qtype_drawing
- * @copyright  ETH Zurich LET <amr.hourani@id.ethz.ch>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace qtype_drawing\privacy;
 
-
-/**
- * Privacy provider implementation for drawing question type.
- *
- * The drawing question type does not store personal user data.
- *
- * @copyright  ETH Zurich LET <amr.hourani@id.ethz.ch>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+defined('MOODLE_INTERNAL') || die();
 class provider implements \core_privacy\local\metadata\null_provider {
+
     /**
      * Get the language string identifier with the component's language
      * file to explain why this plugin stores no data.
