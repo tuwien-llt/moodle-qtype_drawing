@@ -118,7 +118,7 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
       <script type="text/javascript"
               src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/js-hotkeys/jquery.hotkeys.min.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>icons/jquery.svgicons.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jquery-svgicons/jquery.svgicons.js"></script>
       <script type="text/javascript"
               src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jgraduate/jquery.jgraduate.js"></script>
       <script type="text/javascript"
@@ -126,33 +126,33 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
       <script type="text/javascript"
               src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jquery-ui/jquery-ui-1.8.17.custom.min.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/browser.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/browser.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/svgtransformlist.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/svgtransformlist.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/math.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/math.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/units.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/units.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/svgutils.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/svgutils.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/sanitize.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/sanitize.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/history.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/history.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/select.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/select.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/draw.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/draw.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/path_polyfill.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/path_polyfill.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/path.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/path.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/dialog.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/dialog.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/svgcanvas.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/svgcanvas.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/method-draw.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/method-draw.js"></script>
       <script type="text/javascript"
               src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jquery-draginput.js"></script>
       <script type="text/javascript"
@@ -165,39 +165,39 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
         if ($reducedmode == 0) {
         ?>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>extensions/ext-eyedropper.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/ext-eyedropper.js"></script>
         <?php
         }
         ?>
-      <script src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/d3.js"></script>
+      <script src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/d3.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>extensions/mtouch-events.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/mtouch-events.js"></script>
         <?php
         if ($reducedmode == 1 && $fhd->alloweraser == 1) {
         ?>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>extensions/erase.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/erase.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>extensions/ext-eraser.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/ext-eraser.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/flatten.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/flatten.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/flat.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/flat.js"></script>
         <?php
         }
         ?>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>src/simplify.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/simplify.js"></script>
         <?php
         if ($reducedmode == 0) {
         ?>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>extensions/ext-shapes.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/ext-shapes.js"></script>
         <?php
         }
         ?>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>extensions/ext-grid.js"></script>
+              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/ext-grid.js"></script>
       <script type="text/javascript"
               src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/requestanimationframe.js"></script>
       <script type="text/javascript"

@@ -1,3 +1,25 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ *  description here.
+ *
+ * @module     qtype_drawing/bridge.js
+ * @copyright  2025 Simeon Naydenov <moniNaydenov@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 /**
  * This is JavaScript code that handles hand drawing on mouse events and painting pre-existing drawings.
  * @package    qtype
@@ -8,51 +30,51 @@
 
 YUI.add('moodle-qtype_drawing-form', function(Y) {
     var CSS = {
-    },
-    SELECTORS = {
-        drawingLCPICKER: 'div[class="lc-picker"]',
-        drawingLCOPTIONS: 'div[class="literally lc-picker"]',
-        DRAWINGCANVAS: 'div[class="literally"]',
-        DRAWINGCANVASID:'#qtype_drawing_div_id',
-        GENERICCANVAS: 'canvas[class="qtype_drawing_canvas"]',
-        CANVASWIDTH: '#qtype_drawing_backgroundwidth',
-        CANVASHEIGHT: '#qtype_drawing_backgroundheight',
-        ALLCANVASES: 'canvas',
-        READONLYCANVAS: 'canvas[class="qtype_drawing_canvas readonly-canvas"]',
-        FILEPICKER: '#id_qtype_drawing_image_file',
-        SELECTEDFILEPICKER: '#id_qtype_drawing_drawing_background_image_selected',
-        FILEPICKERFIELDSET: 'fieldset[id$=qtype_drawing_drawing_background_image]',
-        FILEPICKERFIELDSETANOTHER: 'fieldset[id$=qtype_drawing_drawing_background_image_selected]',
-        PRESERVERATIO: '#id_preservear',
-        BACKGROUNDUPLOADED: 'input[name="backgrounduploaded"]',
-        DRAWINGRADIUS: '#id_radius',
-        ERASERADIUS: '#erase_radius',
-        DRAWINGCOLOR: '#id_color',
-        BRUSHVOLUME: '#brushvolume',
-        QUICKCOLOR1: '#quickcolor1',
-        QUICKCOLOR2: '#quickcolor2',
-        QUICKCOLOR3: '#quickcolor3',
-        QUICKCOLOR4: '#quickcolor4',
-        QUICKRADIUS1: '#quickradius1',
-        QUICKRADIUS2: '#quickradius2',
-        QUICKRADIUS3: '#quickradius3',
-        QUICKRADIUS4: '#quickradius4',
-        ZOOMCANVAS: '#zoomcanvas',
-        DRAWINGJUSTCHANGED: '#drawingchanged',
-        DRAWINGEDITMODEBG: '#pre_existing_background_data',
-        CLOSECANVASOVERLAY: '#closecanvasoverlay',
-        CHOOSEFILEBUTTON: 'input[name="qtype_drawing_image_filechoose"]',
-        CHOOSEANOTHERFILEBUTTON: 'input[name="qtype_drawing_image_filechoose_another"]',
-        ERASERBUTTON: 'img[class="qtype_drawing_eraser"]',
-        UNDOBUTTON: 'img[class="qtype_drawing_undo"]',
-        ERASERTOOLBUTTON: 'img[class="qtype_drawing_eraser_tool"]',
-        CURRENTTOOL: 'img[class="qtype_drawing_current_tool"]',
-        CONTAINERDIV: 'div[class="qtype_drawing_container_div"]',
-        NOBACKGROUNDIMAGESELECTEDYET: 'div[class="qtype_drawing_no_background_image_selected_yet"]',
-        CANVASTEXTAREAEDITMODE: 'textarea[name="qtype_drawing_textarea_id_0"]',
-        CANVASTEXTAREATESTMODE: 'textarea[id="qtype_drawing_textarea_id_',
-        QUESTION_AREA_DIV: 'div[class="qtype_drawing_id_',
-    };
+        },
+        SELECTORS = {
+            drawingLCPICKER: 'div[class="lc-picker"]',
+            drawingLCOPTIONS: 'div[class="literally lc-picker"]',
+            DRAWINGCANVAS: 'div[class="literally"]',
+            DRAWINGCANVASID:'#qtype_drawing_div_id',
+            GENERICCANVAS: 'canvas[class="qtype_drawing_canvas"]',
+            CANVASWIDTH: '#qtype_drawing_backgroundwidth',
+            CANVASHEIGHT: '#qtype_drawing_backgroundheight',
+            ALLCANVASES: 'canvas',
+            READONLYCANVAS: 'canvas[class="qtype_drawing_canvas readonly-canvas"]',
+            FILEPICKER: '#id_qtype_drawing_image_file',
+            SELECTEDFILEPICKER: '#id_qtype_drawing_drawing_background_image_selected',
+            FILEPICKERFIELDSET: 'fieldset[id$=qtype_drawing_drawing_background_image]',
+            FILEPICKERFIELDSETANOTHER: 'fieldset[id$=qtype_drawing_drawing_background_image_selected]',
+            PRESERVERATIO: '#id_preservear',
+            BACKGROUNDUPLOADED: 'input[name="backgrounduploaded"]',
+            DRAWINGRADIUS: '#id_radius',
+            ERASERADIUS: '#erase_radius',
+            DRAWINGCOLOR: '#id_color',
+            BRUSHVOLUME: '#brushvolume',
+            QUICKCOLOR1: '#quickcolor1',
+            QUICKCOLOR2: '#quickcolor2',
+            QUICKCOLOR3: '#quickcolor3',
+            QUICKCOLOR4: '#quickcolor4',
+            QUICKRADIUS1: '#quickradius1',
+            QUICKRADIUS2: '#quickradius2',
+            QUICKRADIUS3: '#quickradius3',
+            QUICKRADIUS4: '#quickradius4',
+            ZOOMCANVAS: '#zoomcanvas',
+            DRAWINGJUSTCHANGED: '#drawingchanged',
+            DRAWINGEDITMODEBG: '#pre_existing_background_data',
+            CLOSECANVASOVERLAY: '#closecanvasoverlay',
+            CHOOSEFILEBUTTON: 'input[name="qtype_drawing_image_filechoose"]',
+            CHOOSEANOTHERFILEBUTTON: 'input[name="qtype_drawing_image_filechoose_another"]',
+            ERASERBUTTON: 'img[class="qtype_drawing_eraser"]',
+            UNDOBUTTON: 'img[class="qtype_drawing_undo"]',
+            ERASERTOOLBUTTON: 'img[class="qtype_drawing_eraser_tool"]',
+            CURRENTTOOL: 'img[class="qtype_drawing_current_tool"]',
+            CONTAINERDIV: 'div[class="qtype_drawing_container_div"]',
+            NOBACKGROUNDIMAGESELECTEDYET: 'div[class="qtype_drawing_no_background_image_selected_yet"]',
+            CANVASTEXTAREAEDITMODE: 'textarea[name="qtype_drawing_textarea_id_0"]',
+            CANVASTEXTAREATESTMODE: 'textarea[id="qtype_drawing_textarea_id_',
+            QUESTION_AREA_DIV: 'div[class="qtype_drawing_id_',
+        };
     Y.namespace('Moodle.qtype_drawing.form');
 
     Y.Moodle.qtype_drawing.form = {
@@ -118,7 +140,7 @@ YUI.add('moodle-qtype_drawing-form', function(Y) {
         },
         resizecanvasw: function(e){
             if (e.which < 48 || e.which > 57){
-                 e.preventDefault();
+                e.preventDefault();
             }
             if(Y.one(SELECTORS.PRESERVERATIO).get('checked')){
                 this.calculateheight(Y.one(SELECTORS.CANVASWIDTH).get('value'));
@@ -126,7 +148,7 @@ YUI.add('moodle-qtype_drawing-form', function(Y) {
         },
         resizecanvash: function(e){
             if (e.which < 48 || e.which > 57){
-                 e.preventDefault();
+                e.preventDefault();
             }
             if(Y.one(SELECTORS.PRESERVERATIO).get('checked')){
                 this.calculatewidth(Y.one(SELECTORS.CANVASHEIGHT).get('value'));
@@ -135,12 +157,12 @@ YUI.add('moodle-qtype_drawing-form', function(Y) {
         calculateheight: function(width){
 
             if(!this.naturalwidth){
-                 this.naturalwidth = this.originalwidth;
+                this.naturalwidth = this.originalwidth;
 
             }
 
             if(!this.naturalheight){
-                 this.naturalheight = this.originalheight;
+                this.naturalheight = this.originalheight;
             }
             if(!width){
                 width = this.originalwidth;
@@ -153,10 +175,10 @@ YUI.add('moodle-qtype_drawing-form', function(Y) {
         },
         calculatewidth: function(height){
             if(!this.naturalwidth){
-                 this.naturalwidth = this.originalwidth;
+                this.naturalwidth = this.originalwidth;
             }
             if(!this.naturalheight){
-                 this.naturalheight = this.originalheight;
+                this.naturalheight = this.originalheight;
             }
             if(!height){
                 height = this.originalheight;
@@ -271,7 +293,7 @@ YUI.add('moodle-qtype_drawing-form', function(Y) {
                 questionID = this.drawing_question_id;
 
                 if(document.getElementById('pre_existing_background_data')){
-                     document.getElementById('pre_existing_background_data').value = '';
+                    document.getElementById('pre_existing_background_data').value = '';
                 }
                 Y.one(SELECTORS.BACKGROUNDUPLOADED).set('value', 1);
                 if(image.width && image.width != null){
@@ -290,7 +312,7 @@ YUI.add('moodle-qtype_drawing-form', function(Y) {
         },
         create_canvas_new_question: function(questionID) {
             if (questionID == 0) {
-                      Xtextarea = Y.one(SELECTORS.CANVASTEXTAREAEDITMODE);
+                Xtextarea = Y.one(SELECTORS.CANVASTEXTAREAEDITMODE);
             } else {
                 Xtextarea = Y.one(SELECTORS.CANVASTEXTAREATESTMODE + questionID + '"]');
             }
@@ -305,7 +327,7 @@ YUI.add('moodle-qtype_drawing-form', function(Y) {
                 applyTextArea = true;
             }
             if (questionID == 0) {
-                      Xtextarea = Y.one(SELECTORS.CANVASTEXTAREAEDITMODE);
+                Xtextarea = Y.one(SELECTORS.CANVASTEXTAREAEDITMODE);
             } else {
                 Xtextarea = Y.one(SELECTORS.CANVASTEXTAREATESTMODE + questionID + '"]');
             }
@@ -323,9 +345,9 @@ YUI.add('moodle-qtype_drawing-form', function(Y) {
         canvas_get_textarea: function(node) {
             questionID = this.canvas_get_question_id(node);
             if (questionID == 0) {
-                       return Y.one(SELECTORS.CANVASTEXTAREAEDITMODE);
+                return Y.one(SELECTORS.CANVASTEXTAREAEDITMODE);
             } else {
-                    return Y.one(SELECTORS.CANVASTEXTAREATESTMODE + questionID + '"]');
+                return Y.one(SELECTORS.CANVASTEXTAREATESTMODE + questionID + '"]');
             }
         },
         canvas_get_question_id: function(node) {
@@ -340,9 +362,9 @@ YUI.add('moodle-qtype_drawing-form', function(Y) {
         },
 
         DisableConxMenu:  function(e) {
-             e.preventDefault();
-             e.stopPropagation();
-             return false;
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
         },
     };
 }, '@VERSION@', {requires: ['node', 'event'] });

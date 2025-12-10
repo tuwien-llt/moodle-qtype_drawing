@@ -335,7 +335,7 @@ class qtype_drawing_renderer extends qtype_renderer {
             $background[1] = '';
         }
         $canvas .= '
-					<script type="text/javascript" src="'.$CFG->wwwroot.'/question/type/drawing/js/embedapi.js"></script>
+					<script type="text/javascript" src="'.$CFG->wwwroot.'/question/type/drawing/amd/src/embedapi.js"></script>
 					<script type="text/javascript">
 					svgCanvas = null;
 					function init_qtype_drawing_embed(qid) {
