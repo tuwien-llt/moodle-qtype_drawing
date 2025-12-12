@@ -75,8 +75,296 @@ class qtype_drawing_renderer extends qtype_renderer {
         $imgdatauri = 'data:' . $imagesize['mime'] . ';base64,' . base64_encode($imgdata);
         return $imgdatauri;
     }
-
     public function formulation_and_controls(question_attempt $qa, question_display_options $options) {
+        global $CFG, $DB, $USER;
+
+        $question = $qa->get_question();
+        $canvasinstanceid = uniqid();
+
+        // 1. Load Canvas Info
+        $canvasinfo = $DB->get_record('qtype_drawing', array('questionid' => $question->id));
+        if (!$canvasinfo) {
+            $canvasinfo = new stdClass();
+            $canvasinfo->backgroundwidth = 800;
+            $canvasinfo->backgroundheight = 600;
+        }
+
+        // 2. Prepare Attempt Identifiers
+        $currentanswer = $qa->get_last_qt_var('answer');
+        $attemptid = $qa->get_last_qt_var('uniqueuattemptid');
+
+        // Handle first time attempt ID generation
+        if ($options->readonly && !$attemptid) {
+            $attemptid = substr(md5($currentanswer), 0, 14) . 'XX';
+        }
+        if (!$attemptid) {
+            $attemptid = random_string(16);
+        }
+
+        $uniqueattemptinputname = $qa->get_qt_field_name('uniqueuattemptid');
+        $uniquefieldnameattemptid = '_' . str_replace(':', '_', $uniqueattemptinputname);
+        $attemptuniqueid = $attemptid . $uniquefieldnameattemptid;
+
+        // 3. Get Background Image
+        $background = self::get_image_for_question($question);
+        if ($background === null || !isset($background)) {
+            $background = array(null, null, null); // [type, content, filename]
+        }
+
+        // 4. Check Permissions (Annotator vs Student)
+        $isannotator = 0;
+        if (empty($question->contextid)) {
+            $question->contextid = 1;
+        }
+        if (has_capability('mod/quiz:grade', context::instance_by_id($question->contextid, IGNORE_MISSING))) {
+            $isannotator = 1;
+        }
+
+        // 5. Determine View Mode
+        // We show the editor if the student is taking the quiz (not readonly)
+        // OR if the user is an annotator (even if it's readonly for the student).
+        $show_editor = !$options->readonly || $isannotator;
+
+        // 6. Initialize Data Array
+        $data = [
+            'questionid' => $question->id,
+            'canvasinstanceid' => $canvasinstanceid,
+            'uniqueattemptinputname' => $uniqueattemptinputname,
+            'uniqueattemptid' => $attemptid,
+            'attemptuniqueid' => $attemptuniqueid,
+            'readonly' => !$show_editor,
+            'width' => $canvasinfo->backgroundwidth,
+            'height' => $canvasinfo->backgroundheight,
+            'questiontext' => $question->format_questiontext($qa),
+            'inputname' => $qa->get_qt_field_name('answer'),
+            'original_bg_value' => '', // Default empty for student
+            'original_student_answer' => '', // Default empty for student
+            'original_bg_type' => '',
+            'textarea_data_info' => ''
+        ];
+
+        // Handle Validation Errors
+        if ($qa->get_state() == question_state::$invalid) {
+            $data['validationerror'] = $question->get_validation_error(array('answer' => $currentanswer));
+        }
+
+        self::translate_to_js($this->page);
+
+        // -------------------------------------------------------------------------
+        // CASE A: EDITOR VIEW (Student Attempting OR Annotator Grading)
+        // -------------------------------------------------------------------------
+        if ($show_editor) {
+            $data['loadingimageurl'] = $CFG->wwwroot . '/question/type/drawing/images/loading.gif';
+            $data['str_fullscreen'] = get_string('enterfullscreen', 'qtype_drawing');
+
+            // Default values (Student Attempting)
+            $editor_content = $currentanswer;
+            $editor_bg_type = $background[0];
+            $editor_bg_value = $background[1];
+
+            // SPECIAL LOGIC FOR ANNOTATOR
+            if ($options->readonly && $isannotator) {
+
+                // Store original values for the hidden textareas that drawingarea.php checks
+                $data['original_bg_value'] = $background[1];
+                $data['original_student_answer'] = $currentanswer;
+                $data['original_bg_type'] = $background[0];
+
+                // Get original user ID (the student who took the attempt)
+                $step = $qa->get_last_step_with_qt_var('answer');
+                $originaluserid = $step->get_user_id();
+
+                // Get Attempt Count
+                $moodleattempt = optional_param('attempt', null, PARAM_INT);
+                if (!$moodleattempt) {
+                    $raw = (array)$options->questionreviewlink;
+                    foreach ($raw as $val) { if(is_array($val)){ $moodleattempt = $val['attempt']; }}
+                }
+                $attemptcount = 1;
+                if ($moodleattempt && $attemptrec = $DB->get_record('quiz_attempts', array('id' => $moodleattempt))) {
+                    $attemptcount = $attemptrec->attempt;
+                }
+
+                // 1. Construct the "Background" for the Annotator.
+                // It must include the Original Background + Student Answer + Other Annotations.
+                $annotationstr = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="baseSVGannotation" width="'.$canvasinfo->backgroundwidth.'" height="'.$canvasinfo->backgroundheight.'">';
+
+                // Add Original Background
+                if ($background[0] == 'svg') {
+                    $bg_clean = preg_replace("/<\\?xml.*\\?>/", '', $background[1]);
+                    $bg_clean = preg_replace("/<\!DOCTYPE.*\>/", '', $bg_clean);
+                    $annotationstr .= trim($bg_clean);
+                } else {
+                    $annotationstr .= '<image xlink:href="'.$background[1].'" height="'.$canvasinfo->backgroundheight.'" width="'.$canvasinfo->backgroundwidth.'" preserveAspectRatio="none"></image>';
+                }
+
+                // Add Student Answer
+                $std_clean = preg_replace("/<\\?xml.*\\?>/", '', $currentanswer);
+                $std_clean = preg_replace("/<\!DOCTYPE.*\>/", '', $std_clean);
+                $annotationstr .= $std_clean;
+
+                // Add Previous Annotations (Except current user's draft)
+                $annotations = $DB->get_records('qtype_drawing_annotations', [
+                    'questionid' => $question->id,
+                    'attemptid' => $attemptid,
+                    'annotatedfor' => $originaluserid,
+                    'attemptcount' => $attemptcount
+                ]);
+
+                $editor_content = ''; // Reset content. We only load OUR annotation here.
+                $data['textarea_data_info'] = 'original_student_answer'; // Default info flag
+
+                if ($annotations) {
+                    foreach ($annotations as $ann) {
+                        if ($ann->annotatedby == $USER->id) {
+                            // This is the annotator's previous save/draft. Load it for editing.
+                            $editor_content = $ann->annotation;
+                            $data['textarea_data_info'] = 'last_annotation_by_user';
+                        } else {
+                            // Burn other people's annotations into the background
+                            $annotationstr .= $ann->annotation;
+                        }
+                    }
+                }
+
+                $annotationstr .= '</svg>';
+
+                // Override parameters passed to template
+                $editor_bg_type = 'svg';
+                $editor_bg_value = $annotationstr;
+            }
+
+            // Fill template variables
+            $data['currentanswer'] = $editor_content;
+            $data['backgroundimagevalue'] = $editor_bg_value;
+            $data['backgroundimagetype'] = $editor_bg_type;
+
+            // Iframe URL
+            $step = $qa->get_last_step_with_qt_var('answer');
+            $originaluserid = ($step) ? $step->get_user_id() : $USER->id;
+
+            if (!isset($attemptcount)) {
+                $moodleattempt = optional_param('attempt', null, PARAM_INT);
+                if ($moodleattempt && $rec = $DB->get_record('quiz_attempts', array('id' => $moodleattempt))) {
+                    $attemptcount = $rec->attempt;
+                } else {
+                    $attemptcount = 1;
+                }
+            }
+
+            // CRITICAL FIX: Pass the actual readonly state to the iframe parameter.
+            // If it's a teacher grading ($options->readonly is true), we MUST pass 1.
+            // This tells drawingarea.php to show the teacher controls (Save Annotation).
+            // If it's a student attempting ($options->readonly is false), we pass 0.
+            $iframe_readonly_param = $options->readonly ? 1 : 0;
+
+            $iframe_params = [
+                'id' => $question->id,
+                'attemptid' => $attemptid,
+                'stid' => $originaluserid,
+                'uniquefieldnameattemptid' => $uniquefieldnameattemptid,
+                'attemptcount' => $attemptcount,
+                'readonly' => $iframe_readonly_param,
+                'sesskey' => sesskey()
+            ];
+            $data['iframeurl'] = new moodle_url('/question/type/drawing/drawingarea.php', $iframe_params);
+
+            // Initialize Editor JS
+            $this->page->requires->js_call_amd('qtype_drawing/embedapi', 'encode', []);
+            $this->page->requires->js_call_amd('qtype_drawing/view', 'init', [
+                $attemptuniqueid,
+                $question->id,
+                'qtype_drawing_editor_' . $attemptuniqueid,
+                'qtype_drawing_drawingwrapper_' . $attemptuniqueid,
+                'qtype_drawing_togglebutton_id_' . $attemptuniqueid,
+                'quiz_timer_drawing_' . $attemptuniqueid
+            ]);
+        }
+        // -------------------------------------------------------------------------
+        // CASE B: READ-ONLY VIEW (Student Reviewing)
+        // -------------------------------------------------------------------------
+        else {
+            $data['str_showanswer'] = get_string('showanswer', 'qtype_drawing');
+            $data['str_showannotation'] = get_string('showannotation', 'qtype_drawing');
+
+            // 1. Prepare Background Style
+            if ($background[0] == 'svg') {
+                $bg_content = preg_replace("/<\\?xml.*\\?>/", '', $background[1]);
+                $bg_content = preg_replace("/<\!DOCTYPE.*\>/", '', $bg_content);
+                $final_bg = trim($bg_content);
+                $bg_url_css = 'data:image/svg+xml;utf8,' . rawurlencode($background[1]);
+            } else {
+                $final_bg = $background[1];
+                $bg_url_css = $background[1];
+            }
+
+            $bg_style = (!$bg_url_css || trim($bg_url_css) == '') ? "background: #fff" : "background-image: url($bg_url_css)";
+
+            // 2. Student Answer View
+            $studentmergedanswer = str_replace('<svg',
+                "<svg style='$bg_style; background-repeat: no-repeat; background-size: {$canvasinfo->backgroundwidth}px {$canvasinfo->backgroundheight}px;' ",
+                $currentanswer);
+            $data['student_answer_svg_content'] = $studentmergedanswer;
+
+            // 3. Annotated View
+            $annotation_content = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="StudentAnnotatedAnswer" width="'.$canvasinfo->backgroundwidth.'" height="'.$canvasinfo->backgroundheight.'">';
+
+            if ($background[0] == 'svg') {
+                $annotation_content .= $final_bg;
+                $annotation_content .= $currentanswer;
+            } else {
+                $annotation_content .= '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'.$canvasinfo->backgroundwidth.'" height="'.$canvasinfo->backgroundheight.'">';
+                if ($final_bg) {
+                    $annotation_content .= '<image xlink:href="'.$final_bg.'" height="'.$canvasinfo->backgroundheight.'" width="'.$canvasinfo->backgroundwidth.'" preserveAspectRatio="none"></image>';
+                }
+                $annotation_content .= '</svg>';
+                $annotation_content .= $currentanswer;
+            }
+
+            // Fetch Annotations
+            $moodleattempt = optional_param('attempt', null, PARAM_INT);
+            if (!$moodleattempt) {
+                $raw = (array)$options->questionreviewlink;
+                foreach ($raw as $val) { if(is_array($val)){ $moodleattempt = $val['attempt']; }}
+            }
+            $attemptcount = 1;
+            if ($moodleattempt && $rec = $DB->get_record('quiz_attempts', array('id' => $moodleattempt))) {
+                $attemptcount = $rec->attempt;
+            }
+
+            $annotations = $DB->get_records('qtype_drawing_annotations', [
+                'questionid' => $question->id,
+                'attemptid' => $attemptid,
+                'annotatedfor' => $USER->id, // Student views their own
+                'attemptcount' => $attemptcount
+            ]);
+
+            $has_annotations = false;
+            if ($annotations) {
+                foreach ($annotations as $ann) {
+                    $annotation_content .= $ann->annotation;
+                }
+                $has_annotations = true;
+            }
+            $annotation_content .= '</svg>';
+            $data['annotation_svg_content'] = $annotation_content;
+
+            // Toggle Button Logic
+            $data['showannotationtoggle'] = $has_annotations && !empty($studentmergedanswer);
+
+            $this->page->requires->js_call_amd('qtype_drawing/view', 'init_annotation_toggle', [
+                'id_qtype_drawing_toggle_annotation_' . $attemptuniqueid,
+                'qtype_drawing_final_student_toggle_annotation_' . $attemptuniqueid,
+                'qtype_drawing_final_student_toggle_answer_' . $attemptuniqueid,
+                $data['str_showanswer'],
+                $data['str_showannotation']
+            ]);
+        }
+
+        return $this->render_from_template('qtype_drawing/formulation', $data);
+    }
+    // TODO - delete
+    public function formulation_and_controls0(question_attempt $qa, question_display_options $options) {
 
         global $CFG, $DB;
         // A unique instance id for this particular canvas presentation. Will help refer back to it afterwards.
@@ -134,11 +422,12 @@ class qtype_drawing_renderer extends qtype_renderer {
         if (has_capability('mod/quiz:grade', context::instance_by_id($question->contextid, IGNORE_MISSING))) {
             $isannotator = 1;
         }
-
-        if (!empty($background) && !$options->readonly) {
+        // TODO SN - delete this
+        /*if (!empty($background) && !$options->readonly) {
             $this->page->requires->yui_module('moodle-qtype_drawing-form', 'Y.Moodle.qtype_drawing.form.attemptquestion',
                             array($question->id, $background[1], $canvasinfo->backgroundwidth, $canvasinfo->backgroundheight, $background[0]));
-        }
+        }*/
+        // TODO SN - to here
         $canvas = "<input type=\"hidden\"
         name=\"$uniqueattemptinputname\" value = \"$attemptid\">";
         $canvas .= "<input type=\"hidden\" class=\"qtype_drawing_input\" name=\"qtype_drawingsaving_status_" . $question->id . "\"
@@ -335,7 +624,7 @@ class qtype_drawing_renderer extends qtype_renderer {
             $background[1] = '';
         }
         $canvas .= '
-					<script type="text/javascript" src="'.$CFG->wwwroot.'/question/type/drawing/amd/src/embedapi.js"></script>
+					<script type="module" src="'.$CFG->wwwroot.'/question/type/drawing/amd/src/embedapi.js"></script>
 					<script type="text/javascript">
 					svgCanvas = null;
 					function init_qtype_drawing_embed(qid) {

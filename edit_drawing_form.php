@@ -312,23 +312,31 @@ class qtype_drawing_edit_form extends question_edit_form {
     }
 
     public function js_call() {
-        $drawingconfig = get_config('qtype_drawing');
         global $PAGE;
-        $PAGE->requires->yui_module('moodle-qtype_drawing-form', 'Y.Moodle.qtype_drawing.form.qtype_drawing_size_listener',
-                                    array($drawingconfig->defaultcanvaswidth, $drawingconfig->defaultcanvasheight));
+        $drawingconfig = get_config('qtype_drawing');
+
+        // Load strings for JS usage
+        qtype_drawing_renderer::translate_to_js($PAGE);
+
+        // Call the AMD module
+        $PAGE->requires->js_call_amd('qtype_drawing/form', 'qtype_drawing_size_listener',
+            array($drawingconfig->defaultcanvaswidth, $drawingconfig->defaultcanvasheight));
+
         if (isset($this->question->id)) {
             $qid = $this->question->id;
         } else {
             $qid = 0;
         }
-        qtype_drawing_renderer::translate_to_js($PAGE);
-        $PAGE->requires->jquery();
+
         if ($qid == 0) {
-            $PAGE->requires->yui_module('moodle-qtype_drawing-form', 'Y.Moodle.qtype_drawing.form.newquestion', array());
+            $PAGE->requires->js_call_amd('qtype_drawing/form', 'newquestion', array());
         } else {
-            $PAGE->requires->yui_module('moodle-qtype_drawing-form', 'Y.Moodle.qtype_drawing.form.editquestion',
-                                        array($qid, $this->question->options->backgroundheight,
-                                            $this->question->options->backgroundwidth));
+            // Ensure options exist to prevent warnings
+            $bg_height = isset($this->question->options->backgroundheight) ? $this->question->options->backgroundheight : 0;
+            $bg_width = isset($this->question->options->backgroundwidth) ? $this->question->options->backgroundwidth : 0;
+
+            $PAGE->requires->js_call_amd('qtype_drawing/form', 'editquestion',
+                array($qid, $bg_height, $bg_width));
         }
     }
 
