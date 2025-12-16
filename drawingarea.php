@@ -243,6 +243,7 @@ $context = [
     'backgroundheight' => $fhd->backgroundheight,
     'questionembed' => $fhd->questionembed == 1,
     'questiontext' => $question-> questiontext,
+    'defaultpensize' => $fhd->defaultpensize,
     'stid' => $stid,
     'attemptid' => strip_tags($attemptid),
     'uniquefieldnameattemptid' => strip_tags($uniquefieldnameattemptid),

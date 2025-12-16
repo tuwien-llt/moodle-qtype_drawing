@@ -223,6 +223,15 @@ class qtype_drawing_edit_form extends question_edit_form {
         $mform->setDefault('preservear', 1);
 
 
+        $pensizearray = [];
+        for ($i = 1; $i < 100; $i++) {
+            $pensizearray[$i] = strval($i) . 'px';
+        }
+        $mform->addElement('select', 'defaultpensize', get_string('defaultpensize', 'qtype_drawing'), $pensizearray);
+        $mform->setDefault('defaultpensize', 5); // TODO $drawingconfig->defaultpensize);
+        $mform->addHelpButton('defaultpensize', 'defaultpensize', 'qtype_drawing');
+
+
         // TODO - add new settings here
 
         $mform->addElement('html', '<div style="display:none">'); // Hide until version 2.

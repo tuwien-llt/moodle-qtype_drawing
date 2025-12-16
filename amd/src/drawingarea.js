@@ -174,6 +174,7 @@ export const init = (config) => {
     window.uniquefieldnameattemptid = config.uniquefieldnameattemptid;
     baseurl = config.baseurl;
     window.jQuery = window.$;
+    const defaultPensize = config.defaultpensize;
 
 // Logic for save button state based on parent window input
     const answertxtarea = $(
@@ -210,6 +211,10 @@ export const init = (config) => {
                 if (config.useupdateannotationjs) {
                     window.setInterval(window.methodDraw.updateAnnotationDetails, 30000);
                 }
+
+
+                $('#stroke_width').val(defaultPensize);
+                window.svgCanvas.setStrokeWidth(defaultPensize);
 
 
 

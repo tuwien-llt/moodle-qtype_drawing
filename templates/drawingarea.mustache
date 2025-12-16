@@ -739,14 +739,35 @@
                     </div>
                 </div>
             </div>
-            <div class="tool_button" id="tool_zoom"
-                 title="{{str.zoomtool}}" style="display:none;"></div>
+            <div class="tool_button" id="tool_zoom" style="display:none;"
+                 title="{{str.zoomtool}}"></div>
             <div class="tool_button" id="tool_undo"
                  style="background:#2f2f2c"><img src="images/undo.svg" width="30" height="30"></div>
             <div class="tool_button" id="tool_redo"
                  style="background:#2f2f2c"><img src="images/redo.svg" width="30" height="30"></div>
+            <div id="zoom_panel" class="tool_button2" title="{{str.changezoom}}">
+                <div class="" id="zoom_label">
+                    <label for="zoom_select"  id="zoomLabel" class="zoom_tool icon_label"></label>
+                    <select id="zoom_select">
+                        <option value="6">6%</option>
+                        <option value="12">12%</option>
+                        <option value="16">16%</option>
+                        <option value="25">25%</option>
+                        <option value="50">50%</option>
+                        <option value="75">75%</option>
+                        <option value="100"  selected="selected">100%</option>
+                        <option value="150">150%</option>
+                        <option value="200">200%</option>
+                        <option value="300">300%</option>
+                        <option value="400">400%</option>
+                        <option value="500">500%</option>
+                    </select>
+                    <input id="zoom" size="3" value="100%" type="text" readonly="readonly" style="display:none;" />
+                </div>
+            </div>
         </div>
         <div id="tools_bottom" class="tools_panel">
+            <!--
             <div id="zoom_panel" class="toolset" title="{{str.changezoom}}">
                 <div class="draginput select" id="zoom_label">
                     <span  id="zoomLabel" class="zoom_tool icon_label"></span>
@@ -768,7 +789,7 @@
                     <input id="zoom" size="3" value="100%" type="text" readonly="readonly" />
                 </div>
             </div>
-
+            -->
         </div>
         <div id="color_picker"></div>
     </div> <div id="svg_source_editor">
@@ -874,6 +895,7 @@
             stid: {{stid}},
             attemptid: "{{attemptid}}",
             attemptcount: {{attemptcount}},
+            defaultpensize: {{defaultpensize}},
             uniquefieldnameattemptid: "{{uniquefieldnameattemptid}}",
             useupdateannotationjs: {{#useupdateannotationjs}}true{{/useupdateannotationjs}}{{^useupdateannotationjs}}false{{/useupdateannotationjs}}
         });

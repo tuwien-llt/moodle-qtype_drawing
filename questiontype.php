@@ -100,6 +100,7 @@ class qtype_drawing extends question_type {
             $options->preservear = 1;
             $options->drawingoptions = '';
             $options->questionembed = 0; //TODO $drawingconfig->questionembed;
+            $options->defaultpensize = 0; //TODO $drawingconfig->defaultpensize;
             //TODO - add new settings here
             $options->id = $DB->insert_record('qtype_drawing', $options);
         }
@@ -114,6 +115,7 @@ class qtype_drawing extends question_type {
         }
         $options->preservear = $question->preservear;
         $options->questionembed = isset($question->questionembed) ? $question->questionembed : 0; //TODO $drawingconfig->questionembed for default;
+        $options->defaultpensize = isset($question->defaultpensize) ? $question->defaultpensize : 5; //TODO $drawingconfig->questionembed for default;
 
         $DB->update_record('qtype_drawing', $options);
         $this->save_hints($question);
