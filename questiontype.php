@@ -101,6 +101,7 @@ class qtype_drawing extends question_type {
             $options->drawingoptions = '';
             $options->questionembed = 0; //TODO $drawingconfig->questionembed;
             $options->defaultpensize = 0; //TODO $drawingconfig->defaultpensize;
+            $options->colorsjson = '{}'; //TODO $drawingconfig->colorsjson;
             //TODO - add new settings here
             $options->id = $DB->insert_record('qtype_drawing', $options);
         }
@@ -116,6 +117,7 @@ class qtype_drawing extends question_type {
         $options->preservear = $question->preservear;
         $options->questionembed = isset($question->questionembed) ? $question->questionembed : 0; //TODO $drawingconfig->questionembed for default;
         $options->defaultpensize = isset($question->defaultpensize) ? $question->defaultpensize : 5; //TODO $drawingconfig->questionembed for default;
+        $options->colorsjson = isset($question->colorsjson) ? $question->colorsjson : '{}'; //TODO $drawingconfig->colorsjson;
 
         $DB->update_record('qtype_drawing', $options);
         $this->save_hints($question);
@@ -308,6 +310,83 @@ class qtype_drawing extends question_type {
                $fs->create_file_from_string($record, $imgbinarydata);
         }
         return $question;
+    }
+
+    /**
+     * Returns a list of colors for the template, filtered by role availability
+     * and sorted with the default color first.
+     *
+     * @param bool $teacherview True for Trainer/Teacher view, False for Student view.
+     * @param string $colorsjson The JSON string from the configuration field.
+     * @return array List of color objects (e.g., [['hex' => '#ff0000', 'selected' => true], ...])
+     */
+    public static function get_colors_for_template($teacherview, $colorsjson) {
+        // 1. Decode the JSON configuration
+        if (empty($colorsjson)) {
+            return [];
+        }
+
+        $config = json_decode($colorsjson);
+        if (json_last_error() !== JSON_ERROR_NONE || !isset($config->colors)) {
+            return [];
+        }
+
+        // 2. Define role-specific keys based on $teacherview
+        if ($teacherview) {
+            $global_avail_key = 'trainerAvailable';
+            $item_avail_key = 'avail_trainer';
+            $default_key = 'def_trainer';
+        } else {
+            $global_avail_key = 'studentAvailable';
+            $item_avail_key = 'avail_student';
+            $default_key = 'def_student';
+        }
+
+        // 3. Check Global Availability
+        // If the "Color selection available for X" checkbox is unchecked, return empty list.
+        if (empty($config->globalSettings->$global_avail_key)) {
+            return [];
+        }
+
+        $filtered_colors = [];
+        $default_color = null;
+
+        // 4. Iterate and Filter
+        $colorid = 1;
+        foreach ($config->colors as $color) {
+            // Ensure data integrity
+            if (empty($color->hex)) {
+                continue;
+            }
+
+            // Check if this specific color is available for the current role
+            // We cast to bool to ensure correct comparison
+            $is_available = !empty($color->$item_avail_key);
+            $is_default = !empty($color->$default_key);
+
+            // Logic: Include the color if it is explicitly available OR if it is marked as the default
+            // (A default color should strictly be available, but this prevents errors if a user misconfigures it)
+            if ($is_available || $is_default) {
+                $color_obj = [
+                    'hex' => $color->hex,
+                    'selected' => $is_default,
+                    'colorid' => $colorid++
+                ];
+
+                if ($is_default) {
+                    $default_color = $color_obj;
+                } else {
+                    $filtered_colors[] = $color_obj;
+                }
+            }
+        }
+
+        // 5. Sort: Place the default color at the very beginning of the array
+        if ($default_color) {
+            array_unshift($filtered_colors, $default_color);
+        }
+
+        return [$filtered_colors, $default_color];
     }
 
 }

@@ -231,7 +231,9 @@ class qtype_drawing_edit_form extends question_edit_form {
         $mform->setDefault('defaultpensize', 5); // TODO $drawingconfig->defaultpensize);
         $mform->addHelpButton('defaultpensize', 'defaultpensize', 'qtype_drawing');
 
-
+        $mform->addElement('textarea', 'colorsjson', 'Color Configuration');
+        $mform->setType('colorsjson', PARAM_RAW);
+        $PAGE->requires->js_call_amd('qtype_drawing/color_config', 'init', ['id_colorsjson']);
         // TODO - add new settings here
 
         $mform->addElement('html', '<div style="display:none">'); // Hide until version 2.

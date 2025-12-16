@@ -175,6 +175,7 @@ export const init = (config) => {
     baseurl = config.baseurl;
     window.jQuery = window.$;
     const defaultPensize = config.defaultpensize;
+    const defaultColor = config.defaultColor;
 
 // Logic for save button state based on parent window input
     const answertxtarea = $(
@@ -216,8 +217,8 @@ export const init = (config) => {
                 $('#stroke_width').val(defaultPensize);
                 window.svgCanvas.setStrokeWidth(defaultPensize);
 
-
-
+                window.svgCanvas.setColor('stroke', defaultColor);
+                window.svgCanvas.setColor('fill', defaultColor);
 
             });
             window.methodDraw.init();
