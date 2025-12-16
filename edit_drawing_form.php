@@ -201,6 +201,7 @@ class qtype_drawing_edit_form extends question_edit_form {
         $drawingconfig = get_config('qtype_drawing');
 
         $mform->addElement('selectyesno', 'questionembed', get_string('questionembed', 'qtype_drawing'));
+        $mform->setDefault('questionembed', $drawingconfig->questionembed);
         $mform->addHelpButton('questionembed', 'questionembed', 'qtype_drawing');
 
 
@@ -228,13 +229,19 @@ class qtype_drawing_edit_form extends question_edit_form {
             $pensizearray[$i] = strval($i) . 'px';
         }
         $mform->addElement('select', 'defaultpensize', get_string('defaultpensize', 'qtype_drawing'), $pensizearray);
-        $mform->setDefault('defaultpensize', 5); // TODO $drawingconfig->defaultpensize);
+        $mform->setDefault('defaultpensize', $drawingconfig->defaultpensize);
         $mform->addHelpButton('defaultpensize', 'defaultpensize', 'qtype_drawing');
 
-        $mform->addElement('textarea', 'colorsjson', 'Color Configuration');
+        $mform->addElement('textarea', 'colorsjson', get_string('colors:config', 'qtype_drawing'));
         $mform->setType('colorsjson', PARAM_RAW);
+        $mform->setDefault('colorsjson', $drawingconfig->colorsjson);
         $PAGE->requires->js_call_amd('qtype_drawing/color_config', 'init', ['id_colorsjson']);
-        // TODO - add new settings here
+
+        // Add colormarker text field
+        $mform->addElement('text', 'colormarker', get_string('color:marker', 'qtype_drawing'));
+        $mform->setType('colormarker', PARAM_RAW);
+        $mform->setDefault('colormarker', $drawingconfig->colormarker);
+        $mform->addHelpButton('colormarker', 'color:marker', 'qtype_drawing');
 
         $mform->addElement('html', '<div style="display:none">'); // Hide until version 2.
         $mform->addElement('checkbox', 'allowstudentimage', get_string('allowstudentimage', 'qtype_drawing'), '&nbsp;');

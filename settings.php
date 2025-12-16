@@ -27,16 +27,7 @@ if ($ADMIN->fulltree) {
     // Introductory explanation that all the settings are defaults for the edit_drawing_form.
     $settings->add(
             new admin_setting_heading('configintro', '', get_string('configintro', 'qtype_drawing')));
-    // Teachers can chose which drawing mode?.
-    $settings->add(
-            new admin_setting_configcheckbox('qtype_drawing/allowteachertochosemode',
-                    get_string('allowteachertochosemode', 'qtype_drawing'),
-                    get_string('allowteachertochosemode_help', 'qtype_drawing'), 0));
-    // Teachers can allow Eraser?.
-    $settings->add(
-                    new admin_setting_configcheckbox('qtype_drawing/enableeraser',
-                                    get_string('enableeraser', 'qtype_drawing'),
-                                    get_string('enableeraser_help', 'qtype_drawing'), 0));
+
     // Default canvas width.
     $settings->add(
             $x = new admin_setting_configtext('qtype_drawing/defaultcanvaswidth',
@@ -47,4 +38,30 @@ if ($ADMIN->fulltree) {
             new admin_setting_configtext('qtype_drawing/defaultcanvasheight',
                     get_string('defaultcanvasheight', 'qtype_drawing'),
                     get_string('defaultcanvasheight_help', 'qtype_drawing'), 400, PARAM_INT, 4));
+
+    // Default pen size.
+    $settings->add(
+            new admin_setting_configtext('qtype_drawing/defaultpensize',
+                    get_string('defaultpensize', 'qtype_drawing'),
+                    get_string('defaultpensize_help', 'qtype_drawing'), 10, PARAM_INT, 1));
+
+    // add setting questionembed
+    $settings->add(
+            new admin_setting_configcheckbox('qtype_drawing/questionembed',
+                    get_string('questionembed', 'qtype_drawing'),
+                    get_string('questionembed_help', 'qtype_drawing'), 1));
+
+    // Add setting colorsjson - textarea
+    $defaultjson = '{"colors":[{"hex":"#336699","avail_student":true,"avail_trainer":true,"def_student":false,"def_trainer":false},{"hex":"#456","avail_student":true,"avail_trainer":true,"def_student":false,"def_trainer":false},{"hex":"#ccc","avail_student":true,"avail_trainer":true,"def_student":true,"def_trainer":false},{"hex":"#ee0","avail_student":false,"avail_trainer":true,"def_student":false,"def_trainer":false},{"hex":"#f00","avail_student":false,"avail_trainer":true,"def_student":false,"def_trainer":true}],"globalSettings":{"trainerAvailable":true,"studentAvailable":true}}';
+    $settings->add(
+            new admin_setting_configtextarea('qtype_drawing/colorsjson',
+                    get_string('colors:config', 'qtype_drawing'),
+                    get_string('colors:config_help', 'qtype_drawing'), $defaultjson, PARAM_RAW));
+
+    $PAGE->requires->js_call_amd('qtype_drawing/color_config', 'init', ['id_s_qtype_drawing_colorsjson']);
+
+    // Add setting colormarker - text
+    $settings->add(
+        new admin_setting_configtext('qtype_drawing/colormarker', get_string('color:marker', 'qtype_drawing'), get_string('color:marker_help', 'qtype_drawing'), '#ff0', PARAM_RAW)
+    );
 }

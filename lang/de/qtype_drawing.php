@@ -168,8 +168,6 @@ $string['defaultcanvaswidth'] = 'Standard Zeichenfläche (Canvas) Breite';
 $string['defaultcanvaswidth_help'] = 'Hier stellen Sie die Standard-Breite der Zeichenfläche ein';
 $string['defaultcanvasheight'] = 'Standard Zeichenfläche (Canvas) Höhe';
 $string['defaultcanvasheight_help'] = 'Hier stellen Sie die Standard-Höhe der Zeichenfläche ein';
-$string['allowteachertochosemode'] = 'Den Teachers erlauben, den Zeichnungsmodus zu wählen?';
-$string['allowteachertochosemode_help'] = 'Wenn diese Option aktiviert ist, dürfen Teachers den Zeichnungsmodus wählen';
 $string['configintro'] = 'Freihandzeichnen site-level Konfiguration';
 $string['tasktitle'] = 'Fragetitel';
 $string['maxpoints'] = 'Erreichbare Punkte';
@@ -206,6 +204,8 @@ $string['enableeraser_help'] = 'Wenn diese Option aktiviert ist, dürfen Teacher
 $string['alloweraser'] = 'Radiergummi erlauben';
 $string['drawing_settings'] = 'Zeichnungs-Einstellungen';
 
+$string['colors:config'] = 'Farben Einstellungen';
+$string['colors:config_help'] = 'Verfügbare Farben für das Zeichnen konfigurieren';
 $string['hexcode'] = 'Hex-Farbcode (RGB)';
 $string['available_student'] = 'Verfügbar für Student/in';
 $string['available_trainer'] = 'Verfügbar für Trainer/in';
@@ -215,3 +215,6 @@ $string['add_color'] = 'Farbe hinzufügen';
 $string['global_trainer_avail'] = 'Farbauswahl für Trainer/in verfügbar';
 $string['global_student_avail'] = 'Farbauswahl für Student/in verfügbar';
 $string['delete_color'] = 'Farbe löschen';
+$string['color:marker'] = 'Markerfarbe';
+$string['color:marker_help'] = 'Farbe für die Markierung von Zeichen';
+

@@ -99,10 +99,10 @@ class qtype_drawing extends question_type {
             $options->backgroundheight = $drawingconfig->defaultcanvasheight;
             $options->preservear = 1;
             $options->drawingoptions = '';
-            $options->questionembed = 0; //TODO $drawingconfig->questionembed;
-            $options->defaultpensize = 0; //TODO $drawingconfig->defaultpensize;
-            $options->colorsjson = '{}'; //TODO $drawingconfig->colorsjson;
-            //TODO - add new settings here
+            $options->questionembed = $drawingconfig->questionembed;
+            $options->defaultpensize = $drawingconfig->defaultpensize;
+            $options->colorsjson = $drawingconfig->colorsjson;
+            $options->colormarker = $drawingconfig->colormarker;
             $options->id = $DB->insert_record('qtype_drawing', $options);
         }
         if (isset($question->allowstudentimage)) {
@@ -115,9 +115,10 @@ class qtype_drawing extends question_type {
             $question->preservear = 0;
         }
         $options->preservear = $question->preservear;
-        $options->questionembed = isset($question->questionembed) ? $question->questionembed : 0; //TODO $drawingconfig->questionembed for default;
-        $options->defaultpensize = isset($question->defaultpensize) ? $question->defaultpensize : 5; //TODO $drawingconfig->questionembed for default;
-        $options->colorsjson = isset($question->colorsjson) ? $question->colorsjson : '{}'; //TODO $drawingconfig->colorsjson;
+        $options->questionembed = isset($question->questionembed) ? $question->questionembed : $drawingconfig->questionembed;
+        $options->defaultpensize = isset($question->defaultpensize) ? $question->defaultpensize : $drawingconfig->defaultpensize;
+        $options->colorsjson = isset($question->colorsjson) ? $question->colorsjson : $drawingconfig->colorsjson;
+        $options->colormarker = isset($question->colormarker) ? $question->colormarker : $drawingconfig->colormarker;
 
         $DB->update_record('qtype_drawing', $options);
         $this->save_hints($question);
