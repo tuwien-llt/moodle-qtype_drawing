@@ -57,6 +57,7 @@ export const init = (
         } else {
             $wrapper.css('height', $iframe.height() + 'px');
         }
+
     };
 
     // Initialize resizing

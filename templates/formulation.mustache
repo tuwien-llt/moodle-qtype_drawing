@@ -32,9 +32,11 @@
     {
     }
 }}
-<div class="qtext">
-    {{{questiontext}}}
-</div>
+{{^questionembed}}
+    <div class="qtext">
+        {{{questiontext}}}
+    </div>
+{{/questionembed}}
 
 {{#validationerror}}
     <div class="validationerror">{{{.}}}</div>

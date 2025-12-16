@@ -78,13 +78,6 @@ $PAGE->requires->jquery();
 $PAGE->requires->jquery_plugin('ui');
 $PAGE->requires->jquery_plugin('ui-css');
 
-
-$reducedmode = 0;
-// Note: mustache template handles style display based on reducedmode boolean
-if ($fhd->drawingmode == 1) {
-     $reducedmode = 1;
-}
-
 $useupdateannotationjs = 0;
 if (has_capability('mod/quiz:grade', $cmcontext) && $readonly == 1) {
     $useupdateannotationjs = 1;
@@ -245,11 +238,11 @@ if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields, 'timem
 $context = [
     'base_url' => $CFG->wwwroot . '/question/type/drawing/',
     'id' => $id,
-    'reducedmode' => ($reducedmode == 1),
-    'reducedmode_and_eraser' => ($reducedmode == 1 && $fhd->alloweraser == 1),
     'useupdateannotationjs' => ($useupdateannotationjs == 1),
     'backgroundwidth' => $fhd->backgroundwidth,
     'backgroundheight' => $fhd->backgroundheight,
+    'questionembed' => $fhd->questionembed == 1,
+    'questiontext' => $question-> questiontext,
     'stid' => $stid,
     'attemptid' => strip_tags($attemptid),
     'uniquefieldnameattemptid' => strip_tags($uniquefieldnameattemptid),
@@ -257,12 +250,18 @@ $context = [
     'attemptcount' => $attemptcount,
     'annotations_list' => $annotationslist,
     'str' => array_merge($strings, $jsstrings),
-    'displaystylefull' => ($reducedmode == 1) ? 'style="display: none!important;"' : 'style="display: inline-block;"'
+    'displaystylefull' => 'style="display: inline-block;"'
 ];
 
-
-
-echo $OUTPUT->header();
+// Very, very dirty hack to get rid of theme css
+$baseurl = preg_quote($CFG->wwwroot . '/theme/styles.php', '#');
+$baseurl2 = preg_quote($CFG->wwwroot . '/theme/styles_debug.php', '#');
+$pattern = '#<link\b[^>]*\bhref=(["\'])' . $baseurl . '\/[^\/]+\/[^\/]+\/all\1[^>]*>#i'; // Normal styles.
+$pattern2 = '#<link\b[^>]*\bhref=(["\'])' . $baseurl2 . '[^>]*>#i'; // Debug styles.
+$headerhtml = $OUTPUT->header();
+$cleanheaderhtml = preg_replace($pattern, '', $headerhtml);
+$cleanheaderhtml = preg_replace($pattern2, '', $cleanheaderhtml);
+echo $cleanheaderhtml;
 
 echo $OUTPUT->render_from_template('qtype_drawing/drawingarea', $context);
 

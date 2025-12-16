@@ -200,6 +200,10 @@ class qtype_drawing_edit_form extends question_edit_form {
 
         $drawingconfig = get_config('qtype_drawing');
 
+        $mform->addElement('selectyesno', 'questionembed', get_string('questionembed', 'qtype_drawing'));
+        $mform->addHelpButton('questionembed', 'questionembed', 'qtype_drawing');
+
+
         $canvassizearray = array();
         $canvassizearray[] = & $mform->createElement('text', 'backgroundwidth', get_string('backgroundwidth', 'qtype_drawing'),
                                                     array('size' => 4, 'maxlength' => 5, 'id' => 'qtype_drawing_backgroundwidth'));
@@ -218,25 +222,8 @@ class qtype_drawing_edit_form extends question_edit_form {
         $mform->setType('preservear', PARAM_INT);
         $mform->setDefault('preservear', 1);
 
-        if (isset($drawingconfig->allowteachertochosemode) && $drawingconfig->allowteachertochosemode == 1) {
-            $options = array(1 => get_string('basicmode', 'qtype_drawing'), 2 => get_string('advancedmode', 'qtype_drawing'));
-            $mform->addElement('select', 'drawingmode', get_string('drawingmode', 'qtype_drawing'), $options,
-                            array('onchange' => 'document.getElementById("id_alloweraser").checked = false;'));
-            $mform->addHelpButton('drawingmode', 'drawingmode', 'qtype_drawing');
-        } else {
-            $mform->addElement('hidden', 'drawingmode', 1);
-        }
-        if (isset($drawingconfig->enableeraser) && $drawingconfig->enableeraser == 1) {
-            $mform->addElement('checkbox', 'alloweraser', get_string('alloweraser', 'qtype_drawing'));
-            $mform->disabledIf('alloweraser', 'drawingmode', 'eq', 2);
-        } else {
-            $mform->addElement('hidden', 'alloweraser', 0);
-        }
 
-        $mform->setType('alloweraser', PARAM_INT);
-        $mform->setDefault('alloweraser', 0);
-        $mform->setType('drawingmode', PARAM_INT);
-        $mform->setDefault('drawingmode', 1);
+        // TODO - add new settings here
 
         $mform->addElement('html', '<div style="display:none">'); // Hide until version 2.
         $mform->addElement('checkbox', 'allowstudentimage', get_string('allowstudentimage', 'qtype_drawing'), '&nbsp;');

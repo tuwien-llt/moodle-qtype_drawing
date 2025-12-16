@@ -66,6 +66,11 @@ const addScriptChain = (scriptArray, dependsOnModule) => {
     return previousModuleId;
 };
 
+const IDENTIFIERS = {
+    QUESTION_DRAWING: '#question_drawing',
+    QUESTION_TEXT: '#question_text-holder',
+};
+
 const scripts_default = [
     // "lib/jquery.js", // Assuming jQuery is already loaded
     "lib/pathseg.js",
@@ -98,33 +103,21 @@ const scripts_default = [
     "lib/extensions/ext-grid.js",
     "lib/requestanimationframe.js",
     "lib/taphold.js",
-    "lib/filesaver.js"
-];
-
-const scripts_noreducedmode = [
+    "lib/filesaver.js",
     "lib/extensions/ext-eyedropper.js",
-    "lib/extensions/ext-shapes.js"
-];
-
-const scripts_reducedmodeanderaser = [
+    "lib/extensions/ext-shapes.js",
+    "lib/editor/flat.js",
+    "lib/editor/flatten.js",
     "lib/extensions/erase.js",
     "lib/extensions/ext-eraser.js",
-    "lib/editor/flatten.js",
-    "lib/editor/flat.js",
 ];
 
 
 
 
-const loadscripts = (reducedmode, reducedmode_and_eraser, callback) => {
+const loadscripts = (callback) => {
 
     let lastLoaded = addScriptChain(scripts_default, null);
-    if (!reducedmode) {
-        lastLoaded = addScriptChain(scripts_noreducedmode, lastLoaded);
-    }
-    if (reducedmode_and_eraser) {
-        lastLoaded = addScriptChain(scripts_reducedmodeanderaser, lastLoaded);
-    }
 
     require([baseurl + "lib/editor/d3.js"], function(d3) {
         window.d3 = d3;
@@ -133,9 +126,18 @@ const loadscripts = (reducedmode, reducedmode_and_eraser, callback) => {
             callback();
         });
     });
+};
 
-
-
+const fixDrawingHeight = () => {
+    const $questionText = $(IDENTIFIERS.QUESTION_TEXT);
+    const $questionDrawing = $(IDENTIFIERS.QUESTION_DRAWING);
+    let questionTextHeight = 0;
+    if ($questionText.length) {
+        questionTextHeight = $questionText.outerHeight();
+    }
+    const windowHeight = $(window).height();
+    const calculatedHeight = windowHeight - questionTextHeight;
+    $questionDrawing.css('height', calculatedHeight + 'px');
 };
 /**
  * Initialize the drawing area iframe.
@@ -160,7 +162,7 @@ export const init = (config) => {
     window.qtype_drawing_str_new = config.str.new;
     window.qtype_drawing_str_current = config.str.current;
     window.qtype_drawing_str_viewgrid = config.str.viewgrid;
-    window.fhd_display_mode = config.fhd_display_mode;
+ //   window.fhd_display_mode = config.fhd_display_mode;
     window.qtype_drawing_str_annotationsaved = config.str.annotationsaved;
     window.qtype_drawing_str_saving = config.str.saving;
     window.qtype_drawing_str_saveannotation = config.str.saveannotation;
@@ -172,8 +174,6 @@ export const init = (config) => {
     window.uniquefieldnameattemptid = config.uniquefieldnameattemptid;
     baseurl = config.baseurl;
     window.jQuery = window.$;
-    const reducedmode = config.reducedmode;
-    const reducedmode_and_eraser = config.reducedmode_and_eraser;
 
 // Logic for save button state based on parent window input
     const answertxtarea = $(
@@ -185,13 +185,13 @@ export const init = (config) => {
         $("#tool_saveannotation").attr('disabled', 'disabled');
         $("#tool_saveannotation").css('background', '#ddd');
     }
+    fixDrawingHeight();
+    $(window).resize(fixDrawingHeight);
 
-    loadscripts(reducedmode, reducedmode_and_eraser, function() {
+    loadscripts(function() {
         window.parent.init_qtype_drawing_embed(window.attemptid + window.uniquefieldnameattemptid);
         if (window.methodDraw) {
-            co.log("methodDraw existing");
             window.methodDraw.ready(function() {
-                co.log("methodDraw initializing");
                 var svg = window.d3.select("#svgcontent");
                 svg.append('g').attr('id', 'erase');
 

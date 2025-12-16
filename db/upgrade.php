@@ -104,5 +104,53 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
 
         upgrade_plugin_savepoint(true, 2021081300, 'qtype', 'drawing');
     }
+
+    if ($oldversion < 2025120100) {
+
+        // Define field drawingmode to be dropped from qtype_drawing.
+        $table = new xmldb_table('qtype_drawing');
+        $field = new xmldb_field('drawingmode');
+
+        // Conditionally launch drop field drawingmode.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+        $field = new xmldb_field('alloweraser');
+
+        // Conditionally launch drop field alloweraser.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+        $field = new xmldb_field('colorsjson', XMLDB_TYPE_TEXT, null, null, null, null, null, 'drawingoptions');
+
+        // Conditionally launch add field colorsjson.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('defaultpensize', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'colorsjson');
+
+        // Conditionally launch add field defaultpensize.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('colormarker', XMLDB_TYPE_CHAR, '16', null, null, null, null, 'defaultpensize');
+
+        // Conditionally launch add field colormarker.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('questionembed', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'colormarker');
+
+        // Conditionally launch add field questionembed.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Drawing savepoint reached.
+        upgrade_plugin_savepoint(true, 2025120100, 'qtype', 'drawing');
+    }
+
     return true;
 }

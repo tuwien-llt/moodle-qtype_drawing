@@ -38,15 +38,16 @@ require_once(dirname(__FILE__) . '/renderer.php');
 class qtype_drawing_question extends question_graded_by_strategy implements question_response_answer_comparer {
     /** @var string response format */
     public string $responseformat;
-    /** @var int drawingmode */
-    public $drawingmode;
     /** @var int backgrounduploaded */
     public $backgrounduploaded;
     public $backgroundwidth;
     public $backgroundheight;
     public $preservear;
     public $drawingoptions;
-    public $alloweraser;
+    public $colorsjson;
+    public $defaultpensize;
+    public $colormarker;
+    public $questionembed;
 
     /** @var array of question_answer. */
     public $answers = array();

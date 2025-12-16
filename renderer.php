@@ -197,7 +197,6 @@ class qtype_drawing_renderer extends qtype_renderer {
                 } else {
                     $annotationstr .= '<image xlink:href="'.$background[1].'" height="'.$canvasinfo->backgroundheight.'" width="'.$canvasinfo->backgroundwidth.'" preserveAspectRatio="none"></image>';
                 }
-
                 // Add Student Answer
                 $std_clean = preg_replace("/<\\?xml.*\\?>/", '', $currentanswer);
                 $std_clean = preg_replace("/<\!DOCTYPE.*\>/", '', $std_clean);
@@ -268,6 +267,8 @@ class qtype_drawing_renderer extends qtype_renderer {
                 'sesskey' => sesskey()
             ];
             $data['iframeurl'] = new moodle_url('/question/type/drawing/drawingarea.php', $iframe_params);
+
+            $data['questionembed'] = $canvasinfo->questionembed == 1;
 
             // Initialize Editor JS
             $this->page->requires->js_call_amd('qtype_drawing/embedapi', 'encode', []);
@@ -351,6 +352,7 @@ class qtype_drawing_renderer extends qtype_renderer {
 
             // Toggle Button Logic
             $data['showannotationtoggle'] = $has_annotations && !empty($studentmergedanswer);
+
 
             $this->page->requires->js_call_amd('qtype_drawing/view', 'init_annotation_toggle', [
                 'id_qtype_drawing_toggle_annotation_' . $attemptuniqueid,

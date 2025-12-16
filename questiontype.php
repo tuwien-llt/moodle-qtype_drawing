@@ -39,8 +39,18 @@ require_once(dirname(__FILE__) . '/renderer.php');
  */
 class qtype_drawing extends question_type {
     public function extra_question_fields() {
-        return array('qtype_drawing', 'drawingmode', 'backgrounduploaded',
-                     'backgroundwidth', 'backgroundheight', 'preservear', 'drawingoptions', 'alloweraser');
+        return [
+            'qtype_drawing',
+            'backgrounduploaded',
+            'backgroundwidth',
+            'backgroundheight',
+            'preservear',
+            'drawingoptions',
+            'colorsjson',
+            'defaultpensize',
+            'colormarker',
+            'questionembed',
+        ];
     }
 
     public function questionid_column_name() {
@@ -78,26 +88,21 @@ class qtype_drawing extends question_type {
         $drawingconfig = get_config('qtype_drawing');
         $result = new stdClass();
         // Insert all the new options.
-        $options = $DB->get_record('qtype_drawing',
-        array('questionid' => $question->id
-        ));
-        if (!$question->drawingmode) {
-            $question->drawingmode = 1;
-        }
+        $options = $DB->get_record('qtype_drawing', ['questionid' => $question->id]);
+
         if (!$options) {
             $options = new stdClass();
             $options->questionid = $question->id;
-            $options->drawingmode = 1;
             $options->allowstudentimage = 0;
             $options->backgrounduploaded = 0;
             $options->backgroundwidth = $drawingconfig->defaultcanvaswidth;
             $options->backgroundheight = $drawingconfig->defaultcanvasheight;
             $options->preservear = 1;
             $options->drawingoptions = '';
-            $options->alloweraser = 0;
+            $options->questionembed = 0; //TODO $drawingconfig->questionembed;
+            //TODO - add new settings here
             $options->id = $DB->insert_record('qtype_drawing', $options);
         }
-        $options->drawingmode = $question->drawingmode;
         if (isset($question->allowstudentimage)) {
             $options->allowstudentimage = $question->allowstudentimage;
         }
@@ -108,10 +113,7 @@ class qtype_drawing extends question_type {
             $question->preservear = 0;
         }
         $options->preservear = $question->preservear;
-        if(!isset($question->alloweraser)){
-            $question->alloweraser = 0;
-        }
-        $options->alloweraser = $question->alloweraser;
+        $options->questionembed = isset($question->questionembed) ? $question->questionembed : 0; //TODO $drawingconfig->questionembed for default;
 
         $DB->update_record('qtype_drawing', $options);
         $this->save_hints($question);
