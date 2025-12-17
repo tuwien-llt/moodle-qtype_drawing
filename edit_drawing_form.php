@@ -237,11 +237,11 @@ class qtype_drawing_edit_form extends question_edit_form {
         $mform->setDefault('colorsjson', $drawingconfig->colorsjson);
         $PAGE->requires->js_call_amd('qtype_drawing/color_config', 'init', ['id_colorsjson']);
 
-        // Add colormarker text field
-        $mform->addElement('text', 'colormarker', get_string('color:marker', 'qtype_drawing'));
-        $mform->setType('colormarker', PARAM_RAW);
-        $mform->setDefault('colormarker', $drawingconfig->colormarker);
-        $mform->addHelpButton('colormarker', 'color:marker', 'qtype_drawing');
+        // Add colorhighlighter text field
+        $mform->addElement('text', 'colorhighlighter', get_string('color:highlighter', 'qtype_drawing'));
+        $mform->setType('colorhighlighter', PARAM_RAW);
+        $mform->setDefault('colorhighlighter', $drawingconfig->colorhighlighter);
+        $mform->addHelpButton('colorhighlighter', 'color:highlighter', 'qtype_drawing');
 
         $mform->addElement('html', '<div style="display:none">'); // Hide until version 2.
         $mform->addElement('checkbox', 'allowstudentimage', get_string('allowstudentimage', 'qtype_drawing'), '&nbsp;');

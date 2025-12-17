@@ -152,5 +152,19 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025120100, 'qtype', 'drawing');
     }
 
+    if ($oldversion < 2025120200) {
+
+        // Rename field colormarker on table qtype_drawing to NEWNAMEGOESHERE.
+        $table = new xmldb_table('qtype_drawing');
+        $field = new xmldb_field('colormarker', XMLDB_TYPE_CHAR, '16', null, null, null, null, 'defaultpensize');
+
+        // Launch rename field colormarker.
+        $dbman->rename_field($table, $field, 'colorhighlighter');
+
+        // Drawing savepoint reached.
+        upgrade_plugin_savepoint(true, 2025120200, 'qtype', 'drawing');
+    }
+
+
     return true;
 }

@@ -60,8 +60,8 @@ if ($ADMIN->fulltree) {
 
     $PAGE->requires->js_call_amd('qtype_drawing/color_config', 'init', ['id_s_qtype_drawing_colorsjson']);
 
-    // Add setting colormarker - text
+    // Add setting colorhighlighter - text
     $settings->add(
-        new admin_setting_configtext('qtype_drawing/colormarker', get_string('color:marker', 'qtype_drawing'), get_string('color:marker_help', 'qtype_drawing'), '#ff0', PARAM_RAW)
+        new admin_setting_configtext('qtype_drawing/colorhighlighter', get_string('color:highlighter', 'qtype_drawing'), get_string('color:highlighter_help', 'qtype_drawing'), '#ff0', PARAM_RAW)
     );
 }

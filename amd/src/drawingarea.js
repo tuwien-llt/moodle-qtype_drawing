@@ -174,6 +174,7 @@ export const init = (config) => {
     window.uniquefieldnameattemptid = config.uniquefieldnameattemptid;
     baseurl = config.baseurl;
     window.jQuery = window.$;
+    window.colorhighlighter = config.colorhighlighter;
     const defaultPensize = config.defaultpensize;
     const defaultColor = config.defaultColor;
 

@@ -372,6 +372,16 @@
                         {{/colors}}
                     </div>
                 </div>
+                <div class="stroke_tool draginput" style="width:145px;padding-bottom:2px; height:100%; display: none; "
+                     id="fastcolorhighlighterpicks">
+
+                    <span>{{#str}}color:highlighter,qtype_drawing{{/str}}</span>
+                    <div style="margin-top:15px; text-align:center;">
+                        <div id="qtype_drawing_tool_color_highlighter"
+                             class="qtype_drawing_color_divsquare"
+                             data-strokeorfill="stroke" style="background: {{colorhighlighter}};"></div>
+                    </div>
+                </div>
                 <div class="stroke_tool draginput" id="preset_sizes_panel_id"
                      style="width:125px;padding:10px; height:70px">
                     <span>{{#str}}size,qtype_drawing{{/str}}</span>
@@ -761,6 +771,7 @@
             <div class="tool_button" id="tool_select" title="{{#str}}selecttool,qtype_drawing{{/str}}"></div>
             <div class="tool_button" id="tool_text" title="{{#str}}texttool,qtype_drawing{{/str}}"></div>
             <div class="tool_button" id="tool_fhpath" title="{{#str}}drawingtool,qtype_drawing{{/str}}"></div>
+            <div class="tool_button" id="tool_highlighter" title="{{#str}}highlightertool,qtype_drawing{{/str}}"></div>
             <div class="tool_button" id="tool_line" title="{{#str}}linetool,qtype_drawing{{/str}}"></div>
             <div class="separator"></div>
             <div class="tool_button" id="tool_rect" title="{{#str}}recttool,qtype_drawing{{/str}}"></div>
@@ -944,6 +955,7 @@
                 defaultpensize: {{defaultpensize}},
                 uniquefieldnameattemptid: "{{uniquefieldnameattemptid}}",
                 defaultColor: "{{defaultcolor.hex}}",
+                colorhighlighter: "{{colorhighlighter}}",
             useupdateannotationjs: {{#useupdateannotationjs}}true{{/useupdateannotationjs}}{{^useupdateannotationjs}}false{{/useupdateannotationjs}}
             });
         });

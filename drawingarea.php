@@ -117,6 +117,7 @@ $context = [
     'uniquefieldnameattemptid' => strip_tags($uniquefieldnameattemptid),
     'sesskey' => strip_tags($sesskey),
     'attemptcount' => $attemptcount,
+    'colorhighlighter' => $fhd->colorhighlighter,
     'annotations_list' => $annotationslist,
     'displaystylefull' => 'style="display: inline-block;"',
     'colors' => $colors,

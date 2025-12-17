@@ -26,8 +26,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'qtype_drawing';
-$plugin->version = 2025120100.01;
+$plugin->version  = 2025120200;
 $plugin->requires = 2021050100; // Moodle >=3.11+.
 
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '5.0';
+$plugin->release = '5.1';

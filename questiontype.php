@@ -48,7 +48,7 @@ class qtype_drawing extends question_type {
             'drawingoptions',
             'colorsjson',
             'defaultpensize',
-            'colormarker',
+            'colorhighlighter',
             'questionembed',
         ];
     }
@@ -102,7 +102,7 @@ class qtype_drawing extends question_type {
             $options->questionembed = $drawingconfig->questionembed;
             $options->defaultpensize = $drawingconfig->defaultpensize;
             $options->colorsjson = $drawingconfig->colorsjson;
-            $options->colormarker = $drawingconfig->colormarker;
+            $options->colorhighlighter = $drawingconfig->colorhighlighter;
             $options->id = $DB->insert_record('qtype_drawing', $options);
         }
         if (isset($question->allowstudentimage)) {
@@ -118,7 +118,7 @@ class qtype_drawing extends question_type {
         $options->questionembed = isset($question->questionembed) ? $question->questionembed : $drawingconfig->questionembed;
         $options->defaultpensize = isset($question->defaultpensize) ? $question->defaultpensize : $drawingconfig->defaultpensize;
         $options->colorsjson = isset($question->colorsjson) ? $question->colorsjson : $drawingconfig->colorsjson;
-        $options->colormarker = isset($question->colormarker) ? $question->colormarker : $drawingconfig->colormarker;
+        $options->colorhighlighter = isset($question->colorhighlighter) ? $question->colorhighlighter : $drawingconfig->colorhighlighter;
 
         $DB->update_record('qtype_drawing', $options);
         $this->save_hints($question);

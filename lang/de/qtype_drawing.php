@@ -215,6 +215,7 @@ $string['add_color'] = 'Farbe hinzufügen';
 $string['global_trainer_avail'] = 'Farbauswahl für Trainer/in verfügbar';
 $string['global_student_avail'] = 'Farbauswahl für Student/in verfügbar';
 $string['delete_color'] = 'Farbe löschen';
-$string['color:marker'] = 'Markerfarbe';
-$string['color:marker_help'] = 'Farbe für die Markierung von Zeichen';
+$string['color:highlighter'] = 'Markerfarbe';
+$string['color:highlighter_help'] = 'Farbe für die Markierung von Zeichen';
+$string['highlightertool'] = 'Markertool';
 
