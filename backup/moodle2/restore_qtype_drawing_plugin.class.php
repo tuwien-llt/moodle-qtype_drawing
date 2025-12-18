@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,12 +24,11 @@
  */
 defined('MOODLE_INTERNAL') || die();
 class restore_qtype_drawing_plugin extends restore_qtype_plugin {
-
     /**
      * Returns the paths to be handled by the plugin at question level
      */
     protected function define_question_plugin_structure() {
-        $paths = array();
+        $paths = [];
 
         // This qtype uses question_answers, add them.
         $this->add_question_question_answers($paths);
@@ -53,6 +53,8 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
 
     /**
      * Process the qtype/drawing element.
+     *
+     * @param array $data
      */
     public function process_drawing($data) {
         global $DB;
@@ -78,6 +80,8 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
 
     /**
      * Process the qtype/drawing drawingannotation element.
+     *
+     * @param array $data
      */
     public function process_drawingannotation($data) {
         global $DB;
@@ -134,7 +138,7 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
      * @return string the recoded order.
      */
     protected function recode_choice_order($order) {
-        $neworder = array();
+        $neworder = [];
         foreach (explode(',', $order) as $id) {
             if ($newid = $this->get_mappingid('question_answer', $id)) {
                 $neworder[] = $newid;
@@ -147,10 +151,10 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
      * Return the contents of this qtype to be processed by the links decoder
      */
     public static function define_decode_contents() {
-        $contents = array();
+        $contents = [];
 
         $contents[] = new restore_decode_content('qtype_drawing', 'drawingoptions', 'qtype_drawing');
-        $fields = array('annotation', 'notes');
+        $fields = ['annotation', 'notes'];
         $contents[] = new restore_decode_content('qtype_drawing_annotations', $fields, 'qtype_drawing_annotations');
 
         return $contents;

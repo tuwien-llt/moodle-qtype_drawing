@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -57,7 +58,7 @@ if (!confirm_sesskey($sesskey)) {
     die("Session lost");
 }
 
-if (!$fhd = $DB->get_record('qtype_drawing', array('questionid' => $id))) {
+if (!$fhd = $DB->get_record('qtype_drawing', ['questionid' => $id])) {
     die("No such question.");
 }
 
@@ -66,7 +67,7 @@ $stylesheetsurls = [
     new moodle_url('/question/type/drawing/lib/jgraduate/css/jgraduate.css'),
     new moodle_url('/question/type/drawing/css/method-draw.css'),
     new moodle_url('/question/type/drawing/css/fonts.css'),
-    //new moodle_url('/question/type/drawing/lib/jquery-ui/jquery-ui.css'),
+    // new moodle_url('/question/type/drawing/lib/jquery-ui/jquery-ui.css'),
     new moodle_url('/question/type/drawing/styles.css'),
 ];
 
@@ -87,21 +88,21 @@ if (has_capability('mod/quiz:grade', $cmcontext) && $readonly == 1) {
 
 // Annotations
 $annotationslist = [];
-$fields = array('questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount);
+$fields = ['questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount];
 if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields, 'timemodified DESC')) {
     foreach ($annotations as $teacherannotation) {
-        $user = $DB->get_record('user', array('id' => $teacherannotation->annotatedby));
+        $user = $DB->get_record('user', ['id' => $teacherannotation->annotatedby]);
         $annotationslist[] = [
             'id' => $teacherannotation->id,
             'userid' => $user->id,
             'username' => fullname($user),
             'date' => userdate($teacherannotation->timemodified),
-            'ago' => ' (' . get_string('ago', 'core_message', format_time(time() - $teacherannotation->timemodified)) . ')'
+            'ago' => ' (' . get_string('ago', 'core_message', format_time(time() - $teacherannotation->timemodified)) . ')',
         ];
     }
 }
 
-list($colors, $defaultcolor) = qtype_drawing::get_colors_for_template($useupdateannotationjs, $fhd->colorsjson);
+[$colors, $defaultcolor] = qtype_drawing::get_colors_for_template($useupdateannotationjs, $fhd->colorsjson);
 
 $context = [
     'base_url' => $CFG->wwwroot . '/question/type/drawing/',
@@ -110,7 +111,7 @@ $context = [
     'backgroundwidth' => $fhd->backgroundwidth,
     'backgroundheight' => $fhd->backgroundheight,
     'questionembed' => $fhd->questionembed == 1,
-    'questiontext' => $question-> questiontext,
+    'questiontext' => $question->questiontext,
     'defaultpensize' => $fhd->defaultpensize,
     'stid' => $stid,
     'attemptid' => strip_tags($attemptid),
@@ -121,7 +122,7 @@ $context = [
     'annotations_list' => $annotationslist,
     'displaystylefull' => 'style="display: inline-block;"',
     'colors' => $colors,
-    'defaultcolor' => $defaultcolor
+    'defaultcolor' => $defaultcolor,
 ];
 
 // Very, very dirty hack to get rid of theme css

@@ -2129,6 +2129,7 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
     /*right: 175px;*/
     left: 0px;
     position: absolute;
+    bottom: 20px;
 }
 
 #zoom_select {

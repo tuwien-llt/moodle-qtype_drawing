@@ -17,8 +17,7 @@
 /**
  * drawing question type version information.
  *
- * @package    qtype
- * @subpackage drawing
+ * @package    qtype_drawing
  * @copyright  ETH Zurich <moodle@id.ethz.ch>
  * @license  http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

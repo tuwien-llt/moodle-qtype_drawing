@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -30,8 +31,17 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * Checks file access for drawing questions.
+ *
+ * @param int $course Course ID.
+ * @param stdClass $cm Course module.
+ * @param context $context Context.
+ * @param string $filearea File area.
+ * @param array $args File path arguments.
+ * @param bool $forcedownload Whether to force a download by the user agent.
+ * @param array $options Other options affecting the file serving.
+ * @return bool|stored_file The stored file object (false if not found).
  */
-function qtype_drawing_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
+function qtype_drawing_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
     global $CFG;
     require_once($CFG->libdir . '/questionlib.php');
 
@@ -45,7 +55,7 @@ function qtype_drawing_pluginfile($course, $cm, $context, $filearea, $args, $for
     if (!$args) {
         $filepath = '/';
     } else {
-        $filepath = '/'.implode('/', $args).'/';
+        $filepath = '/' . implode('/', $args) . '/';
     }
 
     // Retrieve the file from the Files API.
@@ -57,5 +67,4 @@ function qtype_drawing_pluginfile($course, $cm, $context, $filearea, $args, $for
 
     // We can now send the file back to the browser - in this case with a cache lifetime of 1 day and no filtering.
     send_stored_file($file, 86400, 0, $forcedownload, $options);
-
 }

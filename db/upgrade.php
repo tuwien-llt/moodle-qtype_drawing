@@ -19,8 +19,8 @@
  * @package qtype_drawing
  * @author Amr Hourani amr.hourani@id.ethz.ch
  * @copyright ETHz 2016 amr.hourani@id.ethz.ch
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Upgrade code for the drawing question type.
@@ -37,7 +37,7 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
         // Define field drawing_usage to control display of result table.
         $table = new xmldb_table('qtype_drawing_annotations');
 
-        $index = new xmldb_index('mdl_qtypdrawanno_dra_ix', XMLDB_INDEX_NOTUNIQUE, array('drawingid'));
+        $index = new xmldb_index('mdl_qtypdrawanno_dra_ix', XMLDB_INDEX_NOTUNIQUE, ['drawingid']);
 
         if ($dbman->index_exists($table, $index)) {
             $dbman->drop_index($table, $index);
@@ -52,7 +52,7 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
             $dbman->add_field($table, $field);
 
             // Conditionally add index questionid.
-            $index = new xmldb_index('questionid_idx', XMLDB_INDEX_NOTUNIQUE, array('questionid'));
+            $index = new xmldb_index('questionid_idx', XMLDB_INDEX_NOTUNIQUE, ['questionid']);
             if (!$dbman->index_exists($table, $index)) {
                 $dbman->add_index($table, $index);
             }
@@ -106,7 +106,6 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
     }
 
     if ($oldversion < 2025120100) {
-
         // Define field drawingmode to be dropped from qtype_drawing.
         $table = new xmldb_table('qtype_drawing');
         $field = new xmldb_field('drawingmode');
@@ -153,7 +152,6 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
     }
 
     if ($oldversion < 2025120200) {
-
         // Rename field colormarker on table qtype_drawing to NEWNAMEGOESHERE.
         $table = new xmldb_table('qtype_drawing');
         $field = new xmldb_field('colormarker', XMLDB_TYPE_CHAR, '16', null, null, null, null, 'defaultpensize');
@@ -164,7 +162,6 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
         // Drawing savepoint reached.
         upgrade_plugin_savepoint(true, 2025120200, 'qtype', 'drawing');
     }
-
 
     return true;
 }

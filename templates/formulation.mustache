@@ -30,6 +30,16 @@
 
     Example context (json):
     {
+        "uniqueattemptinputname": "id_qtype_drawing_attempt_1",
+        "inputname": "qtype_drawing_attempt_1",
+        "questionid": 1,
+        "questiontext": "Question text",
+        "currentanswer": "Answer text",
+        "original_student_answer": "Original answer text",
+        "original_bg_value": "Original background image value",
+        "original_bg_type": "original_bg_type",
+        "loadingimageurl": "https://example.com/loading.gif",
+        "iframeurl": "https://example.com/drawingarea.php?attempt=1&amp;questionid=1&amp;sesskey=1234567890"
     }
 }}
 {{^questionembed}}
@@ -84,7 +94,7 @@
         <div class="qtype_drawing_drawingwrapper" id="qtype_drawing_drawingwrapper_{{attemptuniqueid}}">
             <img id="qtype_drawing_loading_image_{{attemptuniqueid}}" src="{{loadingimageurl}}" alt="Loading">
             <span id="quiz_timer_drawing_{{attemptuniqueid}}" style="display:none; background-color:#fff"></span>
-            <span class="qtype_drawing_togglebutton" id="qtype_drawing_togglebutton_id_{{attemptuniqueid}}">&nbsp;</span>
+            <span class="qtype_drawing_togglebutton" id="qtype_drawing_togglebutton_id_{{attemptuniqueid}}">{{#pix}}e/fullpage,core{{/pix}}</span>
             <iframe
                     src="{{{iframeurl}}}"
                     id="qtype_drawing_editor_{{attemptuniqueid}}"

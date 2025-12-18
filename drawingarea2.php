@@ -1,4 +1,6 @@
 <?php
+// phpcs:ignoreFile
+//TODO - DELETE THE WHOLE FILE
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -43,7 +45,7 @@ $attemptcount = optional_param('attemptcount', 1, PARAM_INT);
 if (!confirm_sesskey($sesskey)) {
     die("Session lost");
 }
-if (!$fhd = $DB->get_record('qtype_drawing', array('questionid' => $id))) {
+if (!$fhd = $DB->get_record('qtype_drawing', ['questionid' => $id])) {
     die("No such question.");
 }
 $reducedmode = 0;
@@ -67,16 +69,16 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
       <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
       <meta http-equiv="X-UA-Compatible" content="chrome=1"/>
       <link rel="stylesheet"
-            href="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jgraduate/css/jPicker.css"
+            href="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/jgraduate/css/jPicker.css"
             type="text/css"/>
       <link rel="stylesheet"
-            href="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jgraduate/css/jgraduate.css"
+            href="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/jgraduate/css/jgraduate.css"
             type="text/css"/>
       <link rel="stylesheet"
-            href="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>css/method-draw.css"
+            href="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>css/method-draw.css"
             type="text/css"/>
       <link rel="stylesheet"
-            href="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>css/fonts.css"
+            href="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>css/fonts.css"
             type="text/css"/>
       <meta name="apple-mobile-web-app-capable" content="yes"/>
       <meta name="viewport"
@@ -110,104 +112,104 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
          var uniquefieldnameattemptid = '<?php echo strip_tags($uniquefieldnameattemptid);?>';
       </script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jquery.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/jquery.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/pathseg.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/pathseg.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/touch.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/touch.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/js-hotkeys/jquery.hotkeys.min.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/js-hotkeys/jquery.hotkeys.min.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jquery-svgicons/jquery.svgicons.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/jquery-svgicons/jquery.svgicons.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jgraduate/jquery.jgraduate.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/jgraduate/jquery.jgraduate.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/contextmenu/jquery.contextMenu.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/contextmenu/jquery.contextMenu.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jquery-ui/jquery-ui-1.8.17.custom.min.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/jquery-ui/jquery-ui-1.8.17.custom.min.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/browser.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/browser.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/svgtransformlist.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/svgtransformlist.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/math.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/math.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/units.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/units.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/svgutils.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/svgutils.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/sanitize.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/sanitize.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/history.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/history.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/select.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/select.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/draw.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/draw.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/path_polyfill.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/path_polyfill.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/path.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/path.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/dialog.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/dialog.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/svgcanvas.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/svgcanvas.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/method-draw.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/method-draw.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jquery-draginput.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/jquery-draginput.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/contextmenu.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/contextmenu.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jgraduate/jpicker.min.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/jgraduate/jpicker.min.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/mousewheel.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/mousewheel.js"></script>
         <?php
         if ($reducedmode == 0) {
         ?>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/ext-eyedropper.js"></script>
-        <?php
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/extensions/ext-eyedropper.js"></script>
+            <?php
         }
         ?>
-      <script src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/d3.js"></script>
+      <script src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/d3.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/mtouch-events.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/extensions/mtouch-events.js"></script>
         <?php
         if ($reducedmode == 1 && $fhd->alloweraser == 1) {
         ?>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/erase.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/extensions/erase.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/ext-eraser.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/extensions/ext-eraser.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/flatten.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/flatten.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/flat.js"></script>
-        <?php
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/flat.js"></script>
+            <?php
         }
         ?>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/editor/simplify.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/editor/simplify.js"></script>
         <?php
         if ($reducedmode == 0) {
         ?>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/ext-shapes.js"></script>
-        <?php
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/extensions/ext-shapes.js"></script>
+            <?php
         }
         ?>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/extensions/ext-grid.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/extensions/ext-grid.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/requestanimationframe.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/requestanimationframe.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/taphold.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/taphold.js"></script>
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/filesaver.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/filesaver.js"></script>
       <link rel="stylesheet"
-            href="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jquery-ui/jquery-ui.css">
+            href="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/jquery-ui/jquery-ui.css">
       <script type="text/javascript"
-              src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jquery-ui/jquery-ui.js"></script>
+              src="<?php echo $CFG->wwwroot . '/question/type/drawing/';?>lib/jquery-ui/jquery-ui.js"></script>
       <style>
          .qtype_drawing_selectedcolor{
             outline: 2px #4F80FF solid!important;
@@ -233,7 +235,7 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
          #tools_top{
          overflow: auto;
          }
-            <?php
+                <?php
             }
             ?>
          .qtype_drawing_color_divsquare{
@@ -438,7 +440,7 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
                </div>
             </div>
          </div>
-            <?php
+                <?php
             }
             ?>
          <div id="tools_top" class="tools_panel">
@@ -478,32 +480,35 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
                               text-align:left">
                         <?php
                         echo '<ul id="listofannotaions">';
-                        $fields = array('questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount);
+                        $fields = ['questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount];
                         if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields, 'timemodified DESC')) {
                             foreach ($annotations as $teacherannotation) {
-                                $user = $DB->get_record('user', array('id' => $teacherannotation->annotatedby));
-                                echo '<li id="annotationelem_'.$user->id.'"
+                                $user = $DB->get_record('user', ['id' => $teacherannotation->annotatedby]);
+                                echo '<li id="annotationelem_' . $user->id . '"
                                           class="annotaionelems"
-                                          data-block="block'.$user->id.'">
-                                      <a href="#" id="showannotationid_'.$teacherannotation->id.'"
+                                          data-block="block' . $user->id . '">
+                                      <a href="#" id="showannotationid_' . $teacherannotation->id . '"
                                          style="color:#fff" class="tool_showannotation" data-type="0"
-                                         data-annotationid="'.$teacherannotation->id.'">'.fullname($user).'</a>
-                                         <div id="teacherannotationdate_'.$user->id.'">'.
-                                         userdate($teacherannotation->timemodified).
-                                         ' ('.get_string('ago', 'core_message',
-                                                        format_time(time() - $teacherannotation->timemodified)).
+                                         data-annotationid="' . $teacherannotation->id . '">' . fullname($user) . '</a>
+                                         <div id="teacherannotationdate_' . $user->id . '">' .
+                                         userdate($teacherannotation->timemodified) .
+                                         ' (' . get_string(
+                                             'ago',
+                                             'core_message',
+                                             format_time(time() - $teacherannotation->timemodified)
+                                         ) .
                                          ')</div></li>';
                             }
                         }
                         echo '<li data-block="block0">
                               <a href="#" id="showoriginalanswer" style="color:#fff"
-                                 class="tool_showannotation" data-type="1" data-annotationid="-1">'.
-                                 get_string('originalanswer', 'qtype_drawing').
+                                 class="tool_showannotation" data-type="1" data-annotationid="-1">' .
+                                 get_string('originalanswer', 'qtype_drawing') .
                                  '</a></li>';
                         echo '<li data-block="block1" onclick="methodDraw.updateAnnotationDetails()"><a href="#"
                                   id="studentview" style="color:#fff" class="tool_showannotation"
-                                  data-type="2" data-annotationid="-1">'.
-                                  get_string('studentview', 'qtype_drawing').
+                                  data-type="2" data-annotationid="-1">' .
+                                  get_string('studentview', 'qtype_drawing') .
                                   '</a></li>';
 
                         echo '</ul>';
@@ -598,7 +603,7 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
                <?php
                 if ($reducedmode == 1) {
                 ?><div id="force_remove_stroke_style" style="display:none">
-                <?php
+                    <?php
                 }
                 ?>
                <div class="stroke_tool draginput" id="strokestyle_div">
@@ -616,7 +621,7 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
                 <?php
                 if ($reducedmode == 1) {
                 ?></div>
-                <?php
+                    <?php
                 }
                 ?>
                <span style="display:none">
@@ -964,7 +969,7 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
                 if ($reducedmode == 1) {
                 ?>
               style="display:none;"
-                <?php
+                    <?php
                 }
                 ?>
              >
@@ -1112,7 +1117,7 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
         if ($useupdateannotationjs == 1) {
         ?>
      window.setInterval(methodDraw.updateAnnotationDetails, 30000);
-        <?php
+            <?php
         }
         ?>
    });

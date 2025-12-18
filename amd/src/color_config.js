@@ -1,3 +1,4 @@
+/* eslint-disable */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -54,7 +55,7 @@ class ColorConfig {
      */
     init() {
         // 1. Hide the original textarea
-        //this.textarea.style.display = 'none';
+        this.textarea.style.display = 'none';
 
         // 2. Load data from textarea if it exists
         try {

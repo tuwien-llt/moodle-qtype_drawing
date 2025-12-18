@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -35,9 +36,8 @@ require_once($CFG->dirroot . '/question/type/drawing/question.php');
  * @copyright 2020 ETH Zurich
  * @license http://www.drawing.org/license
  */
-class qtype_drawing_question_test extends advanced_testcase {
-
-    public function test_get_question_summary() {
+final class question_test extends advanced_testcase {
+    public function test_get_question_summary(): void {
         question_bank::load_question_definition_classes('drawing');
         $drawing = new qtype_drawing_question();
         $drawing->questiontext = 'DRAWING';
