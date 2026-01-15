@@ -142,6 +142,60 @@ class grade_processor {
     }
 
     /**
+     * Save annotation directly with explicit parameters.
+     * This is used by the AJAX endpoint (saveannotation.php).
+     *
+     * @param int $questionid The question ID.
+     * @param int $studentid The student user ID (annotatedfor).
+     * @param string $attemptid The unique attempt identifier string.
+     * @param int $attemptcount The attempt number.
+     * @param string $annotation The SVG annotation content.
+     * @return bool True on success.
+     */
+    public static function save_annotation_direct(
+        int $questionid,
+        int $studentid,
+        string $attemptid,
+        int $attemptcount,
+        string $annotation
+    ): bool {
+        global $DB, $USER;
+
+        // Clean the annotation - remove any script tags.
+        $annotation = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $annotation);
+        if (trim($annotation) === '') {
+            return false;
+        }
+
+        // Build the annotation record.
+        $fields = [
+            'questionid' => $questionid,
+            'annotatedby' => $USER->id,
+            'annotatedfor' => $studentid,
+            'attemptid' => $attemptid,
+            'attemptcount' => $attemptcount,
+        ];
+
+        $now = time();
+        if ($existing = $DB->get_record('qtype_drawing_annotations', $fields)) {
+            // Update existing annotation.
+            $existing->annotation = $annotation;
+            $existing->timemodified = $now;
+            $DB->update_record('qtype_drawing_annotations', $existing);
+        } else {
+            // Create new annotation.
+            $record = (object) $fields;
+            $record->annotation = $annotation;
+            $record->timecreated = $now;
+            $record->timemodified = $now;
+            $record->notes = '';
+            $DB->insert_record('qtype_drawing_annotations', $record);
+        }
+
+        return true;
+    }
+
+    /**
      * Update the quiz attempt grades after a question has been manually graded.
      *
      * @param int $qubaid The question usage ID.

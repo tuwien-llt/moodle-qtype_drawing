@@ -91,6 +91,7 @@ if ($attemptid === null) {
     $PAGE->set_url($baseurl);
     $PAGE->set_context($context);
     $PAGE->set_pagelayout('standard');
+    $PAGE->activityheader->disable();
     $PAGE->set_title(get_string('gradequestion', 'qtype_drawing') . ': ' . format_string($quiz->name));
     $PAGE->set_heading($course->fullname);
 
@@ -123,6 +124,7 @@ if ($attemptid === null) {
     $PAGE->set_url(new moodle_url($baseurl, ['slot' => $slot, 'attemptid' => $attemptid]));
     $PAGE->set_context($context);
     $PAGE->set_pagelayout('embedded');
+    $PAGE->activityheader->disable();
     $PAGE->set_title(get_string('gradequestion', 'qtype_drawing'));
 
     // Load the quiz attempt.
