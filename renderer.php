@@ -124,7 +124,6 @@ class qtype_drawing_renderer extends qtype_renderer {
         // We show the editor if the student is taking the quiz (not readonly)
         // OR if the user is an annotator (even if it's readonly for the student).
         $show_editor = !$options->readonly || $isannotator;
-
         // 6. Initialize Data Array
         $data = [
             'questionid' => $question->id,

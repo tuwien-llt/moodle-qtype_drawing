@@ -142,3 +142,125 @@
     z-index: 99999999999;
     overscroll-behavior: contain;
 }
+
+/* ============================================
+   Grader Fullscreen Layout Styles
+   ============================================ */
+
+.qtype-drawing-grader-fullscreen {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    grid-template-rows: 1fr auto;
+    height: calc(100vh - 50px);
+    min-height: 500px;
+}
+
+.qtype-drawing-grader-canvas {
+    grid-area: 1 / 1 / 2 / 2;
+    overflow: auto;
+    background-color: #f8f9fa;
+    padding: 1rem;
+}
+
+.qtype-drawing-grader-canvas .qtype_drawing_drawingwrapper {
+    height: calc(100vh - 150px);
+    padding-bottom: 0;
+}
+
+.qtype-drawing-grader-canvas .qtype_drawing_drawingwrapper iframe {
+    position: relative;
+    height: 100%;
+}
+
+.qtype-drawing-grader-sidebar {
+    grid-area: 1 / 2 / 2 / 3;
+    background-color: #fff;
+    border-left: 1px solid #dee2e6;
+    overflow-y: auto;
+}
+
+.grader-sidebar-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.grader-sidebar-content .student-info {
+    flex-shrink: 0;
+}
+
+.grader-sidebar-content form {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.grader-sidebar-content .form-group:last-of-type {
+    margin-top: auto;
+}
+
+.qtype-drawing-grader-nav {
+    grid-area: 2 / 1 / 3 / 3;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Quick grade buttons */
+.quick-grade-btn.active {
+    font-weight: bold;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Hide Moodle chrome in embedded layout for grader */
+.pagelayout-embedded .qtype-drawing-grader-fullscreen {
+    margin: 0;
+}
+
+.pagelayout-embedded #page-wrapper {
+    padding: 0;
+}
+
+.pagelayout-embedded #page-content {
+    padding: 0;
+}
+
+.pagelayout-embedded .main-inner {
+    padding: 0;
+}
+
+/* Grader overview page styles */
+.qtype-drawing-grader-overview .card {
+    border-radius: 0.5rem;
+}
+
+.qtype-drawing-grader-overview .card-title {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.qtype-drawing-grader-overview .table th {
+    border-top: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .qtype-drawing-grader-fullscreen {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto auto;
+    }
+
+    .qtype-drawing-grader-canvas {
+        grid-area: 1 / 1 / 2 / 2;
+        max-height: 50vh;
+    }
+
+    .qtype-drawing-grader-sidebar {
+        grid-area: 2 / 1 / 3 / 2;
+        border-left: none;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .qtype-drawing-grader-nav {
+        grid-area: 3 / 1 / 4 / 2;
+    }
+}

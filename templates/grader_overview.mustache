@@ -1,0 +1,156 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template qtype_drawing/grader_overview
+
+    Template for the drawing question grader overview page.
+    Shows a list of all attempts that need grading.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * quizname - The quiz name
+    * attempts - Array of attempt objects (each with questionname, slot, username, etc.)
+    * hasattempts - Boolean if there are attempts
+    * totalcount - Total number of attempts
+    * needsgradingcount - Number of attempts needing grading
+    * gradedcount - Number of already graded attempts
+    * backurl - URL to go back to quiz grading report
+
+    Example context (json):
+    {
+        "quizname": "Test Quiz",
+        "hasattempts": true,
+        "totalcount": 5,
+        "needsgradingcount": 3,
+        "gradedcount": 2,
+        "backurl": "/mod/quiz/report.php?id=1&mode=grading",
+        "attempts": [
+            {
+                "attemptid": 1,
+                "questionname": "Draw a house",
+                "slot": 1,
+                "username": "John Doe",
+                "state": "needsgrading",
+                "stateclass": "badge-warning",
+                "needsgrading": true,
+                "grade": "-",
+                "maxgrade": "10.00",
+                "gradeurl": "/question/type/drawing/grade.php?cmid=1&slot=1&attemptid=1"
+            }
+        ]
+    }
+}}
+<div class="qtype-drawing-grader-overview">
+    {{! Header with navigation }}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">{{#str}}gradequestion, qtype_drawing{{/str}}</h2>
+            <p class="text-muted mb-0">{{quizname}}</p>
+        </div>
+        <a href="{{backurl}}" class="btn btn-secondary">
+            {{#pix}}i/return, core, {{#str}}back{{/str}}{{/pix}}
+            {{#str}}backtooverview, qtype_drawing{{/str}}
+        </a>
+    </div>
+
+    {{! Statistics cards }}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-warning">{{needsgradingcount}}</h5>
+                    <p class="card-text">{{#str}}needsgrading, qtype_drawing{{/str}}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-success">{{gradedcount}}</h5>
+                    <p class="card-text">{{#str}}alreadygraded, qtype_drawing{{/str}}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{totalcount}}</h5>
+                    <p class="card-text">{{#str}}totalattempts, qtype_drawing{{/str}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{! Attempts table }}
+    {{#hasattempts}}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="thead-light">
+                <tr>
+                    <th scope="col">{{#str}}question, core{{/str}}</th>
+                    <th scope="col">{{#str}}slot, qtype_drawing{{/str}}</th>
+                    <th scope="col">{{#str}}student, qtype_drawing{{/str}}</th>
+                    <th scope="col">{{#str}}attempt, quiz{{/str}}</th>
+                    <th scope="col">{{#str}}completed, qtype_drawing{{/str}}</th>
+                    <th scope="col">{{#str}}status, qtype_drawing{{/str}}</th>
+                    <th scope="col">{{#str}}gradeverb, core{{/str}}</th>
+                    <th scope="col">{{#str}}actions, core{{/str}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#attempts}}
+                <tr>
+                    <td>{{questionname}}</td>
+                    <td>{{slot}}</td>
+                    <td>{{username}}</td>
+                    <td>{{attemptnumber}}</td>
+                    <td>{{timefinish}}</td>
+                    <td>
+                        <span class="badge {{stateclass}}">{{state}}</span>
+                    </td>
+                    <td>{{grade}} / {{maxgrade}}</td>
+                    <td>
+                        <a href="{{gradeurl}}" class="btn btn-sm {{#needsgrading}}btn-primary{{/needsgrading}}{{^needsgrading}}btn-outline-secondary{{/needsgrading}}">
+                            {{#needsgrading}}
+                                {{#pix}}i/grades, core{{/pix}}
+                                {{#str}}gradeverb, core{{/str}}
+                            {{/needsgrading}}
+                            {{^needsgrading}}
+                                {{#pix}}i/preview, core{{/pix}}
+                                {{#str}}review, qtype_drawing{{/str}}
+                            {{/needsgrading}}
+                        </a>
+                    </td>
+                </tr>
+                {{/attempts}}
+            </tbody>
+        </table>
+    </div>
+    {{/hasattempts}}
+
+    {{^hasattempts}}
+    <div class="alert alert-info">
+        {{#pix}}i/info, core{{/pix}}
+        {{#str}}noattempts, qtype_drawing{{/str}}
+    </div>
+    {{/hasattempts}}
+</div>
