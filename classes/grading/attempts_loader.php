@@ -16,8 +16,6 @@
 
 namespace qtype_drawing\grading;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Helper class for loading quiz attempts for drawing questions.
  *
@@ -26,7 +24,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class attempts_loader {
-
     /**
      * Get all drawing question slots in a quiz.
      *
@@ -162,13 +159,14 @@ class attempts_loader {
             $attemptobj->username = fullname($attempt);
             $attemptobj->attemptnumber = $attempt->attemptnumber;
             $attemptobj->timefinish = userdate($attempt->timefinish);
-            $attemptobj->state = $state->__toString();
+            $attemptobj->state = $state->default_string(true);
             $attemptobj->stateclass = self::get_state_class($state);
             $attemptobj->needsgrading = $state->is_graded() === false || $state == \question_state::$needsgrading;
             $attemptobj->grade = $mark !== null ? format_float($mark, 2) : '-';
             $attemptobj->maxgrade = format_float($maxmark, 2);
-            $attemptobj->gradeurl = (new \moodle_url('/question/type/drawing/grade.php', [
-                'cmid' => $cmid,
+            $attemptobj->gradeurl = (new \moodle_url('/mod/quiz/report.php', [
+                'id' => $cmid,
+                'mode' => 'drawing',
                 'slot' => $slot,
                 'attemptid' => $attempt->attemptid,
             ]))->out(false);

@@ -16,8 +16,6 @@
 
 namespace qtype_drawing\grading;
 
-defined('MOODLE_INTERNAL') || die();
-
 use mod_quiz\quiz_attempt;
 use mod_quiz\quiz_settings;
 /**
@@ -28,7 +26,6 @@ use mod_quiz\quiz_settings;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class grade_processor {
-
     /**
      * Process and save a manual grade for a drawing question.
      *
@@ -56,8 +53,13 @@ class grade_processor {
         $maxmarkallowed = $maxfraction * $maxmark;
 
         if ($mark < $minmark || $mark > $maxmarkallowed) {
-            throw new \moodle_exception('invalidmark', 'qtype_drawing', '', null,
-                "Mark must be between $minmark and $maxmarkallowed");
+            throw new \moodle_exception(
+                'invalidmark',
+                'qtype_drawing',
+                '',
+                null,
+                "Mark must be between $minmark and $maxmarkallowed"
+            );
         }
 
         // Use the QUBA's manual_grade method - this is the proper API for manual grading.

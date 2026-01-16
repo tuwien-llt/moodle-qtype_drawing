@@ -22,7 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once('../../../config.php');
+// Only include config.php if not already loaded (for standalone access).
+// When included from quiz report, config.php is already loaded.
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once($CFG->dirroot . '/question/engine/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
@@ -32,19 +35,16 @@ use qtype_drawing\grading\attempts_loader;
 use qtype_drawing\grading\grade_processor;
 
 // Parameters.
-$cmid = required_param('cmid', PARAM_INT);
+$id = required_param('id', PARAM_INT);
 $slot = optional_param('slot', null, PARAM_INT);
 $attemptid = optional_param('attemptid', null, PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
 
 // Load course module and quiz.
-$cm = get_coursemodule_from_id('quiz', $cmid, 0, false, MUST_EXIST);
-$course = get_course($cm->course);
-$quiz = $DB->get_record('quiz', ['id' => $cm->instance], '*', MUST_EXIST);
 $context = context_module::instance($cm->id);
 
 // Security checks.
-require_login($course, false, $cm);
+// require_login($course, false, $cm);
 require_capability('mod/quiz:grade', $context);
 
 // Process grade submission.
@@ -69,31 +69,30 @@ if ($action === 'savegrade' && confirm_sesskey()) {
     $savenext = optional_param('savenext', 0, PARAM_INT);
     $next = optional_param('next', null, PARAM_INT);
     if ($savenext && $next) {
-        redirect(new moodle_url('/question/type/drawing/grade.php', [
-            'cmid' => $cmid,
+        redirect(new moodle_url('/mod/quiz/report.php', [
+            'id' => $id,
+            'mode' => 'drawing',
             'slot' => $gradeslot,
             'attemptid' => $next,
         ]));
     } else {
-        redirect(new moodle_url('/question/type/drawing/grade.php', [
-            'cmid' => $cmid,
+        redirect(new moodle_url('/mod/quiz/report.php', [
+            'id' => $id,
+            'mode' => 'drawing',
         ]), get_string('gradesaved', 'qtype_drawing'), null, \core\output\notification::NOTIFY_SUCCESS);
     }
 }
 
 // Setup page.
-$baseurl = new moodle_url('/question/type/drawing/grade.php', [
-    'cmid' => $cmid,
+$baseurl = new moodle_url('/mod/quiz/report.php', [
+    'id' => $id,
+    'mode' => 'drawing',
 ]);
 
 if ($attemptid === null) {
     // OVERVIEW MODE: Show list of all drawing question attempts.
     $PAGE->set_url($baseurl);
-    $PAGE->set_context($context);
-    $PAGE->set_pagelayout('standard');
-    $PAGE->activityheader->disable();
     $PAGE->set_title(get_string('gradequestion', 'qtype_drawing') . ': ' . format_string($quiz->name));
-    $PAGE->set_heading($course->fullname);
 
     // Load all drawing question attempts for this quiz.
     $attempts = attempts_loader::get_all_drawing_attempts($quiz->id, $cm->id);
@@ -107,13 +106,11 @@ if ($attemptid === null) {
         'totalcount' => $stats->total,
         'needsgradingcount' => $stats->needsgrading,
         'gradedcount' => $stats->graded,
-        'backurl' => (new moodle_url('/mod/quiz/report.php', ['id' => $cmid, 'mode' => 'grading']))->out(false),
+        'backurl' => (new moodle_url('/mod/quiz/report.php', ['id' => $id, 'mode' => 'grading']))->out(false),
     ];
 
     echo $OUTPUT->header();
     echo $OUTPUT->render_from_template('qtype_drawing/grader_overview', $templatecontext);
-    echo $OUTPUT->footer();
-
 } else {
     // FULLSCREEN GRADER MODE: Grade a specific attempt.
     // Slot is required for grading a specific attempt.
@@ -155,7 +152,7 @@ if ($attemptid === null) {
     $maxmark = $qa->get_max_mark();
 
     // Get the current manual comment (returns array [comment, format] or [null, null]).
-    list($currentcomment, $currentcommentformat) = $qa->get_current_manual_comment();
+    [$currentcomment, $currentcommentformat] = $qa->get_current_manual_comment();
     if ($currentcomment === null) {
         $currentcomment = '';
         $currentcommentformat = FORMAT_HTML;
@@ -177,7 +174,7 @@ if ($attemptid === null) {
         'comment' => $currentcomment,
         'commentformat' => $currentcommentformat,
         'sesskey' => sesskey(),
-        'cmid' => $cmid,
+        'id' => $id,
         'hasnext' => $navigation->next !== null,
         'hasprev' => $navigation->prev !== null,
         'nextid' => $navigation->next,
@@ -199,5 +196,4 @@ if ($attemptid === null) {
 
     echo $OUTPUT->header();
     echo $OUTPUT->render_from_template('qtype_drawing/grader_fullscreen', $templatecontext);
-    echo $OUTPUT->footer();
 }

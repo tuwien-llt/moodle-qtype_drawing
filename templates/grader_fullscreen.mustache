@@ -40,7 +40,7 @@
     * maxmark - Maximum possible mark
     * comment - Current feedback comment
     * sesskey - Session key for form submission
-    * cmid - Course module ID
+    * id - Course module ID
     * hasnext - Boolean if there's a next attempt
     * hasprev - Boolean if there's a previous attempt
     * prev_url - URL to previous attempt
@@ -49,6 +49,32 @@
     * saveurl - URL for saving grades
     * currentindex - Current position in attempt list
     * totalcount - Total number of attempts
+
+    Example context (json):
+    {
+        "drawing_area_html": "<div class=\"qtype_drawing_drawingwrapper\">Drawing content here</div>",
+        "studentname": "John Doe",
+        "userpicture": "<img src=\"/user/pix.php/1/f1.jpg\" alt=\"John Doe\" />",
+        "slot": 1,
+        "attemptid": 123,
+        "qubaid": 456,
+        "currentmark": "7.50",
+        "maxmark": "10.00",
+        "comment": "Good work!",
+        "commentformat": 1,
+        "sesskey": "abc123",
+        "id": 1,
+        "hasnext": true,
+        "hasprev": true,
+        "nextid": 124,
+        "previd": 122,
+        "currentindex": 2,
+        "totalcount": 5,
+        "prev_url": "/mod/quiz/report.php?id=1&mode=drawing&slot=1&attemptid=122",
+        "next_url": "/mod/quiz/report.php?id=1&mode=drawing&slot=1&attemptid=124",
+        "overview_url": "/mod/quiz/report.php?id=1&mode=drawing",
+        "saveurl": "/mod/quiz/report.php?id=1&mode=drawing&action=savegrade"
+    }
 }}
 <div class="qtype-drawing-grader-fullscreen " data-qubaid="{{qubaid}}" data-slot="{{slot}}" data-attemptid="{{attemptid}}">
     {{! Left column: Drawing area }}
@@ -73,7 +99,7 @@
             {{! Grade form }}
             <form id="qtype-drawing-grade-form" method="post" action="{{saveurl}}">
                 <input type="hidden" name="sesskey" value="{{sesskey}}">
-                <input type="hidden" name="cmid" value="{{cmid}}">
+                <input type="hidden" name="id" value="{{id}}">
                 <input type="hidden" name="slot" value="{{slot}}">
                 <input type="hidden" name="attemptid" value="{{attemptid}}">
                 <input type="hidden" name="qubaid" value="{{qubaid}}">
