@@ -21,6 +21,13 @@
  * @copyright 2020 ETH Zurich
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+namespace qtype_drawing;
+
+use qbehaviour_walkthrough_test_base;
+use question_state;
+use test_question_maker;
+
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -32,7 +39,7 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  * @copyright 2013 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_drawing_walkthrough_testcase extends qbehaviour_walkthrough_test_base {
+class walkthrough_test extends qbehaviour_walkthrough_test_base {
 
     public function test_deferred_feedback_plain_text() {
 
