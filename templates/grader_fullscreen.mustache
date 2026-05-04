@@ -77,6 +77,20 @@
     }
 }}
 <div class="qtype-drawing-grader-fullscreen " data-qubaid="{{qubaid}}" data-slot="{{slot}}" data-attemptid="{{attemptid}}">
+    {{! Loading overlay — hidden by JS once the iframe signals ready }}
+    <div id="qtype-drawing-grader-loading"
+         class="qtype-drawing-grader-loading"
+         role="status"
+         aria-live="polite"
+         aria-busy="true">
+        <div class="qtype-drawing-grader-loading-inner">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"
+                 aria-hidden="true"></div>
+            <div class="mt-3 fw-semibold">{{#str}}loadinggrader, qtype_drawing{{/str}}</div>
+            <div class="text-muted small mt-1">{{#str}}loadinghint, qtype_drawing{{/str}}</div>
+        </div>
+    </div>
+
     {{! Left column: Drawing area }}
     <div class="qtype-drawing-grader-canvas ">
         {{{drawing_area_html}}}
@@ -87,12 +101,29 @@
         <div class="grader-sidebar-content p-3">
             {{! Student info }}
             <div class="student-info d-flex align-items-center mb-4 pb-3 border-bottom">
-                <div class="mr-3">
+                <div class="me-3">
                     {{{userpicture}}}
                 </div>
-                <div>
+                <div class="flex-grow-1 me-2">
                     <h5 class="mb-0">{{studentname}}</h5>
-                    <small class="text-muted">{{#str}}attempt, quiz{{/str}} {{currentindex}} / {{totalcount}}</small>
+                    <small class="text-muted">
+                        {{#str}}studentposition, qtype_drawing, {"current":"{{currentindex}}","total":"{{totalcount}}"}{{/str}}
+                    </small>
+                </div>
+                <div class="ms-auto" style="min-width: 8rem;">
+                    {{#hasmultipleattempts}}
+                    <label for="grader-attempt-select" class="visually-hidden">
+                        {{#str}}selectattempt, qtype_drawing{{/str}}
+                    </label>
+                    <select id="grader-attempt-select" class="form-select form-select-sm">
+                        {{#attemptoptions}}
+                        <option value="{{attemptid}}" data-url="{{url}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                        {{/attemptoptions}}
+                    </select>
+                    {{/hasmultipleattempts}}
+                    {{^hasmultipleattempts}}
+                    <small class="text-muted">{{#str}}attempt, quiz{{/str}} {{currentattemptnumber}}</small>
+                    {{/hasmultipleattempts}}
                 </div>
             </div>
 
@@ -106,13 +137,14 @@
                 <input type="hidden" name="action" value="savegrade">
                 <input type="hidden" name="savenext" id="savenext-field" value="0">
                 <input type="hidden" name="annotation" id="annotation-field" value="">
+                <input type="hidden" name="returnurl" id="returnurl-field" value="">
                 {{#hasnext}}
                 <input type="hidden" name="next" id="next-attempt-id" value="{{nextid}}">
                 {{/hasnext}}
 
                 {{! Mark input }}
-                <div class="form-group">
-                    <label for="grade-mark">{{#str}}mark, qtype_drawing{{/str}}</label>
+                <div class="mb-3">
+                    <label for="grade-mark" class="form-label">{{#str}}mark, qtype_drawing{{/str}}</label>
                     <div class="input-group">
                         <input type="number"
                                class="form-control"
@@ -123,15 +155,13 @@
                                max="{{maxmark}}"
                                step="0.01"
                                required>
-                        <div class="input-group-append">
-                            <span class="input-group-text">/ {{maxmark}}</span>
-                        </div>
+                        <span class="input-group-text">/ {{maxmark}}</span>
                     </div>
                 </div>
 
                 {{! Quick grade buttons }}
-                <div class="form-group">
-                    <label>{{#str}}quickgrade, qtype_drawing{{/str}}</label>
+                <div class="mb-3">
+                    <label class="form-label">{{#str}}quickgrade, qtype_drawing{{/str}}</label>
                     <div class="btn-group btn-group-sm d-flex" role="group">
                         <button type="button" class="btn btn-outline-danger quick-grade-btn" data-grade="0">0%</button>
                         <button type="button" class="btn btn-outline-warning quick-grade-btn" data-grade="25">25%</button>
@@ -142,53 +172,61 @@
                 </div>
 
                 {{! Comment textarea }}
-                <div class="form-group">
-                    <label for="grade-comment">{{#str}}feedback, qtype_drawing{{/str}}</label>
+                <div class="mb-3 qtype-drawing-feedback-wrap">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label for="grade-comment" class="form-label mb-0">{{#str}}feedback, qtype_drawing{{/str}}</label>
+                        <button type="button"
+                                class="btn btn-sm btn-link p-0 qtype-drawing-feedback-fullscreen-btn"
+                                title="{{#str}}feedback_fullscreen, qtype_drawing{{/str}}"
+                                aria-label="{{#str}}feedback_fullscreen, qtype_drawing{{/str}}"
+                                aria-pressed="false">
+                            <i class="fa fa-expand" aria-hidden="true"></i>
+                        </button>
+                    </div>
                     <textarea class="form-control"
                               id="grade-comment"
                               name="comment"
-                              rows="4"
+                              rows="8"
                               placeholder="{{#str}}feedbackplaceholder, qtype_drawing{{/str}}">{{comment}}</textarea>
                     <input type="hidden" name="commentformat" value="1">
                 </div>
 
                 {{! Action buttons }}
-                <div class="form-group mt-4">
-                    <button type="submit" class="btn btn-primary btn-block qtype-drawing-grader-save mb-2">
+                <div class="mt-4 d-grid gap-2">
+                    <button type="submit" class="btn btn-primary qtype-drawing-grader-save">
                         {{#pix}}i/grades, core{{/pix}}
                         {{#str}}savegrade, qtype_drawing{{/str}}
                     </button>
                     {{#hasnext}}
-                    <button type="submit" class="btn btn-success btn-block qtype-drawing-grader-savenext">
+                    <button type="submit" class="btn btn-primary qtype-drawing-grader-savenext">
                         {{#pix}}t/right, core{{/pix}}
                         {{#str}}saveandnext, qtype_drawing{{/str}}
                     </button>
                     {{/hasnext}}
                 </div>
             </form>
+
+            {{! Response history (moved here from the question rendering area).
+                Hidden container; opened in a Moodle modal when the button is clicked. }}
+            {{#responsehistory_html}}
+                <div class="mt-2 d-grid">
+                    <button type="button"
+                            class="btn btn-outline-secondary qtype-drawing-grader-history-btn">
+                        {{#pix}}i/log, core{{/pix}}
+                        {{#str}}responsehistory, question{{/str}}
+                    </button>
+                </div>
+                <div class="qtype-drawing-grader-history-content d-none" hidden>
+                    {{{responsehistory_html}}}
+                </div>
+            {{/responsehistory_html}}
         </div>
     </div>
 
     {{! Bottom: Navigation bar }}
     <div class="qtype-drawing-grader-nav">
         <div class="d-flex justify-content-between align-items-center p-2 bg-light border-top">
-            {{! Previous button }}
-            <div>
-                {{#hasprev}}
-                <a href="{{prev_url}}" class="btn btn-outline-secondary">
-                    {{#pix}}t/left, core{{/pix}}
-                    {{#str}}previousstudent, qtype_drawing{{/str}}
-                </a>
-                {{/hasprev}}
-                {{^hasprev}}
-                <button class="btn btn-outline-secondary" disabled>
-                    {{#pix}}t/left, core{{/pix}}
-                    {{#str}}previousstudent, qtype_drawing{{/str}}
-                </button>
-                {{/hasprev}}
-            </div>
-
-            {{! Overview link }}
+            {{! Overview link (left edge) }}
             <div>
                 <a href="{{overview_url}}" class="btn btn-link">
                     {{#pix}}i/return, core{{/pix}}
@@ -196,8 +234,20 @@
                 </a>
             </div>
 
-            {{! Next button }}
-            <div>
+            {{! Previous + Next (centred) }}
+            <div class="d-flex">
+                {{#hasprev}}
+                <a href="{{prev_url}}" class="btn btn-outline-secondary me-2">
+                    {{#pix}}t/left, core{{/pix}}
+                    {{#str}}previousstudent, qtype_drawing{{/str}}
+                </a>
+                {{/hasprev}}
+                {{^hasprev}}
+                <button class="btn btn-outline-secondary me-2" disabled>
+                    {{#pix}}t/left, core{{/pix}}
+                    {{#str}}previousstudent, qtype_drawing{{/str}}
+                </button>
+                {{/hasprev}}
                 {{#hasnext}}
                 <a href="{{next_url}}" class="btn btn-outline-secondary">
                     {{#str}}nextstudent, qtype_drawing{{/str}}
@@ -210,6 +260,32 @@
                     {{#pix}}t/right, core{{/pix}}
                 </button>
                 {{/hasnext}}
+            </div>
+
+            {{! View mode toggles (right edge) }}
+            <div class="qtype-drawing-grader-viewmode btn-group btn-group-sm" role="group"
+                 aria-label="{{#str}}viewmode, qtype_drawing{{/str}}">
+                <button type="button" class="btn btn-outline-secondary qtype-drawing-grader-viewmode-btn"
+                        data-viewmode="sidebar"
+                        title="{{#str}}viewmode_sidebar, qtype_drawing{{/str}}"
+                        aria-label="{{#str}}viewmode_sidebar, qtype_drawing{{/str}}"
+                        aria-pressed="false">
+                    <i class="fa fa-window-maximize fa-rotate-270" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary qtype-drawing-grader-viewmode-btn active"
+                        data-viewmode="both"
+                        title="{{#str}}viewmode_both, qtype_drawing{{/str}}"
+                        aria-label="{{#str}}viewmode_both, qtype_drawing{{/str}}"
+                        aria-pressed="true">
+                    <i class="fa fa-columns" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary qtype-drawing-grader-viewmode-btn"
+                        data-viewmode="canvas"
+                        title="{{#str}}viewmode_canvas, qtype_drawing{{/str}}"
+                        aria-label="{{#str}}viewmode_canvas, qtype_drawing{{/str}}"
+                        aria-pressed="false">
+                    <i class="fa fa-window-maximize fa-rotate-90" aria-hidden="true"></i>
+                </button>
             </div>
         </div>
     </div>

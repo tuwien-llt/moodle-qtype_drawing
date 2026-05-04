@@ -138,6 +138,9 @@ export default class embedded_svg_edit {
         //TODO: use AddEvent for Trident browsers, currently they dont support SVG, but they do support onmessage
         const t = this;
         window.addEventListener("message", function (e) {
+            if (typeof e.data !== "string") {
+                return;
+            }
             if (e.data.substr(0, 4) == "SVGe") { //because svg-edit is too longish
                 const data = e.data.substr(4);
                 const cbid = data.substr(0, data.indexOf(";"));

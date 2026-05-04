@@ -32,7 +32,7 @@ class ColorConfig {
     constructor(textareaId) {
         this.textarea = document.getElementById(textareaId);
         if (!this.textarea) {
-            throw new Error(`Textarea with ID ${textareaId} not found.`);
+            return;
         }
 
         // Generate a unique ID for this instance to handle radio button groups unique naming

@@ -163,5 +163,17 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025120200, 'qtype', 'drawing');
     }
 
+    if ($oldversion < 2025120201) {
+        // Add the hidemenu field — per-question switch to hide the top menu bar in the drawing canvas.
+        $table = new xmldb_table('qtype_drawing');
+        $field = new xmldb_field('hidemenu', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'questionembed');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2025120201, 'qtype', 'drawing');
+    }
+
     return true;
 }

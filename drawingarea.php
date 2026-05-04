@@ -73,7 +73,9 @@ $stylesheetsurls = [
 
 $PAGE->set_url($pageurl);
 $PAGE->set_pagelayout('embedded');
+
 foreach ($stylesheetsurls as $stylesheeturl) {
+    $stylesheeturl->param('rev', $CFG->themerev);
     $PAGE->requires->css_theme($stylesheeturl);
 }
 $PAGE->requires->jquery();
@@ -102,7 +104,7 @@ if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields, 'timem
     }
 }
 
-[$colors, $defaultcolor] = qtype_drawing::get_colors_for_template($useupdateannotationjs, $fhd->colorsjson);
+[$colors, $defaultcolor, $showallcolorschooser] = qtype_drawing::get_colors_for_template($useupdateannotationjs, $fhd->colorsjson);
 
 $context = [
     'base_url' => $CFG->wwwroot . '/question/type/drawing/',
@@ -111,6 +113,7 @@ $context = [
     'backgroundwidth' => $fhd->backgroundwidth,
     'backgroundheight' => $fhd->backgroundheight,
     'questionembed' => $fhd->questionembed == 1,
+    'hidemenu' => !empty($fhd->hidemenu),
     'questiontext' => $question->questiontext,
     'defaultpensize' => $fhd->defaultpensize,
     'stid' => $stid,
@@ -123,6 +126,7 @@ $context = [
     'displaystylefull' => 'style="display: inline-block;"',
     'colors' => $colors,
     'defaultcolor' => $defaultcolor,
+    'showallcolorschooser' => $showallcolorschooser,
 ];
 
 // Very, very dirty hack to get rid of theme css

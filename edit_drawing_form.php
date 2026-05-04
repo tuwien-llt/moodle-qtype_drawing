@@ -238,6 +238,9 @@ class qtype_drawing_edit_form extends question_edit_form {
         $mform->setDefault('questionembed', $drawingconfig->questionembed);
         $mform->addHelpButton('questionembed', 'questionembed', 'qtype_drawing');
 
+        $mform->addElement('selectyesno', 'hidemenu', get_string('hidemenu', 'qtype_drawing'));
+        $mform->setDefault('hidemenu', 0);
+
         $canvassizearray = [];
         $canvassizearray[] = & $mform->createElement(
             'text',
@@ -355,7 +358,7 @@ class qtype_drawing_edit_form extends question_edit_form {
                     'html',
                     "<div class=\"fitem\"><div class=\"fitemtitle\">" .
                                      get_string("selected_background_image_filename", "qtype_drawing") . "</div><div class=\"felement\">
-                                  <input type=\"button\" class=\"fp-btn-choose\" value=\"Choose a different file...\"
+                                  <input type=\"button\" class=\"fp-btn-choose\" value=\"" . get_string("choosebackgroundimage", "qtype_drawing"). "\"
                                    name=\"qtype_drawing_image_filechoose_another\">
                                   <br /><br /><img src='$finalbackground' class=\"img-thumbnail\"></div></div>"
                 );

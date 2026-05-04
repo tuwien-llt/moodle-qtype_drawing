@@ -54,14 +54,17 @@ if ($ADMIN->fulltree) {
     );
 
     // Default pen size.
+    $pensizechoices = [];
+    for ($i = 1; $i < 100; $i++) {
+        $pensizechoices[$i] = $i . 'px';
+    }
     $settings->add(
-        new admin_setting_configtext(
+        new admin_setting_configselect(
             'qtype_drawing/defaultpensize',
             get_string('defaultpensize', 'qtype_drawing'),
             get_string('defaultpensize_help', 'qtype_drawing'),
             10,
-            PARAM_INT,
-            1
+            $pensizechoices
         )
     );
 

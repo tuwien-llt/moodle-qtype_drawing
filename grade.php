@@ -68,6 +68,7 @@ if ($action === 'savegrade' && confirm_sesskey()) {
     // Redirect based on whether there's a next attempt.
     $savenext = optional_param('savenext', 0, PARAM_INT);
     $next = optional_param('next', null, PARAM_INT);
+    $returnurl = optional_param('returnurl', '', PARAM_LOCALURL);
     if ($savenext && $next) {
         redirect(new moodle_url('/mod/quiz/report.php', [
             'id' => $id,
@@ -75,10 +76,16 @@ if ($action === 'savegrade' && confirm_sesskey()) {
             'slot' => $gradeslot,
             'attemptid' => $next,
         ]));
+    } else if (!empty($returnurl)) {
+        redirect(new moodle_url($returnurl),
+            get_string('gradesaved', 'qtype_drawing'),
+            null, \core\output\notification::NOTIFY_SUCCESS);
     } else {
         redirect(new moodle_url('/mod/quiz/report.php', [
             'id' => $id,
             'mode' => 'drawing',
+            'slot' => $gradeslot,
+            'attemptid' => $gradeattemptid,
         ]), get_string('gradesaved', 'qtype_drawing'), null, \core\output\notification::NOTIFY_SUCCESS);
     }
 }
@@ -94,20 +101,29 @@ if ($attemptid === null) {
     $PAGE->set_url($baseurl);
     $PAGE->set_title(get_string('gradequestion', 'qtype_drawing') . ': ' . format_string($quiz->name));
 
-    // Load all drawing question attempts for this quiz.
-    $attempts = attempts_loader::get_all_drawing_attempts($quiz->id, $cm->id);
-    $stats = attempts_loader::get_grading_stats($quiz->id, $cm->id);
+    // Group selector (Moodle standard): show below the title and filter rows when group mode is on.
+    $groupid = groups_get_activity_group($cm, true) ?: null;
+    $groupmenu = groups_get_activity_groupmode($cm)
+        ? groups_print_activity_menu($cm, $baseurl->out(), true)
+        : '';
+
+    // Build per-question overview rows.
+    $rows = attempts_loader::get_overview_rows($quiz->id, $cm->id, $groupid);
+    $stats = attempts_loader::get_grading_stats($quiz->id, $cm->id, $groupid);
 
     // Prepare template context.
     $templatecontext = [
         'quizname' => format_string($quiz->name),
-        'attempts' => array_values($attempts),
-        'hasattempts' => !empty($attempts),
+        'groupmenu' => $groupmenu,
+        'rows' => $rows,
+        'hasrows' => !empty($rows),
         'totalcount' => $stats->total,
         'needsgradingcount' => $stats->needsgrading,
         'gradedcount' => $stats->graded,
         'backurl' => (new moodle_url('/mod/quiz/report.php', ['id' => $id, 'mode' => 'grading']))->out(false),
     ];
+
+    $PAGE->requires->js_call_amd('qtype_drawing/overview_table', 'init');
 
     echo $OUTPUT->header();
     echo $OUTPUT->render_from_template('qtype_drawing/grader_overview', $templatecontext);
@@ -147,6 +163,44 @@ if ($attemptid === null) {
     $quizrenderer = $PAGE->get_renderer('mod_quiz');
     $drawingareahtml = $attemptobj->render_question($slot, true, $quizrenderer);
 
+    // The core question renderer adds a `.comment.clearfix` block (duplicates the
+    // mark + comment form already in our sidebar) and a `.history.clearfix` block
+    // (response history). Drop the comment block and pull the response history out
+    // so the template can render it in the sidebar.
+    $responsehistoryhtml = '';
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    libxml_use_internal_errors(true);
+    $dom->loadHTML(
+        '<?xml encoding="UTF-8">' .
+        '<div id="qtdrawing-grader-wrap">' . $drawingareahtml . '</div>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+    );
+    libxml_clear_errors();
+    $xpath = new DOMXPath($dom);
+
+    $historynode = $xpath->query(
+        '//div[contains(concat(" ", normalize-space(@class), " "), " history ")]'
+    )->item(0);
+    if ($historynode) {
+        $responsehistoryhtml = $dom->saveHTML($historynode);
+        $historynode->parentNode->removeChild($historynode);
+    }
+
+    $commentnode = $xpath->query(
+        '//div[contains(concat(" ", normalize-space(@class), " "), " comment ")]'
+    )->item(0);
+    if ($commentnode) {
+        $commentnode->parentNode->removeChild($commentnode);
+    }
+
+    $wrappernode = $xpath->query('//div[@id="qtdrawing-grader-wrap"]')->item(0);
+    if ($wrappernode) {
+        $drawingareahtml = '';
+        foreach ($wrappernode->childNodes as $child) {
+            $drawingareahtml .= $dom->saveHTML($child);
+        }
+    }
+
     // Get current mark and comment.
     $currentmark = $qa->get_mark();
     $maxmark = $qa->get_max_mark();
@@ -158,12 +212,38 @@ if ($attemptid === null) {
         $currentcommentformat = FORMAT_HTML;
     }
 
-    // Navigation - get prev/next attempts.
-    $navigation = attempts_loader::get_attempt_navigation($quiz->id, $slot, $attemptid, $cm->id);
+    // Navigation - student-level prev/next (each student represented by their latest attempt).
+    // Honour the group selection persisted by the overview menu so iteration stays inside the chosen group.
+    $navgroupid = groups_get_activity_group($cm, true) ?: null;
+    $navigation = attempts_loader::get_student_navigation($quiz->id, $slot, $attemptid, $cm->id, $navgroupid);
+
+    // Per-student attempt list for the dropdown selector.
+    $studentattempts = attempts_loader::get_attempts_for_user(
+        $quiz->id, $slot, $attemptobj->get_userid(), $cm->id
+    );
+    $attemptoptions = [];
+    foreach ($studentattempts as $a) {
+        $optionurl = (new moodle_url($baseurl, ['slot' => $slot, 'attemptid' => $a->attemptid]))->out(false);
+        $label = get_string('attempt', 'quiz', $a->attemptnumber);
+        if ($a->needsgrading) {
+            $label .= ' (' . get_string('needsgrading', 'qtype_drawing') . ')';
+        }
+        $attemptoptions[] = (object) [
+            'attemptid' => $a->attemptid,
+            'attemptnumber' => $a->attemptnumber,
+            'url' => $optionurl,
+            'selected' => $a->attemptid == $attemptid,
+            'needsgrading' => $a->needsgrading,
+            'label' => $label,
+        ];
+    }
+    $hasmultipleattempts = count($attemptoptions) > 1;
+    $currentattemptnumber = (int) $attemptobj->get_attempt_number();
 
     // Prepare template context.
     $templatecontext = [
         'drawing_area_html' => $drawingareahtml,
+        'responsehistory_html' => $responsehistoryhtml,
         'studentname' => fullname($student),
         'userpicture' => $OUTPUT->user_picture($student, ['size' => 50]),
         'slot' => $slot,
@@ -181,6 +261,9 @@ if ($attemptid === null) {
         'previd' => $navigation->prev,
         'currentindex' => $navigation->current_index,
         'totalcount' => $navigation->total,
+        'attemptoptions' => $attemptoptions,
+        'hasmultipleattempts' => $hasmultipleattempts,
+        'currentattemptnumber' => $currentattemptnumber,
         'prev_url' => $navigation->prev !== null
             ? (new moodle_url($baseurl, ['slot' => $slot, 'attemptid' => $navigation->prev]))->out(false)
             : '',
@@ -190,6 +273,13 @@ if ($attemptid === null) {
         'overview_url' => $baseurl->out(false),
         'saveurl' => (new moodle_url($baseurl, ['action' => 'savegrade']))->out(false),
     ];
+
+    // Attach the user's preferred Moodle rich-text editor to the feedback textarea.
+    $commenteditor = editors_get_preferred_editor(FORMAT_HTML);
+    $commenteditor->use_editor('grade-comment', [
+        'context' => $context,
+        'autosave' => false,
+    ]);
 
     // Load JS module with minimal config (maxmark only - rest is in DOM).
     $PAGE->requires->js_call_amd('qtype_drawing/grader_ui', 'init', [['maxmark' => $maxmark]]);

@@ -49,6 +49,7 @@ class qtype_drawing_question extends question_graded_by_strategy implements ques
     public $defaultpensize;
     public $colorhighlighter;
     public $questionembed;
+    public $hidemenu;
 
     /** @var array of question_answer. */
     public $answers = [];

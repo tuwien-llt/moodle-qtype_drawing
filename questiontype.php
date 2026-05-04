@@ -51,6 +51,7 @@ class qtype_drawing extends question_type {
             'defaultpensize',
             'colorhighlighter',
             'questionembed',
+            'hidemenu',
         ];
     }
 
@@ -126,6 +127,7 @@ class qtype_drawing extends question_type {
             $options->defaultpensize = $drawingconfig->defaultpensize;
             $options->colorsjson = $drawingconfig->colorsjson;
             $options->colorhighlighter = $drawingconfig->colorhighlighter;
+            $options->hidemenu = 0;
             $options->id = $DB->insert_record('qtype_drawing', $options);
         }
         if (isset($question->allowstudentimage)) {
@@ -142,6 +144,7 @@ class qtype_drawing extends question_type {
         $options->defaultpensize = isset($question->defaultpensize) ? $question->defaultpensize : $drawingconfig->defaultpensize;
         $options->colorsjson = isset($question->colorsjson) ? $question->colorsjson : $drawingconfig->colorsjson;
         $options->colorhighlighter = isset($question->colorhighlighter) ? $question->colorhighlighter : $drawingconfig->colorhighlighter;
+        $options->hidemenu = !empty($question->hidemenu) ? 1 : 0;
 
         $DB->update_record('qtype_drawing', $options);
         $this->save_hints($question);
@@ -366,6 +369,8 @@ class qtype_drawing extends question_type {
             return [];
         }
 
+        $showallcolorschooser = false;
+
         // 2. Define role-specific keys based on $teacherview
         if ($teacherview) {
             $global_avail_key = 'trainerAvailable';
@@ -377,10 +382,10 @@ class qtype_drawing extends question_type {
             $default_key = 'def_student';
         }
 
-        // 3. Check Global Availability
+        // 3. Check Global Availability - now it is a palette chooser
         // If the "Color selection available for X" checkbox is unchecked, return empty list.
-        if (empty($config->globalSettings->$global_avail_key)) {
-            return [];
+        if (!empty($config->globalSettings->$global_avail_key)) {
+            $showallcolorschooser = true;
         }
 
         $filtered_colors = [];
@@ -421,6 +426,6 @@ class qtype_drawing extends question_type {
             array_unshift($filtered_colors, $default_color);
         }
 
-        return [$filtered_colors, $default_color];
+        return [$filtered_colors, $default_color, $showallcolorschooser];
     }
 }

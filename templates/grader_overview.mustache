@@ -17,44 +17,42 @@
 {{!
     @template qtype_drawing/grader_overview
 
-    Template for the drawing question grader overview page.
-    Shows a list of all attempts that need grading.
-
-    Classes required for JS:
-    * none
-
-    Data attributes required for JS:
-    * none
+    Drawing question grader landing page. One row per drawing question
+    slot in the quiz, with aggregate response/grading counts.
 
     Context variables required for this template:
     * quizname - The quiz name
-    * attempts - Array of attempt objects (each with questionname, slot, username, etc.)
-    * hasattempts - Boolean if there are attempts
-    * totalcount - Total number of attempts
-    * needsgradingcount - Number of attempts needing grading
-    * gradedcount - Number of already graded attempts
+    * groupmenu - Optional pre-rendered HTML for the group activity
+                  menu (empty string when the quiz is not in group mode)
+    * rows - Array of per-slot row objects: {questionname, slot,
+             responsecount, totalstudents, totalattempts, tograde,
+             graded, hasattempts, needsattention, actionurl}
+    * hasrows - Boolean: at least one drawing slot exists
+    * totalcount - Total drawing attempts across all slots
+    * needsgradingcount - Drawing attempts still in needsgrading
+    * gradedcount - Drawing attempts already graded
     * backurl - URL to go back to quiz grading report
 
     Example context (json):
     {
         "quizname": "Test Quiz",
-        "hasattempts": true,
-        "totalcount": 5,
-        "needsgradingcount": 3,
-        "gradedcount": 2,
+        "hasrows": true,
+        "totalcount": 25,
+        "needsgradingcount": 5,
+        "gradedcount": 20,
         "backurl": "/mod/quiz/report.php?id=1&mode=grading",
-        "attempts": [
+        "rows": [
             {
-                "attemptid": 1,
                 "questionname": "Draw a house",
                 "slot": 1,
-                "username": "John Doe",
-                "state": "needsgrading",
-                "stateclass": "badge-warning",
-                "needsgrading": true,
-                "grade": "-",
-                "maxgrade": "10.00",
-                "gradeurl": "/mod/quiz/report.php?id=1&mode=drawing&slot=1&attemptid=1"
+                "responsecount": 37,
+                "totalstudents": 42,
+                "totalattempts": 45,
+                "tograde": 3,
+                "graded": 42,
+                "hasattempts": true,
+                "needsattention": true,
+                "actionurl": "/mod/quiz/report.php?id=1&mode=drawing&slot=1&attemptid=10"
             }
         ]
     }
@@ -67,6 +65,10 @@
             <p class="text-muted mb-0">{{quizname}}</p>
         </div>
     </div>
+
+    {{#groupmenu}}
+    <div class="mb-3">{{{groupmenu}}}</div>
+    {{/groupmenu}}
 
     {{! Statistics cards }}
     <div class="row mb-4">
@@ -96,57 +98,61 @@
         </div>
     </div>
 
-    {{! Attempts table }}
-    {{#hasattempts}}
+    {{! Per-question rows }}
+    {{#hasrows}}
     <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="thead-light">
+        <table class="table table-striped table-hover qtype-drawing-overview-sortable">
+            <thead class="table-light">
                 <tr>
-                    <th scope="col">{{#str}}question, core{{/str}}</th>
-                    <th scope="col">{{#str}}slot, qtype_drawing{{/str}}</th>
-                    <th scope="col">{{#str}}student, qtype_drawing{{/str}}</th>
-                    <th scope="col">{{#str}}attempt, quiz{{/str}}</th>
-                    <th scope="col">{{#str}}completed, qtype_drawing{{/str}}</th>
-                    <th scope="col">{{#str}}status, qtype_drawing{{/str}}</th>
-                    <th scope="col">{{#str}}gradeverb, core{{/str}}</th>
+                    <th scope="col" data-sortable="text">{{#str}}question, core{{/str}}</th>
+                    <th scope="col" data-sortable="numeric">{{#str}}slot, qtype_drawing{{/str}}</th>
+                    <th scope="col" data-sortable="numeric">{{#str}}responses, qtype_drawing{{/str}}</th>
+                    <th scope="col" data-sortable="numeric">{{#str}}totalattempts, qtype_drawing{{/str}}</th>
+                    <th scope="col" data-sortable="numeric">{{#str}}tograde, qtype_drawing{{/str}}</th>
+                    <th scope="col" data-sortable="numeric">{{#str}}alreadygraded, qtype_drawing{{/str}}</th>
                     <th scope="col">{{#str}}actions, core{{/str}}</th>
                 </tr>
             </thead>
             <tbody>
-                {{#attempts}}
+                {{#rows}}
                 <tr>
                     <td>{{questionname}}</td>
-                    <td>{{slot}}</td>
-                    <td>{{username}}</td>
-                    <td>{{attemptnumber}}</td>
-                    <td>{{timefinish}}</td>
-                    <td>
-                        <span class="badge {{stateclass}}">{{state}}</span>
+                    <td data-sortvalue="{{slot}}">{{slot}}</td>
+                    <td data-sortvalue="{{responsecount}}">{{responsecount}}/{{totalstudents}}</td>
+                    <td data-sortvalue="{{totalattempts}}">{{totalattempts}}</td>
+                    <td data-sortvalue="{{tograde}}">
+                        {{#needsattention}}<span class="badge text-bg-warning">{{tograde}}</span>{{/needsattention}}
+                        {{^needsattention}}{{tograde}}{{/needsattention}}
                     </td>
-                    <td>{{grade}} / {{maxgrade}}</td>
+                    <td data-sortvalue="{{graded}}">{{graded}}</td>
                     <td>
-                        <a href="{{gradeurl}}" class="btn btn-sm {{#needsgrading}}btn-primary{{/needsgrading}}{{^needsgrading}}btn-outline-secondary{{/needsgrading}}">
-                            {{#needsgrading}}
+                        {{#hasattempts}}
+                        <a href="{{actionurl}}" class="btn btn-sm {{#needsattention}}btn-primary{{/needsattention}}{{^needsattention}}btn-outline-secondary{{/needsattention}}">
+                            {{#needsattention}}
                                 {{#pix}}i/grades, core{{/pix}}
-                                {{#str}}gradeverb, core{{/str}}
-                            {{/needsgrading}}
-                            {{^needsgrading}}
+                                {{#str}}startgrading, qtype_drawing{{/str}}
+                            {{/needsattention}}
+                            {{^needsattention}}
                                 {{#pix}}i/preview, core{{/pix}}
-                                {{#str}}review, qtype_drawing{{/str}}
-                            {{/needsgrading}}
+                                {{#str}}reviewquestion, qtype_drawing{{/str}}
+                            {{/needsattention}}
                         </a>
+                        {{/hasattempts}}
+                        {{^hasattempts}}
+                        <span class="text-muted">&mdash;</span>
+                        {{/hasattempts}}
                     </td>
                 </tr>
-                {{/attempts}}
+                {{/rows}}
             </tbody>
         </table>
     </div>
-    {{/hasattempts}}
+    {{/hasrows}}
 
-    {{^hasattempts}}
+    {{^hasrows}}
     <div class="alert alert-info">
         {{#pix}}i/info, core{{/pix}}
         {{#str}}noattempts, qtype_drawing{{/str}}
     </div>
-    {{/hasattempts}}
+    {{/hasrows}}
 </div>

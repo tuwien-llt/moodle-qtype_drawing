@@ -32,7 +32,21 @@ html, body {
 
 /* width */
 ::-webkit-scrollbar {
+    /* qtype_drawing local fix: -webkit-appearance: none forces iOS Safari
+       to render styled scrollbars (otherwise they're hidden by default
+       and only appear briefly during scroll). */
+    -webkit-appearance: none;
     width: 8px;
+    height: 8px;
+}
+
+/* qtype_drawing local fix: widen the workarea scrollbar so it can be
+ * dragged reliably with a finger on touch displays. The right-side
+ * tool panel keeps its 8px scrollbar (unscoped rule above). */
+#workarea::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
 }
 
 /* Track */
@@ -116,6 +130,7 @@ html, body {
     position: relative;
     height: 16px;
     vertical-align: top;
+    touch-action: manipulation;
 }
 
 .touch .menu_title {
@@ -159,8 +174,18 @@ html, body {
     overflow: hidden;
     line-height: 22px;
     padding: 5px 69px 5px 25px;
-    cursor: default;
+    /* qtype_drawing local fix: was `cursor: default`. iOS Safari only
+       fires synthetic click events on non-interactive elements when
+       they have `cursor: pointer` (or are inherently clickable). Without
+       this, tapping a menu item on iPad closes the menu but never fires
+       the underlying tool action. */
+    cursor: pointer;
     color: #333;
+    touch-action: manipulation;
+}
+
+.menu_list .menu_item.disabled {
+    cursor: default;
 }
 
 .menu_list .menu_item.tool_button {
@@ -583,7 +608,46 @@ div#workarea {
 }
 
 #workarea {
-    touch-action: none;
+    /* qtype_drawing local fix: was `touch-action: none` which disabled
+     * native scrollbar drag and touch-pan-to-scroll on touch devices.
+     * Drawing on canvas still wins because the touch shim calls
+     * preventDefault() on canvas touchstart, overriding pan-x/pan-y for
+     * that gesture. Pinch-zoom remains blocked (we don't support it). */
+    touch-action: pan-x pan-y;
+}
+
+/* qtype_drawing local fix: iOS Safari auto-hides `overflow:auto`
+   scrollbars even when -webkit-appearance:none is set. Forcing
+   `overflow:scroll` on touch devices keeps the scrollbar persistently
+   visible so the user can tell #workarea is scrollable when zoomed in.
+   The `.touch` class is added to <body> by amd/src/drawingarea.js. */
+body.touch #workarea {
+    overflow: scroll;
+}
+
+
+/* qtype_drawing local fix: when the per-question "Hide menu" setting is
+ * enabled the menu_bar (~30px tall) is removed from the DOM, but the
+ * surrounding panels still reserve that space. Pull them up so the
+ * canvas starts at the very top, and reclaim the empty 40px
+ * #tools_bottom strip at the bottom (the zoom panel actually lives
+ * inside #tools_left, so #tools_bottom carries no content). */
+#svg_editor.qtype_drawing_hidemenu div#workarea,
+#svg_editor.qtype_drawing_hidemenu #tools_top,
+#svg_editor.qtype_drawing_hidemenu #tools_left,
+#svg_editor.qtype_drawing_hidemenu #ruler_x,
+#svg_editor.qtype_drawing_hidemenu #rulers #ruler_corner {
+    top: 0;
+}
+#svg_editor.qtype_drawing_hidemenu #ruler_y {
+    top: 16px;
+}
+#svg_editor.qtype_drawing_hidemenu div#workarea,
+#svg_editor.qtype_drawing_hidemenu #ruler_y {
+    bottom: 0;
+}
+#svg_editor.qtype_drawing_hidemenu #tools_bottom {
+    display: none;
 }
 
 .touch div#workarea {
@@ -599,6 +663,7 @@ div#workarea {
 .tool_button_current,
 .tool_button_pressed {
     cursor: pointer;
+    touch-action: manipulation;
 }
 
 .tool_button:hover,
@@ -1040,11 +1105,15 @@ input[type=submit]:active, button:active {
     padding-right: 5px;
 }
 
-/*
+/* qtype_drawing local fix: keep the text-tool textarea off-screen by
+ * default. svg-edit's textActions sets explicit inline left/top when
+ * the user activates the text tool, overriding this rule. Without it,
+ * the textarea sits visibly under the question stem (was previously
+ * hidden behind the now-removable #menu_bar). */
 #text {
-  position: absolute;
-  left: -9999px;
-}*/
+    position: absolute;
+    left: -9999px;
+}
 
 #tool_bold span, #tool_italic span {
     position: absolute;
@@ -2114,10 +2183,13 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 }
 
 #zoom_label {
-    height: 20px;
+    position: relative;
+    display: inline-block;
+    width: auto;
+    height: auto;
     background: transparent;
     cursor: default !important;
-    width: auto;
+    vertical-align: top;
     /*padding: 0 10px;
     margin: 0;
     margin-left:0px;*/
@@ -2127,22 +2199,42 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 #zoom_panel {
     padding: 9px 0;
     /*right: 175px;*/
-    left: 0px;
+    left: 0;
+    right: 0;
     position: absolute;
     bottom: 20px;
+    text-align: center;
+    touch-action: manipulation;
 }
 
+/* qtype_drawing local fix: position <select> over the magnifier icon
+   AND the percentage indicator below it, with opacity:0 so taps land on
+   the select itself. iOS Safari only opens <select> pickers when the
+   user taps the <select> element directly — focusing it programmatically
+   does nothing. font-size:16px suppresses iOS Safari's auto-zoom-on-focus
+   for form controls. The visible "100% ▼" readout below is rendered by
+   #zoom (the input). */
 #zoom_select {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
+    height: 100%;
+    opacity: 0;
     background: #2f2f2c;
     color: #cccccc;
     border: none;
-    font-size: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 2;
+    -webkit-appearance: none;
+    appearance: none;
+    touch-action: manipulation;
 }
 
 #zoom_label img, #zoom_label svg {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
 }
 
 #logo svg {
@@ -2150,12 +2242,19 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 }
 
 #zoomLabel {
-    width: 24px;
-    height: 24px;
+    display: block;
+    width: 32px;
+    height: 32px;
     cursor: pointer;
     background: #ccc;
     margin-left: auto;
     margin-right: auto;
+    touch-action: manipulation;
+    /* qtype_drawing local fix: <select> overlays this icon at z-index:2;
+       make the icon a non-interactive decoration so taps go to <select>. */
+    pointer-events: none;
+    position: relative;
+    z-index: 1;
 }
 
 #zoomLabel:after {
@@ -2163,17 +2262,29 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
     position: absolute;
     border-left: solid #2f2f2c 1px;
     left: 0;
-    height: 16px;
+    height: 22px;
 }
 
 #zoom_label input {
     color: #ccc;
     font-size: 13px;
     height: auto;
-    width: auto;
+    width: 56px;
     padding: 0;
     cursor: default;
     position: static;
+    /* qtype_drawing local fix: visible zoom readout. The <select> is
+       opacity:0 and overlays this whole region, so taps anywhere on
+       the icon or readout open the picker. JS sets the value to e.g.
+       "100% ▼" so the input mimics a closed dropdown. */
+    display: block;
+    margin: 4px auto 0;
+    background: transparent;
+    border: none;
+    text-align: center;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 #zoom_label span {

@@ -93,8 +93,12 @@ class qtype_drawing_renderer extends qtype_renderer {
         $currentanswer = $qa->get_last_qt_var('answer');
         $attemptid = $qa->get_last_qt_var('uniqueuattemptid');
 
+        if ($currentanswer === null) {
+            $currentanswer = '';
+        }
+
         // Handle first time attempt ID generation
-        if ($options->readonly && !$attemptid) {
+        if ($options->readonly && !$attemptid && $currentanswer != '') {
             $attemptid = substr(md5($currentanswer), 0, 14) . 'XX';
         }
         if (!$attemptid) {
@@ -153,7 +157,6 @@ class qtype_drawing_renderer extends qtype_renderer {
         // CASE A: EDITOR VIEW (Student Attempting OR Annotator Grading)
         // -------------------------------------------------------------------------
         if ($show_editor) {
-            $data['loadingimageurl'] = $CFG->wwwroot . '/question/type/drawing/images/loading.gif';
             $data['str_fullscreen'] = get_string('enterfullscreen', 'qtype_drawing');
 
             // Default values (Student Attempting)
@@ -784,9 +787,6 @@ class qtype_drawing_renderer extends qtype_renderer {
                value="' . $canvasinfo->backgroundheight . '">
 				<div class="qtype_drawing_drawingwrapper"
              id="qtype_drawing_drawingwrapper_' . $attemptid . $uniquefieldnameattemptid . '">
-             <img id="qtype_drawing_loading_image_' . $attemptid . $uniquefieldnameattemptid . '"
-                  src="' . $CFG->wwwroot . '/question/type/drawing/images/loading.gif"
-                  alt="Loading">
         <span id="quiz_timer_drawing_' . $attemptid . $uniquefieldnameattemptid . '"
               style="display:none; background-color:#fff"></span>
 				<span class="qtype_drawing_togglebutton"

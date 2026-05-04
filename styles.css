@@ -149,9 +149,9 @@
 
 .qtype-drawing-grader-fullscreen {
     display: grid;
-    grid-template-columns: 1fr 380px;
+    grid-template-columns: 1fr 32%;
     grid-template-rows: 1fr auto;
-    height: calc(100vh - 50px);
+    height: calc(100vh - 2px);
     min-height: 500px;
 }
 
@@ -205,6 +205,61 @@
     border-top: 1px solid #dee2e6;
 }
 
+/* View mode: default = both; classes override grid + visibility */
+.qtype-drawing-grader-fullscreen.viewmode-canvas {
+    grid-template-columns: 1fr 0;
+}
+
+.qtype-drawing-grader-fullscreen.viewmode-canvas .qtype-drawing-grader-sidebar {
+    display: none;
+}
+
+.qtype-drawing-grader-fullscreen.viewmode-sidebar {
+    grid-template-columns: 0 1fr;
+}
+
+.qtype-drawing-grader-fullscreen.viewmode-sidebar .qtype-drawing-grader-canvas {
+    display: none;
+}
+
+.qtype-drawing-grader-fullscreen.viewmode-sidebar .qtype-drawing-grader-sidebar {
+    grid-area: 1 / 1 / 2 / 3;
+    border-left: none;
+}
+
+.qtype-drawing-grader-viewmode-btn.active {
+    background-color: #6c757d;
+    color: #fff;
+    border-color: #6c757d;
+}
+
+/* Feedback editor fullscreen toggle */
+.qtype-drawing-feedback-fullscreen-btn {
+    line-height: 1;
+}
+
+.qtype-drawing-feedback-wrap.editor-fullscreen {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #fff;
+    z-index: 1080;
+    padding: 1rem;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.qtype-drawing-feedback-wrap.editor-fullscreen > textarea,
+.qtype-drawing-feedback-wrap.editor-fullscreen .editor_atto_wrap,
+.qtype-drawing-feedback-wrap.editor-fullscreen .editor_atto_content,
+.qtype-drawing-feedback-wrap.editor-fullscreen .tox-tinymce {
+    flex: 1 1 auto;
+    height: auto !important;
+    min-height: 60vh;
+}
+
 /* Quick grade buttons */
 .quick-grade-btn.active {
     font-weight: bold;
@@ -233,6 +288,27 @@
     border-radius: 0.5rem;
 }
 
+.qtype-drawing-overview-sortable th[data-sortable] {
+    cursor: pointer;
+    user-select: none;
+}
+
+.qtype-drawing-overview-sortable th[data-sortable]::after {
+    content: " \2195";
+    opacity: 0.4;
+    font-size: 0.85em;
+}
+
+.qtype-drawing-overview-sortable th[aria-sort="ascending"]::after {
+    content: " \2191";
+    opacity: 1;
+}
+
+.qtype-drawing-overview-sortable th[aria-sort="descending"]::after {
+    content: " \2193";
+    opacity: 1;
+}
+
 .qtype-drawing-grader-overview .card-title {
     font-size: 2rem;
     font-weight: bold;
@@ -242,11 +318,15 @@
     border-top: none;
 }
 
+
+#page-mod-quiz-report .que.drawing.manualgraded > .info {
+    display: none;
+}
 /* Responsive adjustments */
 @media (max-width: 992px) {
     .qtype-drawing-grader-fullscreen {
         grid-template-columns: 1fr;
-        grid-template-rows: 1fr auto auto;
+        grid-template-rows: 1fr 1fr auto;
     }
 
     .qtype-drawing-grader-canvas {
@@ -262,5 +342,42 @@
 
     .qtype-drawing-grader-nav {
         grid-area: 3 / 1 / 4 / 2;
+    }
+
+    .qtype-drawing-grader-fullscreen.viewmode-canvas,
+    .qtype-drawing-grader-fullscreen.viewmode-sidebar {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   Grader loading overlay
+   ============================================ */
+
+.qtype-drawing-grader-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    opacity: 1;
+    transition: opacity 250ms ease;
+}
+
+.qtype-drawing-grader-loading.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.qtype-drawing-grader-loading-inner {
+    text-align: center;
+    max-width: 22rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .qtype-drawing-grader-loading {
+        transition: none;
     }
 }

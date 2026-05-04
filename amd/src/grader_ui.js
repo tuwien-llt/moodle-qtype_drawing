@@ -23,6 +23,14 @@
 
 import Notification from 'core/notification';
 import {get_string as getString} from 'core/str';
+import Modal from 'core/modal';
+
+let dirty = false;
+let bypassGuard = false;
+let baselineUndoSize = null;
+
+const VIEWMODE_KEY = 'qtype_drawing_grader_viewmode';
+const VIEWMODES = ['sidebar', 'both', 'canvas'];
 
 /**
  * Initialize the grader UI.
@@ -37,6 +45,10 @@ export const init = (config) => {
 
     const maxMark = parseFloat(config.maxmark);
 
+    // Loading overlay — must be wired first so the postMessage listener
+    // is armed before the iframe has a chance to fire its ready signal.
+    initLoadingOverlay();
+
     // Quick grade buttons.
     initQuickGradeButtons(maxMark);
 
@@ -46,8 +58,250 @@ export const init = (config) => {
     // Save and next button handler.
     initSaveNextButton();
 
+    // Response history modal trigger.
+    initResponseHistoryModal();
+
+    // Track form changes for the unsaved-changes guard.
+    initDirtyTracking();
+
+    // Intercept nav-link clicks when there are unsaved changes.
+    initNavigationGuard();
+
     // Keyboard shortcuts.
     initKeyboardShortcuts();
+
+    // Layout view mode toggles.
+    initViewModeToggle();
+
+    // Per-student attempt selector.
+    initAttemptDropdown();
+
+    // Fullscreen toggle for the feedback editor.
+    initFeedbackFullscreen();
+};
+
+/**
+ * Hide the grader loading overlay once the iframe signals readiness, with a
+ * fallback timer so a broken script load can never trap the teacher.
+ */
+const initLoadingOverlay = () => {
+    const overlay = document.getElementById('qtype-drawing-grader-loading');
+    if (!overlay) {
+        return;
+    }
+
+    let hidden = false;
+    const hide = () => {
+        if (hidden) {
+            return;
+        }
+        hidden = true;
+        overlay.classList.add('is-hidden');
+        overlay.setAttribute('aria-busy', 'false');
+        const removeOverlay = () => {
+            overlay.style.display = 'none';
+            overlay.removeEventListener('transitionend', removeOverlay);
+        };
+        overlay.addEventListener('transitionend', removeOverlay);
+        // Belt-and-braces in case transitionend never fires.
+        setTimeout(removeOverlay, 600);
+    };
+
+    window.addEventListener('message', (event) => {
+        if (event.origin !== window.location.origin) {
+            return;
+        }
+        if (event.data && event.data.type === 'qtype_drawing_ready') {
+            hide();
+        }
+    });
+
+    // Backup: poll for the iframe's svgCanvas in case the postMessage races us.
+    // Same-origin iframe so contentWindow access is safe.
+    const pollIntervalMs = 200;
+    const pollDeadline = performance.now() + 14000;
+    const pollIframeReady = () => {
+        if (hidden) {
+            return;
+        }
+        const iframe = document.querySelector('.qtype-drawing-grader-canvas iframe');
+        try {
+            if (iframe && iframe.contentWindow && iframe.contentWindow.svgCanvas) {
+                hide();
+                return;
+            }
+        } catch (e) {
+            // Cross-origin (shouldn't happen) — fall through to fallback timeout.
+        }
+        if (performance.now() < pollDeadline) {
+            setTimeout(pollIframeReady, pollIntervalMs);
+        }
+    };
+    setTimeout(pollIframeReady, pollIntervalMs);
+
+    // Fallback so a broken iframe never traps the teacher.
+    setTimeout(hide, 15000);
+};
+
+/**
+ * Toggle a fullscreen mode for the feedback editor wrapper, similar to
+ * the assignment grader. Esc exits fullscreen.
+ */
+const initFeedbackFullscreen = () => {
+    const btn = document.querySelector('.qtype-drawing-feedback-fullscreen-btn');
+    const wrap = document.querySelector('.qtype-drawing-feedback-wrap');
+    if (!btn || !wrap) {
+        return;
+    }
+    const icon = btn.querySelector('i');
+
+    const setExpanded = (expanded) => {
+        wrap.classList.toggle('editor-fullscreen', expanded);
+        btn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+        if (icon) {
+            icon.classList.toggle('fa-expand', !expanded);
+            icon.classList.toggle('fa-compress', expanded);
+        }
+    };
+
+    btn.addEventListener('click', () => {
+        setExpanded(!wrap.classList.contains('editor-fullscreen'));
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && wrap.classList.contains('editor-fullscreen')) {
+            setExpanded(false);
+        }
+    });
+};
+
+/**
+ * Wire up the per-student attempt dropdown. On change, reuse the existing
+ * dirty-tracking + unsaved-changes modal so teachers don't lose work
+ * when switching to a different attempt of the same student.
+ */
+const initAttemptDropdown = () => {
+    const select = document.getElementById('grader-attempt-select');
+    if (!select) {
+        return;
+    }
+    let lastValue = select.value;
+
+    const goTo = (option) => {
+        const url = option && option.dataset.url;
+        if (url) {
+            window.location.href = url;
+        }
+    };
+
+    select.addEventListener('change', async() => {
+        const newOption = select.options[select.selectedIndex];
+        if (bypassGuard || !isDirty()) {
+            lastValue = select.value;
+            goTo(newOption);
+            return;
+        }
+        const action = await showUnsavedChangesModal();
+        if (action === 'cancel') {
+            select.value = lastValue;
+            return;
+        }
+        if (action === 'discard') {
+            bypassGuard = true;
+            goTo(newOption);
+            return;
+        }
+        if (action === 'save') {
+            const form = document.getElementById('qtype-drawing-grade-form');
+            const returnurlField = document.getElementById('returnurl-field');
+            if (form && returnurlField && newOption) {
+                returnurlField.value = newOption.dataset.url;
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
+                }
+            }
+        }
+    });
+};
+
+/**
+ * Apply a view mode by toggling classes on the grader container and the
+ * three toggle buttons.
+ *
+ * @param {string} mode One of 'sidebar', 'both', 'canvas'.
+ */
+const applyViewMode = (mode) => {
+    const container = document.querySelector('.qtype-drawing-grader-fullscreen');
+    if (!container) {
+        return;
+    }
+    VIEWMODES.forEach(m => container.classList.remove('viewmode-' + m));
+    if (mode !== 'both') {
+        container.classList.add('viewmode-' + mode);
+    }
+    document.querySelectorAll('.qtype-drawing-grader-viewmode-btn').forEach(btn => {
+        const isActive = btn.dataset.viewmode === mode;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+};
+
+/**
+ * Wire up the three view-mode toggle buttons. Persists the selected mode
+ * in localStorage so it survives navigation between attempts.
+ */
+const initViewModeToggle = () => {
+    const buttons = document.querySelectorAll('.qtype-drawing-grader-viewmode-btn');
+    if (!buttons.length) {
+        return;
+    }
+    let saved = 'both';
+    try {
+        const v = window.localStorage.getItem(VIEWMODE_KEY);
+        if (VIEWMODES.includes(v)) {
+            saved = v;
+        }
+    } catch (e) {
+        // localStorage unavailable (private mode etc.) — fall back to default.
+    }
+    applyViewMode(saved);
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.dataset.viewmode;
+            if (!VIEWMODES.includes(mode)) {
+                return;
+            }
+            applyViewMode(mode);
+            try {
+                window.localStorage.setItem(VIEWMODE_KEY, mode);
+            } catch (e) {
+                // Ignore.
+            }
+        });
+    });
+};
+
+/**
+ * Wire the "View response history" button to open the hidden history block in a Moodle modal.
+ */
+const initResponseHistoryModal = () => {
+    const btn = document.querySelector('.qtype-drawing-grader-history-btn');
+    const content = document.querySelector('.qtype-drawing-grader-history-content');
+    if (!btn || !content) {
+        return;
+    }
+
+    btn.addEventListener('click', () => {
+        Modal.create({
+            title: '',
+            body: content.innerHTML,
+            large: true,
+            show: true,
+            removeOnClose: true,
+        });
+    });
 };
 
 /**
@@ -64,10 +318,169 @@ const initQuickGradeButtons = (maxMark) => {
             const percentage = parseInt(button.dataset.grade, 10);
             const grade = (percentage / 100) * maxMark;
             markInput.value = grade.toFixed(2);
+            dirty = true;
 
             // Visual feedback.
             buttons.forEach(b => b.classList.remove('active'));
             button.classList.add('active');
+        });
+    });
+};
+
+const initDirtyTracking = () => {
+    const markInput = document.getElementById('grade-mark');
+    const commentInput = document.getElementById('grade-comment');
+    if (markInput) {
+        markInput.addEventListener('input', () => {
+            dirty = true;
+        });
+    }
+    if (commentInput) {
+        // Atto/TinyMCE write back to the underlying textarea via 'change';
+        // plain editor still fires 'input'. Listen for both.
+        ['input', 'change'].forEach(evt => {
+            commentInput.addEventListener(evt, () => {
+                dirty = true;
+            });
+        });
+    }
+
+    // Snapshot svg-edit's undo stack size lazily, on the first real user
+    // interaction with the iframe. Capturing earlier (right after methodDraw
+    // boots) is unreliable because methodDraw can push commands onto the
+    // stack asynchronously during init, leaving us with a stale baseline and
+    // false-positive dirty.
+    const iframe = document.querySelector('.qtype_drawing_drawingwrapper iframe');
+    if (!iframe) {
+        return;
+    }
+
+    const attachInteractionCapture = () => {
+        const doc = iframe.contentDocument;
+        if (!doc) {
+            return;
+        }
+        const onFirstInteraction = () => {
+            const mgr = getUndoMgr();
+            if (mgr) {
+                baselineUndoSize = mgr.getUndoStackSize();
+            } else {
+                baselineUndoSize = 0;
+            }
+            doc.removeEventListener('pointerdown', onFirstInteraction, true);
+            doc.removeEventListener('keydown', onFirstInteraction, true);
+        };
+        doc.addEventListener('pointerdown', onFirstInteraction, true);
+        doc.addEventListener('keydown', onFirstInteraction, true);
+    };
+
+    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+        attachInteractionCapture();
+    } else {
+        iframe.addEventListener('load', attachInteractionCapture);
+    }
+};
+
+const getUndoMgr = () => {
+    const iframe = document.querySelector('.qtype_drawing_drawingwrapper iframe');
+    if (!iframe) {
+        return null;
+    }
+    try {
+        const win = iframe.contentWindow;
+        if (win && win.svgCanvas && win.svgCanvas.undoMgr &&
+                typeof win.svgCanvas.undoMgr.getUndoStackSize === 'function') {
+            return win.svgCanvas.undoMgr;
+        }
+    } catch (e) {
+        // Cross-origin / not ready.
+    }
+    return null;
+};
+
+const isDirty = () => {
+    if (dirty) {
+        return true;
+    }
+    if (baselineUndoSize !== null) {
+        const mgr = getUndoMgr();
+        if (mgr && mgr.getUndoStackSize() > baselineUndoSize) {
+            return true;
+        }
+    }
+    return false;
+};
+
+const showUnsavedChangesModal = async() => {
+    const [titleStr, msgStr, cancelStr, discardStr, saveStr] = await Promise.all([
+        getString('unsavedchanges', 'qtype_drawing'),
+        getString('unsavedchangesmessage', 'qtype_drawing'),
+        getString('cancel'),
+        getString('discardchanges', 'qtype_drawing'),
+        getString('savechanges'),
+    ]);
+    const footer =
+        '<button type="button" class="btn btn-secondary" data-action="cancel">' + cancelStr + '</button>' +
+        '<button type="button" class="btn btn-outline-danger ms-2" data-action="discard">' + discardStr + '</button>' +
+        '<button type="button" class="btn btn-primary ms-2" data-action="save">' + saveStr + '</button>';
+    const modal = await Modal.create({
+        title: titleStr,
+        body: '<p>' + msgStr + '</p>',
+        footer: footer,
+        large: false,
+        show: true,
+        removeOnClose: true,
+    });
+    return new Promise(resolve => {
+        const root = modal.getRoot()[0];
+        let resolved = false;
+        const finish = (action) => {
+            if (resolved) {
+                return;
+            }
+            resolved = true;
+            modal.hide();
+            resolve(action);
+        };
+        root.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) {
+                return;
+            }
+            finish(btn.dataset.action);
+        });
+        modal.getRoot().on('hidden.bs.modal', () => finish('cancel'));
+    });
+};
+
+const initNavigationGuard = () => {
+    const navLinks = document.querySelectorAll('.qtype-drawing-grader-nav a[href]');
+    const form = document.getElementById('qtype-drawing-grade-form');
+    const returnurlField = document.getElementById('returnurl-field');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', async(e) => {
+            if (bypassGuard || !isDirty()) {
+                return;
+            }
+            e.preventDefault();
+            const action = await showUnsavedChangesModal();
+            if (action === 'cancel') {
+                return;
+            }
+            if (action === 'discard') {
+                bypassGuard = true;
+                window.location.href = link.href;
+                return;
+            }
+            if (action === 'save' && form && returnurlField) {
+                returnurlField.value = link.getAttribute('href');
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
+                }
+            }
         });
     });
 };

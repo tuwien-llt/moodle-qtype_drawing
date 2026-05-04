@@ -192,6 +192,12 @@ export const init = (config) => {
     fixDrawingHeight();
     $(window).resize(fixDrawingHeight);
 
+    // Make the existing `.touch` CSS rules in method-draw.css active so
+    // menu titles render with bigger tap targets on touch devices (iPad).
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        document.body.classList.add('touch');
+    }
+
     loadscripts(function() {
         window.parent.init_qtype_drawing_embed(window.attemptid + window.uniquefieldnameattemptid);
         if (window.methodDraw) {
@@ -205,11 +211,34 @@ export const init = (config) => {
 // eslint-disable-next-line no-console
                     console.log("loading answer from lastansswer");
                 }
-                const loadingimageid = "#qtype_drawing_loading_image_" + window.attemptid + window.uniquefieldnameattemptid;
-
-                if ($(loadingimageid, window.parent.document).length) {
-                    $(loadingimageid, window.parent.document).hide();
+                const editorOverlay = document.getElementById('qtype-drawing-editor-loading');
+                if (editorOverlay) {
+                    editorOverlay.classList.add('is-hidden');
+                    editorOverlay.setAttribute('aria-busy', 'false');
+                    const removeOverlay = function() {
+                        editorOverlay.style.display = 'none';
+                        editorOverlay.removeEventListener('transitionend', removeOverlay);
+                    };
+                    editorOverlay.addEventListener('transitionend', removeOverlay);
+                    setTimeout(removeOverlay, 600);
                 }
+
+                const postReadyToParent = function() {
+                    try {
+                        if (window.parent && window.parent !== window) {
+                            window.parent.postMessage(
+                                {type: 'qtype_drawing_ready'},
+                                window.location.origin
+                            );
+                        }
+                    } catch (e) {
+                        // Cross-origin or detached parent — ignore.
+                    }
+                };
+                postReadyToParent();
+                setTimeout(postReadyToParent, 100);
+                setTimeout(postReadyToParent, 500);
+                setTimeout(postReadyToParent, 1500);
 
                 if (config.useupdateannotationjs) {
                     window.setInterval(window.methodDraw.updateAnnotationDetails, 30000);
