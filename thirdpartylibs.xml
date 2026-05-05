@@ -120,7 +120,7 @@
         <licenseversion></licenseversion>
     </library> 
     <library>
-        <location>css/font-files/simonetta-italic-webfont.woff</location>
+        <location>css/font-files/simonetta-italic-webfont.ttf</location>
         <name>Simonetta Italic</name>
         <version></version>
         <license>SIL Open Font License (OFL)</license>
