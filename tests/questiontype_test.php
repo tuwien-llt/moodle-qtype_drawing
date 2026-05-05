@@ -23,6 +23,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace qtype_drawing;
+
+use advanced_testcase;
+use qtype_drawing;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -38,7 +43,7 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  * @copyright  2018 ETH Zurich
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_drawing_test extends advanced_testcase {
+class questiontype_test extends advanced_testcase {
     protected $qtype;
 
     protected function setUp(): void {
