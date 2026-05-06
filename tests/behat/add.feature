@@ -15,7 +15,6 @@ Feature: Test creating an drawing question
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
 
-
   Scenario: Create an drawing question with Response format set to 'HTML editor'
     When I log in as "teacher1"
     And I am on "Course 1" course homepage
