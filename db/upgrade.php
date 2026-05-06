@@ -37,7 +37,7 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
         // Define field drawing_usage to control display of result table.
         $table = new xmldb_table('qtype_drawing_annotations');
 
-        $index = new xmldb_index('mdl_qtypdrawanno_dra_ix', XMLDB_INDEX_NOTUNIQUE, array('drawingid'));
+        $index = new xmldb_index('mdl_qtypdrawanno_dra_ix', XMLDB_INDEX_NOTUNIQUE, ['drawingid']);
 
         if ($dbman->index_exists($table, $index)) {
             $dbman->drop_index($table, $index);
@@ -52,7 +52,7 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
             $dbman->add_field($table, $field);
 
             // Conditionally add index questionid.
-            $index = new xmldb_index('questionid_idx', XMLDB_INDEX_NOTUNIQUE, array('questionid'));
+            $index = new xmldb_index('questionid_idx', XMLDB_INDEX_NOTUNIQUE, ['questionid']);
             if (!$dbman->index_exists($table, $index)) {
                 $dbman->add_index($table, $index);
             }

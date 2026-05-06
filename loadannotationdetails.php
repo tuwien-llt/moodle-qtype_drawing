@@ -41,47 +41,47 @@ $attemptcount = optional_param('attemptcount', 1, PARAM_INT);
 
 $attemptid = required_param('attemptid', PARAM_RAW_TRIMMED);
 if (!confirm_sesskey()) {
-    echo json_encode(array('result' => 'Session lost.'));
+    echo json_encode(['result' => 'Session lost.']);
     die;
 }
 
 require_once("../../../question/type/questiontypebase.php");
 if (!$question = question_bank::load_question_data($id)) {
-    echo json_encode(array('result' => 'Question attempt not found'));
+    echo json_encode(['result' => 'Question attempt not found']);
     die;
 }
-if (!has_capability('mod/quiz:grade', context::instance_by_id($question->contextid)) ) {
-    echo json_encode(array('result' => 'No permission'));
+if (!has_capability('mod/quiz:grade', context::instance_by_id($question->contextid))) {
+    echo json_encode(['result' => 'No permission']);
     die;
 }
-if (!$fhd = $DB->get_record('qtype_drawing', array('questionid' => $id)) ) {
-    echo json_encode(array('result' => 'Question not found'));
+if (!$fhd = $DB->get_record('qtype_drawing', ['questionid' => $id])) {
+    echo json_encode(['result' => 'Question not found']);
     die;
 }
 
 $result .= '<ul id="listofannotaions">';
-$fields = array('questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount);
+$fields = ['questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount];
 if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields, 'timemodified DESC')) {
     foreach ($annotations as $teacherannotation) {
-        $user = $DB->get_record('user', array('id' => $teacherannotation->annotatedby));
+        $user = $DB->get_record('user', ['id' => $teacherannotation->annotatedby]);
         $annotatestr = preg_replace('/\v(?:[\v\h]+)/', '', $teacherannotation->annotation);
-        $result .= '<li id="annotationelem_'.$user->id.'"
-                    class="annotaionelems" data-block="block'.$user->id.'">
-                    <a href="#" id="showannotationid_'.$teacherannotation->id.'" style="color:#fff" class="tool_showannotation"
-                    data-type="0" data-annotationid="'.$teacherannotation->id.'">'.fullname($user).'</a>
-                    <div id="teacherannotationdate_'.$user->id.'">'.
-                    userdate($teacherannotation->timemodified).
-                    ' ('.get_string('ago', 'core_message', format_time(time() + 1 - $teacherannotation->timemodified)).
+        $result .= '<li id="annotationelem_' . $user->id . '"
+                    class="annotaionelems" data-block="block' . $user->id . '">
+                    <a href="#" id="showannotationid_' . $teacherannotation->id . '" style="color:#fff" class="tool_showannotation"
+                    data-type="0" data-annotationid="' . $teacherannotation->id . '">' . fullname($user) . '</a>
+                    <div id="teacherannotationdate_' . $user->id . '">' .
+                    userdate($teacherannotation->timemodified) .
+                    ' (' . get_string('ago', 'core_message', format_time(time() + 1 - $teacherannotation->timemodified)) .
                     ')</div></li>';
     }
 }
 $result .= '<li data-block="block0">
             <a href="#" id="showoriginalanswer" style="color:#fff"
-            class="tool_showannotation" data-type="1" data-annotationid="-1">'.
-            get_string('originalanswer', 'qtype_drawing').'</a></li>';
+            class="tool_showannotation" data-type="1" data-annotationid="-1">' .
+            get_string('originalanswer', 'qtype_drawing') . '</a></li>';
 $result .= '<li data-block="block1">
-            <a href="#" id="studentview" style="color:#fff" class="tool_showannotation" data-type="2" data-annotationid="-1">'.
-            get_string('studentview', 'qtype_drawing').'</a></li>';
+            <a href="#" id="studentview" style="color:#fff" class="tool_showannotation" data-type="2" data-annotationid="-1">' .
+            get_string('studentview', 'qtype_drawing') . '</a></li>';
 
 $result .= '</ul>';
-echo json_encode(array('result' => $result, 'works' => 'OK'));
+echo json_encode(['result' => $result, 'works' => 'OK']);

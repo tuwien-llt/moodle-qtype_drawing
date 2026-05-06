@@ -36,43 +36,43 @@ $type = optional_param('type', 0, PARAM_INT);
 $attemptcount = optional_param('attemptcount', 1, PARAM_INT);
 
 if (!confirm_sesskey()) {
-    echo json_encode(array('result' => 'Session lost.'));
+    echo json_encode(['result' => 'Session lost.']);
     die();
 }
 
 require_once('../../../question/type/questiontypebase.php');
 if (!$question = question_bank::load_question_data($id)) {
-    echo json_encode(array('result' => 'Question attempt not found'));
+    echo json_encode(['result' => 'Question attempt not found']);
     die();
 }
 if (!has_capability('mod/quiz:grade', context::instance_by_id($question->contextid))) {
-    echo json_encode(array('result' => 'No permission'));
+    echo json_encode(['result' => 'No permission']);
     die();
 }
-if (!$fhd = $DB->get_record('qtype_drawing', array('questionid' => $id))) {
-    echo json_encode(array('result' => 'Question not found'));
+if (!$fhd = $DB->get_record('qtype_drawing', ['questionid' => $id])) {
+    echo json_encode(['result' => 'Question not found']);
     die();
 }
 
 // Get original student answer.
 if ($type == 0) {
     // Check if annotation exists, and return it.
-    $fields = array('questionid' => $id, 'attemptid' => $attemptid, 'id' => $annotationid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount);
+    $fields = ['questionid' => $id, 'attemptid' => $attemptid, 'id' => $annotationid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount];
     if (!$drawingannotation = $DB->get_record('qtype_drawing_annotations', $fields)) {
-        echo json_encode(array('result' => 'No Such annotation.'));
+        echo json_encode(['result' => 'No Such annotation.']);
         die();
     }
-    echo json_encode(array('result' => 'OK', 'drawing' => $drawingannotation->annotation));
+    echo json_encode(['result' => 'OK', 'drawing' => $drawingannotation->annotation]);
 } else if ($type == 2) {
     // Check if annotation exists, and return it.
-    $fields = array('questionid' => $id, 'attemptid' => $attemptid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount);
+    $fields = ['questionid' => $id, 'attemptid' => $attemptid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount];
     if (!$drawingannotations = $DB->get_records('qtype_drawing_annotations', $fields)) {
-        echo json_encode(array('result' => 'OK', 'drawing' => ''));
+        echo json_encode(['result' => 'OK', 'drawing' => '']);
         die();
     }
     $annotationstr = '';
     foreach ($drawingannotations as $drawingannotation) {
         $annotationstr .= $drawingannotation->annotation;
     }
-    echo json_encode(array('result' => 'OK', 'drawing' => $annotationstr));
+    echo json_encode(['result' => 'OK', 'drawing' => $annotationstr]);
 }

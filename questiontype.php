@@ -39,8 +39,8 @@ require_once(dirname(__FILE__) . '/renderer.php');
  */
 class qtype_drawing extends question_type {
     public function extra_question_fields() {
-        return array('qtype_drawing', 'drawingmode', 'backgrounduploaded',
-                     'backgroundwidth', 'backgroundheight', 'preservear', 'drawingoptions', 'alloweraser');
+        return ['qtype_drawing', 'drawingmode', 'backgrounduploaded',
+                     'backgroundwidth', 'backgroundheight', 'preservear', 'drawingoptions', 'alloweraser'];
     }
 
     public function questionid_column_name() {
@@ -67,9 +67,9 @@ class qtype_drawing extends question_type {
      */
     public function delete_question($questionid, $contextid) {
         global $DB;
-        $originalrecord = $DB->get_record('qtype_drawing', array('questionid' => $questionid));
-        $DB->delete_records('qtype_drawing', array('questionid' => $questionid));
-        $DB->delete_records('qtype_drawing_annotations', array('questionid' => $originalrecord->id));
+        $originalrecord = $DB->get_record('qtype_drawing', ['questionid' => $questionid]);
+        $DB->delete_records('qtype_drawing', ['questionid' => $questionid]);
+        $DB->delete_records('qtype_drawing_annotations', ['questionid' => $originalrecord->id]);
         parent::delete_question($questionid, $contextid);
     }
     public function save_question_options($question) {
@@ -78,9 +78,11 @@ class qtype_drawing extends question_type {
         $drawingconfig = get_config('qtype_drawing');
         $result = new stdClass();
         // Insert all the new options.
-        $options = $DB->get_record('qtype_drawing',
-        array('questionid' => $question->id
-        ));
+        $options = $DB->get_record(
+            'qtype_drawing',
+            ['questionid' => $question->id,
+            ]
+        );
         if (!$question->drawingmode) {
             $question->drawingmode = 1;
         }
@@ -108,7 +110,7 @@ class qtype_drawing extends question_type {
             $question->preservear = 0;
         }
         $options->preservear = $question->preservear;
-        if(!isset($question->alloweraser)){
+        if (!isset($question->alloweraser)) {
             $question->alloweraser = 0;
         }
         $options->alloweraser = $question->alloweraser;
@@ -123,20 +125,32 @@ class qtype_drawing extends question_type {
             $draftfiles = $fs->get_area_files($usercontext->id, 'user', 'draft', $question->qtype_drawing_image_file, 'id');
             if (count($draftfiles) >= 2) {
                 $fs->delete_area_files($question->context->id, 'qtype_drawing', 'qtype_drawing_image_file', $question->id);
-                file_save_draft_area_files($question->qtype_drawing_image_file,
-                $question->context->id, 'qtype_drawing', 'qtype_drawing_image_file',
-                $question->id, array('subdirs' => 0, 'maxbytes' => 0, 'maxfiles' => 1));
+                file_save_draft_area_files(
+                    $question->qtype_drawing_image_file,
+                    $question->context->id,
+                    'qtype_drawing',
+                    'qtype_drawing_image_file',
+                    $question->id,
+                    ['subdirs' => 0, 'maxbytes' => 0, 'maxfiles' => 1]
+                );
             } else {
                 // No files have been indicated to be uploaded.
                 // Check if this is an attempt to make a duplicate copy of this question.
                 // And that this is not a simple EDIT, in which case we don't have to do anything to the background image file.
-                if (property_exists($question, 'pre_existing_question_id') &&
-                    $question->pre_existing_question_id != 0 && $question->pre_existing_question_id != $question->id) {
+                if (
+                    property_exists($question, 'pre_existing_question_id') &&
+                    $question->pre_existing_question_id != 0 && $question->pre_existing_question_id != $question->id
+                ) {
                     // This was an edit form which turned out to be a "Make copy".
                     // We need to copy over the background image of the old question into a new record.
                     // First fetch the old one.
-                    $oldfiles   = $fs->get_area_files($question->context->id,
-                                  'qtype_drawing', 'qtype_drawing_image_file', $question->pre_existing_question_id, 'id');
+                    $oldfiles   = $fs->get_area_files(
+                        $question->context->id,
+                        'qtype_drawing',
+                        'qtype_drawing_image_file',
+                        $question->pre_existing_question_id,
+                        'id'
+                    );
 
                     if (count($oldfiles) >= 2) {
                         // Files indeed exist.
@@ -144,13 +158,13 @@ class qtype_drawing extends question_type {
                             if ($oldfile->is_directory()) {
                                 continue;
                             }
-                            $newfile = array(
+                            $newfile = [
                               'contextid' => $question->context->id,
                               'component' => 'qtype_drawing',
                               'filearea' => 'qtype_drawing_image_file',
                               'itemid' => $question->id,
                               'filepath' => '/',
-                              'filename' => $oldfile->get_filename());
+                              'filename' => $oldfile->get_filename()];
                             $fs->create_file_from_storedfile($newfile, $oldfile);
                             continue;
                         }
@@ -162,11 +176,9 @@ class qtype_drawing extends question_type {
                         $fs = get_file_storage();
                         $fs->delete_area_files($question->context->id, 'qtype_drawing', 'qtype_drawing_image_file', $question->id);
                     }
-
                 }
             }
         }
-
     }
 
 
@@ -180,7 +192,7 @@ class qtype_drawing extends question_type {
     }
 
     public function get_possible_responses($questiondata) {
-        $responses = array();
+        $responses = [];
         $starfound = false;
 
         foreach ($questiondata->options->answers as $aid => $answer) {
@@ -192,15 +204,17 @@ class qtype_drawing extends question_type {
         }
         if (!$starfound) {
             $responses[0] = new question_possible_response(
-                    get_string('didnotmatchanyanswer', 'question'), 0);
+                get_string('didnotmatchanyanswer', 'question'),
+                0
+            );
         }
 
         $responses[null] = question_possible_response::no_response();
 
-        return array($questiondata->id => $responses);
+        return [$questiondata->id => $responses];
     }
 
-    public function export_to_xml($question, qformat_xml $format, $extra=null) {
+    public function export_to_xml($question, qformat_xml $format, $extra = null) {
         $extraquestionfields = $this->extra_question_fields();
         if (!is_array($extraquestionfields)) {
             return false;
@@ -219,8 +233,8 @@ class qtype_drawing extends question_type {
 
         $expout .= "    <bgimage>\n";
         $bgimagearray = qtype_drawing_renderer::get_image_for_question($question);
-        if($bgimagearray === null || !isset($bgimagearray)){
-            $bgimagearray = array(null, null, null);
+        if ($bgimagearray === null || !isset($bgimagearray)) {
+            $bgimagearray = [null, null, null];
         }
 
         $expout .= "        <filename>" . $bgimagearray[2] .  "</filename>\n";
@@ -239,7 +253,7 @@ class qtype_drawing extends question_type {
         }
         return $expout;
     }
-    public function import_from_xml($data, $question, qformat_xml $format, $extra=null) {
+    public function import_from_xml($data, $question, qformat_xml $format, $extra = null) {
         if (!isset($data['@']['type']) || $data['@']['type'] != 'drawing') {
             return false;
         }
@@ -247,7 +261,7 @@ class qtype_drawing extends question_type {
         $question = $format->import_headers($data);
         $question->qtype = 'drawing';
 
-        $question->shuffleanswers = array_key_exists('shuffleanswers', $format->getpath($data, array('#'), array()));
+        $question->shuffleanswers = array_key_exists('shuffleanswers', $format->getpath($data, ['#'], []));
 
         $format->import_combined_feedback($question, $data, true);
         $format->import_hints($question, $data, true, false, $format->get_format($question->questiontextformat));
@@ -261,21 +275,20 @@ class qtype_drawing extends question_type {
         array_shift($extraquestionfields);
         $question->options = new stdClass();
         foreach ($extraquestionfields as $field) {
-            $question->$field = $format->getpath($data, array('#', $field, '0', '#'), 'does_not_exist');
+            $question->$field = $format->getpath($data, ['#', $field, '0', '#'], 'does_not_exist');
             if ($question->$field === 'does_not_exist') {
                 return false;
             }
         }
         // Save canvas background image file.
-        $bgimagearray[0] = $format->getpath($data, array('#', 'bgimage', '0', '#', 'imagetype', '0', '#'), 'does_not_exist');
-        $bgimagearray[1] = $format->getpath($data, array('#', 'bgimage', '0', '#', 'dataURL', '0', '#'), 'does_not_exist');
-        $bgimagearray[2] = $format->getpath($data, array('#', 'bgimage', '0', '#', 'filename', '0', '#'), 'does_not_exist');
+        $bgimagearray[0] = $format->getpath($data, ['#', 'bgimage', '0', '#', 'imagetype', '0', '#'], 'does_not_exist');
+        $bgimagearray[1] = $format->getpath($data, ['#', 'bgimage', '0', '#', 'dataURL', '0', '#'], 'does_not_exist');
+        $bgimagearray[2] = $format->getpath($data, ['#', 'bgimage', '0', '#', 'filename', '0', '#'], 'does_not_exist');
 
         if ($bgimagearray[1] === 'does_not_exist' || $bgimagearray[2] === 'does_not_exist') {
             return false;
         }
         if (trim($bgimagearray[1]) != '') {
-
             if ($bgimagearray[0] != 'svg') {
                   // Convert dataURL to binary.
                 $imgbinarydata = base64_decode(qtype_drawing_renderer::strstr_after($bgimagearray[1], 'base64,'));
@@ -305,5 +318,4 @@ class qtype_drawing extends question_type {
         }
         return $question;
     }
-
 }

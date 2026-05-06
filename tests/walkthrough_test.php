@@ -39,38 +39,47 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  * @copyright 2013 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class walkthrough_test extends qbehaviour_walkthrough_test_base {
-
-    public function test_deferred_feedback_plain_text() {
+final class walkthrough_test extends qbehaviour_walkthrough_test_base {
+    public function test_deferred_feedback_plain_text(): void {
 
         $q = test_question_maker::make_question('drawing', 'plain');
         $this->start_attempt_at_question($q, 'deferredfeedback', 1);
         // Check the initial state.
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
-        $this->check_current_output($this->get_contains_marked_out_of_summary(), $this->get_does_not_contain_feedback_expectation(),
-                                    $this->get_does_not_contain_validation_error_expectation(),
-                                    $this->get_does_not_contain_try_again_button_expectation(),
-                                    $this->get_no_hint_visible_expectation());
+        $this->check_current_output(
+            $this->get_contains_marked_out_of_summary(),
+            $this->get_does_not_contain_feedback_expectation(),
+            $this->get_does_not_contain_validation_error_expectation(),
+            $this->get_does_not_contain_try_again_button_expectation(),
+            $this->get_no_hint_visible_expectation()
+        );
         // Submit blank.
-        $this->process_submission(array('answer' => ''));
+        $this->process_submission(['answer' => '']);
         // Verify.
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
-        $this->check_current_output($this->get_contains_marked_out_of_summary(), $this->get_does_not_contain_feedback_expectation(),
-                                    $this->get_does_not_contain_validation_error_expectation(),
-                                    $this->get_does_not_contain_try_again_button_expectation(),
-                                    $this->get_no_hint_visible_expectation());
+        $this->check_current_output(
+            $this->get_contains_marked_out_of_summary(),
+            $this->get_does_not_contain_feedback_expectation(),
+            $this->get_does_not_contain_validation_error_expectation(),
+            $this->get_does_not_contain_try_again_button_expectation(),
+            $this->get_no_hint_visible_expectation()
+        );
         // Submit something.
         $this->process_submission(
-                                array(
-                                'answer' => 'DRAWING'));
+            [
+            'answer' => 'DRAWING']
+        );
         // Verify.
         $this->check_current_state(question_state::$complete);
         $this->check_current_mark(null);
-        $this->check_current_output($this->get_contains_marked_out_of_summary(), $this->get_does_not_contain_feedback_expectation(),
-                                    $this->get_does_not_contain_try_again_button_expectation(),
-                                    $this->get_no_hint_visible_expectation());
+        $this->check_current_output(
+            $this->get_contains_marked_out_of_summary(),
+            $this->get_does_not_contain_feedback_expectation(),
+            $this->get_does_not_contain_try_again_button_expectation(),
+            $this->get_no_hint_visible_expectation()
+        );
 
         // Submit all and finish.
         $this->finish();
