@@ -256,7 +256,7 @@
 .qtype-drawing-feedback-wrap.editor-fullscreen .editor_atto_content,
 .qtype-drawing-feedback-wrap.editor-fullscreen .tox-tinymce {
     flex: 1 1 auto;
-    height: auto !important;
+    height: auto !important;  /* stylelint-disable-line declaration-no-important */
     min-height: 60vh;
 }
 

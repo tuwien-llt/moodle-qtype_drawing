@@ -14,8 +14,8 @@ workflow:
     - when: always
 
 include:
-  - component: $CI_SERVER_FQDN/llt/tools/ci_cd-catalog/moodle-plugin-ci@5.0
-  - component: $CI_SERVER_FQDN/llt/tools/ci_cd-catalog/moodle-review-app@5.0
+  - component: $CI_SERVER_FQDN/llt/tools/ci_cd-catalog/moodle-plugin-ci@5.1
+  - component: $CI_SERVER_FQDN/llt/tools/ci_cd-catalog/moodle-review-app@5.1
 
 validate:
   variables:

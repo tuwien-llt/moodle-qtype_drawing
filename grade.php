@@ -77,9 +77,12 @@ if ($action === 'savegrade' && confirm_sesskey()) {
             'attemptid' => $next,
         ]));
     } else if (!empty($returnurl)) {
-        redirect(new moodle_url($returnurl),
+        redirect(
+            new moodle_url($returnurl),
             get_string('gradesaved', 'qtype_drawing'),
-            null, \core\output\notification::NOTIFY_SUCCESS);
+            null,
+            \core\output\notification::NOTIFY_SUCCESS
+        );
     } else {
         redirect(new moodle_url('/mod/quiz/report.php', [
             'id' => $id,
@@ -219,7 +222,10 @@ if ($attemptid === null) {
 
     // Per-student attempt list for the dropdown selector.
     $studentattempts = attempts_loader::get_attempts_for_user(
-        $quiz->id, $slot, $attemptobj->get_userid(), $cm->id
+        $quiz->id,
+        $slot,
+        $attemptobj->get_userid(),
+        $cm->id
     );
     $attemptoptions = [];
     foreach ($studentattempts as $a) {

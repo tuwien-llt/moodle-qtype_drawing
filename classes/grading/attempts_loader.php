@@ -338,8 +338,13 @@ class attempts_loader {
      *                current_index (1-based student position),
      *                total (count of distinct students).
      */
-    public static function get_student_navigation(int $quizid, int $slot, int $currentattemptid, int $cmid,
-            ?int $groupid = null): object {
+    public static function get_student_navigation(
+        int $quizid,
+        int $slot,
+        int $currentattemptid,
+        int $cmid,
+        ?int $groupid = null
+    ): object {
         $attempts = self::get_attempts_for_slot($quizid, $slot, $cmid, $groupid);
 
         $latestbyuser = [];
