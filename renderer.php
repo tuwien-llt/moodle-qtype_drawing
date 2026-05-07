@@ -23,6 +23,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use qtype_drawing\local\drawing_blob_data_as_file_stream;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -33,12 +34,25 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://opensource.org/licenses/BSD-3-Clause
  */
 class qtype_drawing_renderer extends qtype_renderer {
+    /**
+     * Translate strings to JavaScript.
+     *
+     * @param moodle_page $page
+     */
     public static function translate_to_js($page) {
         foreach (array_keys(get_string_manager()->load_component_strings('qtype_drawing', current_language())) as $string) {
             $page->requires->string_for_js($string, 'qtype_drawing');
         }
     }
 
+    /**
+     * Find substring after needle in haystack.
+     *
+     * @param string $haystack
+     * @param string $needle
+     * @param bool $caseinsensitive
+     * @return string|bool
+     */
     public static function strstr_after($haystack, $needle, $caseinsensitive = false) {
         $strpos = ($caseinsensitive) ? 'stripos' : 'strpos';
         $pos = $strpos($haystack, $needle);
@@ -49,10 +63,22 @@ class qtype_drawing_renderer extends qtype_renderer {
         return $pos;
     }
 
+    /**
+     * Create GD image from string.
+     *
+     * @param string $imgstring
+     * @return string
+     */
     private static function create_gd_image_from_string($imgstring) {
         return  '';
     }
 
+    /**
+     * Check if a color array represents blue.
+     *
+     * @param array $array
+     * @return bool
+     */
     private static function isblue($array) {
         if ($array[0] == 0 && $array[1] == 0 && $array[2] == 255) {
             return true;
@@ -60,6 +86,12 @@ class qtype_drawing_renderer extends qtype_renderer {
         return false;
     }
 
+    /**
+     * Convert GD image to data URI.
+     *
+     * @param resource $gdimage
+     * @return string
+     */
     public static function gdimage_to_datauri($gdimage) {
 
         ob_start();
@@ -75,6 +107,13 @@ class qtype_drawing_renderer extends qtype_renderer {
         return $imgdatauri;
     }
 
+    /**
+     * Render formulation and controls for a drawing question.
+     *
+     * @param question_attempt $qa
+     * @param question_display_options $options
+     * @return string
+     */
     public function formulation_and_controls(question_attempt $qa, question_display_options $options) {
 
         global $CFG, $DB;
@@ -232,7 +271,10 @@ class qtype_drawing_renderer extends qtype_renderer {
                                    $annotationstr .= '</svg></div>';
 
                                    // If toggle to show only the answer for the student without annotation.
-                                   $annotationstr .= '<div id="qtype_drawing_final_student_toggle_answer_' . $attemptid . $uniquefieldnameattemptid . '" style="display:none">' . $studentmergedanswer . '</div>';
+                                   $divid = 'qtype_drawing_final_student_toggle_answer_' . $attemptid .
+                                       $uniquefieldnameattemptid;
+                                   $annotationstr .= '<div id="' . $divid . '" style="display:none">' .
+                                       $studentmergedanswer . '</div>';
                                    $annotationtogglescript = '
                     <script type="text/javascript">
                         function qtype_drawing_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid . '(){
@@ -253,7 +295,11 @@ class qtype_drawing_renderer extends qtype_renderer {
                  ';
                                    $tglbtnspan = '';
                 if ($disabletoggleannotationbtn != 1) {
-                    $tglbtnspan = '<span style="float:right"><input type="button" value="' . get_string('showanswer', 'qtype_drawing') . '" id="id_qtype_drawing_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid . '" onclick="qtype_drawing_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid . '()"></span>';
+                    $btnid = 'id_qtype_drawing_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid;
+                    $onclick = 'qtype_drawing_toggle_annotation_' . $attemptid . $uniquefieldnameattemptid . '()';
+                    $tglbtnspan = '<span style="float:right"><input type="button" value="' .
+                        get_string('showanswer', 'qtype_drawing') . '" id="' . $btnid . '" onclick="' .
+                        $onclick . '"></span>';
                 }
 
                                    $result = html_writer::tag('div', $annotationtogglescript . $tglbtnspan . $questiontext . $annotationstr, ['class' => 'qtext']);
@@ -521,9 +567,15 @@ class qtype_drawing_renderer extends qtype_renderer {
                 ['class' => 'validationerror']
             );
         }
-                  return $result;
+                   return $result;
     }
 
+     /**
+      * Get specific feedback for a question attempt.
+      *
+      * @param question_attempt $qa
+      * @return string
+      */
     public function specific_feedback(question_attempt $qa) {
         $question = $qa->get_question();
 
@@ -542,6 +594,12 @@ class qtype_drawing_renderer extends qtype_renderer {
         );
     }
 
+     /**
+      * Get the correct response for a drawing question.
+      *
+      * @param question_attempt $qa
+      * @return string
+      */
     public function correct_response(question_attempt $qa) {
         return ''; /* still not sure what kind of text should be given back for this....*/
         $question = $qa->get_question();
@@ -557,10 +615,25 @@ class qtype_drawing_renderer extends qtype_renderer {
 
 
 
+     /**
+      * Get the image for a drawing question.
+      *
+      * @param stdClass $question
+      * @return array|null
+      */
     public static function get_image_for_question($question) {
         return self::get_image_for_files($question->contextid, 'qtype_drawing', 'qtype_drawing_image_file', $question->id);
     }
 
+     /**
+      * Get image files from file storage.
+      *
+      * @param int $context
+      * @param string $component
+      * @param string $filearea
+      * @param int $itemid
+      * @return array|null
+      */
     public static function get_image_for_files($context, $component, $filearea, $itemid) {
         $fs = get_file_storage();
         $files = $fs->get_area_files($context, $component, $filearea, $itemid, 'id');
@@ -586,11 +659,28 @@ class qtype_drawing_renderer extends qtype_renderer {
         }
         return null;
     }
+
+     /**
+      * Check if a data URL is a valid drawing.
+      *
+      * @param string $dataurl
+      * @param int $bgwidth
+      * @param int $bgheight
+      * @return bool
+      */
     public static function isdataurlavaliddrawing($dataurl, $bgwidth, $bgheight) {
         return true;
     }
 
 
+     /**
+      * Check if a GD image is transparent.
+      *
+      * @param resource $gdimage
+      * @param int $width
+      * @param int $height
+      * @return bool
+      */
     private static function isimagetransparent($gdimage, $width, $height) {
         for ($x = 0; $x < $width; $x++) {
             for ($y = 0; $y < $height; $y++) {
@@ -602,60 +692,5 @@ class qtype_drawing_renderer extends qtype_renderer {
             }
         }
         return true;
-    }
-}
-
-class drawing_blob_data_as_file_stream {
-    private static $blobdataposition = 0;
-    public static $blobdatastream = '';
-    public $context;
-
-    public static function stream_open($path, $mode, $options, &$openedpath) {
-        static::$blobdataposition = 0;
-        return true;
-    }
-
-    public static function stream_seek($seekoffset, $seekwhence) {
-        $blobdatalength = strlen(static::$blobdatastream);
-        switch ($seekwhence) {
-            case SEEK_SET:
-                $newblobdataposition = $seekoffset;
-                break;
-            case SEEK_CUR:
-                $newblobdataposition = static::$blobdataposition + $seekoffset;
-                break;
-            case SEEK_END:
-                $newblobdataposition = $blobdatalength + $seekoffset;
-                break;
-            default:
-                return false;
-        }
-        if (($newblobdataposition >= 0) and ($newblobdataposition <= $blobdatalength)) {
-            static::$blobdataposition = $newblobdataposition;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static function stream_tell() {
-        return static::$blobdataposition;
-    }
-
-    public static function stream_read($readbuffersize) {
-        $readdata = substr(static::$blobdatastream, static::$blobdataposition, $readbuffersize);
-        static::$blobdataposition += strlen($readdata);
-        return $readdata;
-    }
-
-    public static function stream_write($writedata) {
-        $writedatalength = strlen($writedata);
-        static::$blobdatastream = substr(static::$blobdatastream, 0, static::$blobdataposition) .
-        $writedata . substr(static::$blobdatastream, static::$blobdataposition += $writedatalength);
-        return $writedatalength;
-    }
-
-    public static function stream_eof() {
-        return static::$blobdataposition >= strlen(static::$blobdatastream);
     }
 }

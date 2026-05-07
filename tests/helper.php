@@ -34,6 +34,11 @@ require_once($CFG->dirroot . '/question/type/drawing/questiontype.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_drawing_test_helper extends question_test_helper {
+    /**
+     * Get the list of test questions available.
+     *
+     * @return array
+     */
     public function get_test_questions() {
         return ['plain'];
     }

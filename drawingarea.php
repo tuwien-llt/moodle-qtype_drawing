@@ -15,20 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * drawing question renderer class.
+ * Drawing question area display.
  *
- * @package qtype
- * @subpackage drawing
- * @copyright ETHZ LET <amr.hourani@id.ethz.ch>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    qtype_drawing
+ * @copyright  ETHZ LET <amr.hourani@id.ethz.ch>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+// @codingStandardsIgnoreFile
 
-/**
- * Generates the output for drawing questions.
- *
- * @copyright ETHZ LET <amr.hourani@id.ethz.chh>
- * @license http://opensource.org/licenses/BSD-3-Clause
- */
 require_once('../../../config.php');
 require_login();
 $reducedmode = 0;
@@ -478,7 +472,12 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
                               text-align:left">
                         <?php
                         echo '<ul id="listofannotaions">';
-                        $fields = ['questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount];
+                        $fields = [
+                            'questionid' => $question->id,
+                            'attemptid' => $attemptid,
+                            'annotatedfor' => $stid,
+                            'attemptcount' => $attemptcount,
+                        ];
                         if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields, 'timemodified DESC')) {
                             foreach ($annotations as $teacherannotation) {
                                 $user = $DB->get_record('user', ['id' => $teacherannotation->annotatedby]);

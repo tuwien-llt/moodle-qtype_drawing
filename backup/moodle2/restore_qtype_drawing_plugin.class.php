@@ -15,13 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Provides the information to restore drawing questions
  *
  * @package qtype
  * @subpackage drawing
  * @copyright ETHZ LET <amr.hourani@id.ethz.ch>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 class restore_qtype_drawing_plugin extends restore_qtype_plugin {
     /**
      * Returns the paths to be handled by the plugin at question level
@@ -52,6 +52,9 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
 
     /**
      * Process the qtype/drawing element.
+     *
+     * @param array $data
+     * @return void
      */
     public function process_drawing($data) {
         global $DB;
@@ -77,6 +80,9 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
 
     /**
      * Process the qtype/drawing drawingannotation element.
+     *
+     * @param array $data
+     * @return void
      */
     public function process_drawingannotation($data) {
         global $DB;
@@ -112,12 +118,25 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
         }
     }
 
+    /**
+     * Called after restoring
+     *
+     * @return void
+     */
     public function after_execute_question() {
         global $DB;
         // Now that all the questions have been restored, let's process
         // the created question_multianswer sequences (list of question ids).
     }
 
+    /**
+     * Do any re-coding necessary in the response.
+     *
+     * @param int $questionid
+     * @param int $sequencenumber
+     * @param array $response
+     * @return array
+     */
     public function recode_response($questionid, $sequencenumber, array $response) {
         if (array_key_exists('_order', $response)) {
             $response['_order'] = $this->recode_choice_order($response['_order']);

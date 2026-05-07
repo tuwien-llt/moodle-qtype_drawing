@@ -57,7 +57,13 @@ if (!$fhd = $DB->get_record('qtype_drawing', ['questionid' => $id])) {
 // Get original student answer.
 if ($type == 0) {
     // Check if annotation exists, and return it.
-    $fields = ['questionid' => $id, 'attemptid' => $attemptid, 'id' => $annotationid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount];
+    $fields = [
+        'questionid' => $id,
+        'attemptid' => $attemptid,
+        'id' => $annotationid,
+        'annotatedfor' => $stid,
+        'attemptcount' => $attemptcount,
+    ];
     if (!$drawingannotation = $DB->get_record('qtype_drawing_annotations', $fields)) {
         echo json_encode(['result' => 'No Such annotation.']);
         die();

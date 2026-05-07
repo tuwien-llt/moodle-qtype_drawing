@@ -42,6 +42,7 @@ require_once($CFG->dirroot . '/question/type/drawing/questiontype.php');
  *
  * @copyright 2020 ETH Zurich
  * @license http://www.drawing.org/license
+ * @covers \qtype_drawing\qtype_drawing_question
  */
 final class question_test extends advanced_testcase {
     public function test_get_question_summary(): void {

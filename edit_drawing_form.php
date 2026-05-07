@@ -25,6 +25,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/renderer.php');
+
+/**
+ * Class for editing drawing questions.
+ *
+ * @copyright ETH Zurich LET <amr.hourani@id.ethz.ch>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class qtype_drawing_edit_form extends question_edit_form {
     /**
      * (non-PHPdoc).
@@ -111,7 +118,11 @@ class qtype_drawing_edit_form extends question_edit_form {
             }
         }
 
-        if (class_exists('qbank_editquestion\\editquestion_helper') && !empty($this->question->id) && !$this->question->beingcopied) {
+        if (
+            class_exists('qbank_editquestion\\editquestion_helper')
+            && !empty($this->question->id)
+            && !$this->question->beingcopied
+        ) {
             // Add extra information from plugins when editing a question (e.g.: Authors, version control and usage).
             $functionname = 'edit_form_display';
             $questiondata = [];
@@ -203,7 +214,11 @@ class qtype_drawing_edit_form extends question_edit_form {
                     $buttonarray[] = $mform->createElement('static', 'previewlink', '', $previewlink);
                 }
             } else {
-                $previewlink = $PAGE->get_renderer('core_question')->question_preview_link($this->question->id, $this->context, true);
+                $previewlink = $PAGE->get_renderer('core_question')->question_preview_link(
+                    $this->question->id,
+                    $this->context,
+                    true
+                );
                 $buttonarray[] = $mform->createElement('static', 'previewlink', '', $previewlink);
             }
         }
@@ -213,11 +228,19 @@ class qtype_drawing_edit_form extends question_edit_form {
 
         $this->add_action_buttons(true, get_string('savechanges'));
 
-        if ((!empty($this->question->id)) && (!($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew))) {
+        if (
+            (!empty($this->question->id))
+            && (!($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew))
+        ) {
             $mform->hardFreezeAllVisibleExcept(['categorymoveto', 'buttonar', 'currentgrp']);
         }
     }
 
+    /**
+     * Build the form for drawing-specific fields.
+     *
+     * @param MoodleQuickForm $mform
+     */
     protected function definition_inner($mform) {
         global $PAGE, $CFG, $USER, $COURSE;
 
@@ -354,11 +377,12 @@ class qtype_drawing_edit_form extends question_edit_form {
                 );
                 $mform->addElement(
                     'html',
-                    "<div class=\"fitem\"><div class=\"fitemtitle\">" .
-                                     get_string("selected_background_image_filename", "qtype_drawing") . "</div><div class=\"felement\">
-                                  <input type=\"button\" class=\"fp-btn-choose\" value=\"Choose a different file...\"
-                                   name=\"qtype_drawing_image_filechoose_another\">
-                                  <br /><br /><img src='$finalbackground' class=\"img-thumbnail\"></div></div>"
+                    "<div class=\"fitem\"><div class=\"fitemtitle\">"
+                    . get_string("selected_background_image_filename", "qtype_drawing")
+                    . "</div><div class=\"felement\">
+                    <input type=\"button\" class=\"fp-btn-choose\" value=\"Choose a different file...\"
+                     name=\"qtype_drawing_image_filechoose_another\">
+                    <br /><br /><img src='$finalbackground' class=\"img-thumbnail\"></div></div>"
                 );
             }
         }
@@ -386,6 +410,9 @@ class qtype_drawing_edit_form extends question_edit_form {
         $mform->setExpanded('qtype_drawing_drawing_background_image');
     }
 
+    /**
+     * Call JavaScript to initialize form handling.
+     */
     public function js_call() {
         $drawingconfig = get_config('qtype_drawing');
         global $PAGE;
@@ -413,6 +440,12 @@ class qtype_drawing_edit_form extends question_edit_form {
         }
     }
 
+    /**
+     * Preprocess the question data before display.
+     *
+     * @param stdClass $question
+     * @return stdClass
+     */
     protected function data_preprocessing($question) {
         global $PAGE;
         $question = parent::data_preprocessing($question);
@@ -422,6 +455,13 @@ class qtype_drawing_edit_form extends question_edit_form {
         return $question;
     }
 
+    /**
+     * Validate the form data.
+     *
+     * @param array $data
+     * @param array $files
+     * @return array
+     */
     public function validation($data, $files) {
         global $USER;
         $errors = parent::validation($data, $files);

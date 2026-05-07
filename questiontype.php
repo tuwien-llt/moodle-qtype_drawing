@@ -38,21 +38,44 @@ require_once(dirname(__FILE__) . '/renderer.php');
  * @license    http://opensource.org/licenses/BSD-3-Clause
  */
 class qtype_drawing extends question_type {
+    /**
+     * Get extra question fields for this question type.
+     *
+     * @return array
+     */
     public function extra_question_fields() {
         return ['qtype_drawing', 'drawingmode', 'backgrounduploaded',
                      'backgroundwidth', 'backgroundheight', 'preservear', 'drawingoptions', 'alloweraser'];
     }
 
+    /**
+     * Get the column name for the question ID.
+     *
+     * @return string
+     */
     public function questionid_column_name() {
         return 'questionid';
     }
 
+    /**
+     * Move question files to a new context.
+     *
+     * @param int $questionid
+     * @param int $oldcontextid
+     * @param int $newcontextid
+     */
     public function move_files($questionid, $oldcontextid, $newcontextid) {
         parent::move_files($questionid, $oldcontextid, $newcontextid);
         $fs = get_file_storage();
         $fs->move_area_files_to_new_context($oldcontextid, $newcontextid, 'qtype_drawing', 'qtype_drawing_image_file', $questionid);
     }
 
+    /**
+     * Delete question files.
+     *
+     * @param int $questionid
+     * @param int $contextid
+     */
     protected function delete_files($questionid, $contextid) {
         parent::delete_files($questionid, $contextid);
         $this->delete_files_in_answers($questionid, $contextid, true);
@@ -61,8 +84,8 @@ class qtype_drawing extends question_type {
     /**
      * Custom method for deleting drawing questions.
      *
-     * (non-PHPdoc)
-     *
+     * @param int $questionid
+     * @param int $contextid
      * @see question_type::delete_question()
      */
     public function delete_question($questionid, $contextid) {
@@ -72,6 +95,13 @@ class qtype_drawing extends question_type {
         $DB->delete_records('qtype_drawing_annotations', ['questionid' => $originalrecord->id]);
         parent::delete_question($questionid, $contextid);
     }
+
+    /**
+     * Save question options.
+     *
+     * @param stdClass $question
+     * @return void
+     */
     public function save_question_options($question) {
         global $DB, $USER;
         $context = $question->context;
@@ -182,15 +212,33 @@ class qtype_drawing extends question_type {
     }
 
 
+    /**
+     * Initialise the question instance.
+     *
+     * @param question_definition $question
+     * @param stdClass $questiondata
+     */
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
         $this->initialise_question_answers($question, $questiondata);
     }
 
+    /**
+     * Get the random guess score for this question.
+     *
+     * @param stdClass $questiondata
+     * @return int
+     */
     public function get_random_guess_score($questiondata) {
         return 0;
     }
 
+    /**
+     * Get possible responses for this question.
+     *
+     * @param stdClass $questiondata
+     * @return array
+     */
     public function get_possible_responses($questiondata) {
         $responses = [];
         $starfound = false;
@@ -214,6 +262,14 @@ class qtype_drawing extends question_type {
         return [$questiondata->id => $responses];
     }
 
+    /**
+     * Export the question to XML format.
+     *
+     * @param stdClass $question
+     * @param qformat_xml $format
+     * @param string $extra
+     * @return string|bool
+     */
     public function export_to_xml($question, qformat_xml $format, $extra = null) {
         $extraquestionfields = $this->extra_question_fields();
         if (!is_array($extraquestionfields)) {
@@ -253,6 +309,16 @@ class qtype_drawing extends question_type {
         }
         return $expout;
     }
+
+    /**
+     * Import the question from XML format.
+     *
+     * @param array $data
+     * @param stdClass $question
+     * @param qformat_xml $format
+     * @param string $extra
+     * @return stdClass|bool
+     */
     public function import_from_xml($data, $question, qformat_xml $format, $extra = null) {
         if (!isset($data['@']['type']) || $data['@']['type'] != 'drawing') {
             return false;

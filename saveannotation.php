@@ -67,7 +67,13 @@ if (trim($annotation) == '') {
     die();
 }
 // Check if record exists.
-$fields = ['questionid' => $id, 'annotatedby' => $USER->id, 'annotatedfor' => $stid, 'attemptid' => $attemptid, 'attemptcount' => $attemptcount];
+$fields = [
+        'questionid' => $id,
+        'annotatedby' => $USER->id,
+        'annotatedfor' => $stid,
+        'attemptid' => $attemptid,
+        'attemptcount' => $attemptcount,
+];
 if ($recordexists = $DB->get_record('qtype_drawing_annotations', $fields)) {
     // Update annotation.
     $annotationrecord = new stdClass();

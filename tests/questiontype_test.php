@@ -42,8 +42,12 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  *
  * @copyright  2018 ETH Zurich
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \qtype_drawing\qtype_drawing
  */
 final class questiontype_test extends advanced_testcase {
+    /**
+     * @var qtype_drawing The question type instance.
+     */
     protected $qtype;
 
     protected function setUp(): void {
@@ -56,6 +60,11 @@ final class questiontype_test extends advanced_testcase {
         parent::tearDown();
     }
 
+     /**
+      * Get test question data.
+      *
+      * @return stdClass
+      */
     protected function get_test_question_data() {
         $q = new stdClass();
         $q->options = new stdClass();

@@ -200,4 +200,3 @@ $string['width'] = 'Breite';
 $string['zoomin'] = 'Vergrössern';
 $string['zoomout'] = 'Verkleinern';
 $string['zoomtool'] = 'Vergrösserungstool';
-$string['cancel'] = 'Abbrechen';

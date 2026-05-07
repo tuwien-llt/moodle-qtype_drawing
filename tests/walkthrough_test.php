@@ -38,6 +38,8 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  *
  * @copyright 2013 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \qtype_drawing\qtype_drawing
+ * @covers \qtype_drawing\qtype_drawing_question
  */
 final class walkthrough_test extends qbehaviour_walkthrough_test_base {
     public function test_deferred_feedback_plain_text(): void {
