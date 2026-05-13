@@ -49,6 +49,7 @@ class qtype_drawing_test_helper extends question_test_helper {
      */
     public function make_drawing_question_plain() {
         $q = new qtype_drawing_question();
+        $q->questiontext = 'DRAWING';
         test_question_maker::initialise_a_question($q);
 
         $q->qtype = question_bank::get_qtype('drawing');
