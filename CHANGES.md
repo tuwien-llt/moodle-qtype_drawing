@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.2.0 - 2026-05-15
 
 ### Added
 - Support for Moodle 5.2 has been added.
