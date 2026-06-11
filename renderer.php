@@ -99,7 +99,7 @@ class qtype_drawing_renderer extends qtype_renderer {
         $imgdata = ob_get_contents();
         ob_end_clean();
 
-        stream_wrapper_register("BlobDataAsFileStream", "drawing_blob_data_as_file_stream");
+        stream_wrapper_register("BlobDataAsFileStream", "qtype_drawing\local\drawing_blob_data_as_file_stream");
         drawing_blob_data_as_file_stream::$blobdatastream = $imgdata;
         $imagesize = getimagesize('BlobDataAsFileStream://');
         stream_wrapper_unregister("BlobDataAsFileStream");
