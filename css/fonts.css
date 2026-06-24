@@ -48,7 +48,7 @@
 }
 @font-face {
     font-family: 'Simonetta';
-    src: url('font-files/simonetta-italic-webfont.woff') format('woff');
+    src: url('font-files/simonetta-italic-webfont.ttf') format('ttf');
     font-weight: normal;
     font-style: italic;
 }

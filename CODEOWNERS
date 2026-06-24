@@ -1,0 +1,3 @@
+[CI] @llt/bureau/devops
+.gitlab/
+.gitlab-ci.yml

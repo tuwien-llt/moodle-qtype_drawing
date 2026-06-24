@@ -23,21 +23,29 @@
  * @copyright 2020 ETH Zurich
  * @license http://www.drawing.org/license
  */
+
+namespace qtype_drawing;
+
+use advanced_testcase;
+use qtype_drawing_question;
+use question_bank;
+
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
 require_once($CFG->dirroot . '/question/type/drawing/question.php');
+require_once($CFG->dirroot . '/question/type/drawing/questiontype.php');
 
 /**
  * Unit tests for the drawing question definition class.
  *
  * @copyright 2020 ETH Zurich
  * @license http://www.drawing.org/license
+ * @covers \qtype_drawing\qtype_drawing_question
  */
-class qtype_drawing_question_test extends advanced_testcase {
-
-    public function test_get_question_summary() {
+final class question_test extends advanced_testcase {
+    public function test_get_question_summary(): void {
         question_bank::load_question_definition_classes('drawing');
         $drawing = new qtype_drawing_question();
         $drawing->questiontext = 'DRAWING';

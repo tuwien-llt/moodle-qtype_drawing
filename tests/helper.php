@@ -21,9 +21,11 @@
  * @copyright 2019 ETH Zurich
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
+require_once($CFG->dirroot . '/question/type/drawing/questiontype.php');
 
 /**
  * Test helper class for the drawing question type.
@@ -32,9 +34,13 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_drawing_test_helper extends question_test_helper {
-
+    /**
+     * Get the list of test questions available.
+     *
+     * @return array
+     */
     public function get_test_questions() {
-        return array('plain');
+        return ['plain'];
     }
 
     /**
@@ -43,6 +49,7 @@ class qtype_drawing_test_helper extends question_test_helper {
      */
     public function make_drawing_question_plain() {
         $q = new qtype_drawing_question();
+        $q->questiontext = 'DRAWING';
         test_question_maker::initialise_a_question($q);
 
         $q->qtype = question_bank::get_qtype('drawing');
@@ -61,14 +68,14 @@ class qtype_drawing_test_helper extends question_test_helper {
         $q = new stdClass();
         $q->name = 'drawing-001';
         $q->questiontext = 'Please draw a cell.';
-        $q->questiontext = array(
+        $q->questiontext = [
             "text" => 'Questiontext for drawing-001',
-            'format' => FORMAT_HTML
-        );
-        $q->generalfeedback = array(
+            'format' => FORMAT_HTML,
+        ];
+        $q->generalfeedback = [
             "text" => 'I hope your drawing had a beginning, a middle and an end.',
-            'format' => FORMAT_HTML
-        );
+            'format' => FORMAT_HTML,
+        ];
         $q->defaultgrade = 0;
         $q->contextid = 1;
         $q->penalty = 0;
@@ -79,7 +86,7 @@ class qtype_drawing_test_helper extends question_test_helper {
         $q->createdby = '2';
         $q->modifiedby = '2';
         $q->drawingmode = 1;
-        $q->files= '';
+        $q->files = '';
         $q->backgrounduploaded = 0;
         $q->backgroundwidth = 800;
         $q->backgroundheight = 600;
