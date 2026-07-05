@@ -160,16 +160,49 @@
     overflow: auto;
     background-color: #f8f9fa;
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Stretch the core question-render chain (.que > .content > .formulation >
+   #qtype_drawing_attr_id_* > .qtype_drawing_drawingwrapper) so the drawing area
+   fills the canvas cell down to the bottom of the page. Scoped to the grader
+   canvas so the student attempt view and review page are untouched. The small
+   .qtext keeps its natural height at the top; the wrapper takes the rest. */
+.qtype-drawing-grader-canvas > .que,
+.qtype-drawing-grader-canvas > .que > .content,
+.qtype-drawing-grader-canvas > .que > .content > .formulation,
+.qtype-drawing-grader-canvas .formulation > [id^="qtype_drawing_attr_id_"],
+.qtype-drawing-grader-canvas .qtype_drawing_drawingwrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    /* Turning the chain into flex columns makes each level a shrink-wrapping
+       flex item; force full width so the drawing keeps the whole canvas column
+       (the theme sets align-items:start on .que, defeating cross-axis stretch). */
+    width: 100%;
+}
+
+.qtype-drawing-grader-canvas > .que,
+.qtype-drawing-grader-canvas > .que > .content,
+.qtype-drawing-grader-canvas > .que > .content > .formulation,
+.qtype-drawing-grader-canvas .formulation > [id^="qtype_drawing_attr_id_"] {
+    display: flex;
+    flex-direction: column;
+}
+
+.qtype-drawing-grader-canvas > .que {
+    margin-bottom: 0;
 }
 
 .qtype-drawing-grader-canvas .qtype_drawing_drawingwrapper {
-    height: calc(100vh - 150px);
     padding-bottom: 0;
 }
 
 .qtype-drawing-grader-canvas .qtype_drawing_drawingwrapper iframe {
     position: relative;
     height: 100%;
+    width: 100%;
 }
 
 .qtype-drawing-grader-sidebar {

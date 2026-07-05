@@ -78,6 +78,68 @@ export const init = (config) => {
 
     // Fullscreen toggle for the feedback editor.
     initFeedbackFullscreen();
+
+    // Bridge the theme's primary colour into the (theme-CSS-less) drawing iframe.
+    initAnnotationButtonColor();
+};
+
+/**
+ * Resolve the site's primary colour from the parent grader page. Reads the
+ * computed background of a throwaway .btn-primary element so it matches the
+ * theme's actual button colour, falling back to CSS custom properties and
+ * finally the historic hard-coded blue.
+ *
+ * @returns {string} A CSS colour string.
+ */
+const getThemePrimaryColor = () => {
+    let color = '';
+    const probe = document.createElement('span');
+    probe.className = 'btn btn-primary';
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.pointerEvents = 'none';
+    document.body.appendChild(probe);
+    color = window.getComputedStyle(probe).backgroundColor;
+    probe.remove();
+
+    if (!color || color === 'rgba(0, 0, 0, 0)' || color === 'transparent') {
+        const root = window.getComputedStyle(document.documentElement);
+        color = root.getPropertyValue('--bs-primary').trim() ||
+                root.getPropertyValue('--primary').trim();
+    }
+
+    return color || '#4F80FF';
+};
+
+/**
+ * The "Save annotation" button lives inside the drawing iframe, which is served
+ * without the Bootstrap/theme stylesheet (it breaks the SVG-Edit layout), so it
+ * cannot use .btn-primary directly. Inject the resolved primary colour into the
+ * iframe's root as --qtype-drawing-primary; the button reads it via var() and so
+ * tracks the site's primary colour instead of a hard-coded blue.
+ */
+const initAnnotationButtonColor = () => {
+    const iframe = document.querySelector('.qtype_drawing_drawingwrapper iframe');
+    if (!iframe) {
+        return;
+    }
+
+    const color = getThemePrimaryColor();
+    const apply = () => {
+        try {
+            const doc = iframe.contentDocument;
+            if (doc && doc.documentElement) {
+                doc.documentElement.style.setProperty('--qtype-drawing-primary', color);
+            }
+        } catch (e) {
+            // Cross-origin (shouldn't happen for a same-origin iframe) — ignore.
+        }
+    };
+
+    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+        apply();
+    }
+    iframe.addEventListener('load', apply);
 };
 
 /**

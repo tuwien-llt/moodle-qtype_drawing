@@ -37,9 +37,19 @@ export const init = (
     // 1. Iframe Resizing Logic
     // --------------------------------------------------------
     const resizeIframe = () => {
-        const viewportHeight = $(window).height();
         const $iframe = $(document.getElementById(iframeId));
         const $wrapper = $(document.getElementById(wrapperId));
+
+        // In the fullscreen grader the drawing area is sized by CSS (flex fill).
+        // Skip the student-attempt resize/650px cap that would otherwise clamp it
+        // with an inline height and leave empty space below the canvas. The grader
+        // container class exists only in grade.php's grader_fullscreen template, so
+        // the student attempt view and the review.php page keep their behaviour.
+        if ($wrapper.closest('.qtype-drawing-grader-fullscreen').length) {
+            return;
+        }
+
+        const viewportHeight = $(window).height();
         const $timerDiv = $(document.getElementById(timerId));
         const $quizTimerLeft = $('#quiz-time-left');
 
@@ -134,7 +144,10 @@ export const init = (
             window.svgCanvas = new window.embedded_svg_edit(frame);
             window.svgCanvas.setHDQuestionID(id);
             const dw = document.getElementById(`qtype_drawing_drawingwrapper_${id}`);
-            if (frame.contentWindow.document.body) {
+            // In the fullscreen grader the wrapper is sized by CSS (flex fill), so
+            // don't clamp it to the iframe body's initial offsetHeight (~150px).
+            const inGrader = dw && $(dw).closest('.qtype-drawing-grader-fullscreen').length;
+            if (dw && frame.contentWindow.document.body && !inGrader) {
                 dw.style.height = frame.contentWindow.document.body.offsetHeight + "px";
             }
         }
