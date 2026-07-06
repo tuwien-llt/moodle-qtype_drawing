@@ -106,8 +106,18 @@ if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields, 'timem
 
 [$colors, $defaultcolor, $showallcolorschooser] = qtype_drawing::get_colors_for_template($useupdateannotationjs, $fhd->colorsjson);
 
+// Cache-busting revision for the bundled SVG-Edit lib/ scripts (loaded directly, outside the AMD
+// pipeline). Tie it to Moodle's JS revision so "Purge all caches" (which bumps $CFG->jsrev) forces
+// browsers to refetch them. In theme-designer/debug mode jsrev is -1 (no caching); fall back to a
+// per-request value so the scripts are always fresh, matching that intent.
+$jsrev = isset($CFG->jsrev) ? (int) $CFG->jsrev : 1;
+if ($jsrev < 1) {
+    $jsrev = time();
+}
+
 $context = [
     'base_url' => $CFG->wwwroot . '/question/type/drawing/',
+    'jsrev' => $jsrev,
     'id' => $id,
     'useupdateannotationjs' => ($useupdateannotationjs == 1),
     'backgroundwidth' => $fhd->backgroundwidth,

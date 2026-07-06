@@ -24,8 +24,13 @@
  */
 
 let baseurl = ""; // Your base URL variable
+let rev = ""; // Moodle JS cache revision, used to cache-bust the bundled lib/ scripts.
 
 const co = window.console;
+
+// Query string that ties a lib/ script URL to Moodle's JS revision so that
+// "Purge all caches" (which bumps $CFG->jsrev) forces browsers to refetch it.
+const revSuffix = () => (rev ? "?rev=" + rev : "");
 
 const $ = window.$;
 // 1. Helper function to generate config and chain dependencies
@@ -41,8 +46,10 @@ const addScriptChain = (scriptArray, dependsOnModule) => {
     scriptArray.forEach((scriptPath) => {
         // Create ID: "lib/editor/draw.js" -> "lib/editor/draw"
         const moduleId = scriptPath.replace(/\.js$/, '');
-        // 1. Define Path (Prepend your baseurl variable)
-        paths[moduleId] = baseurl + moduleId;
+        // 1. Define Path (Prepend your baseurl variable). Add ".js" + the rev query
+        // explicitly: RequireJS skips its own ".js" append when the URL contains "?",
+        // and the query busts the browser cache when Moodle's jsrev changes.
+        paths[moduleId] = baseurl + moduleId + ".js" + revSuffix();
 
         // 2. Define Shim (The "Synchronous" Chain)
         shim[moduleId] = {};
@@ -120,7 +127,7 @@ const loadscripts = (callback) => {
 
     let lastLoaded = addScriptChain(scripts_default, null);
 
-    require([baseurl + "lib/editor/d3.js"], function(d3) {
+    require([baseurl + "lib/editor/d3.js" + revSuffix()], function(d3) {
         window.d3 = d3;
         require([lastLoaded], function() {
             co.log("All grouped scripts loaded in sequence.");
@@ -316,6 +323,7 @@ export const init = (config) => {
     window.attemptcount = config.attemptcount;
     window.uniquefieldnameattemptid = config.uniquefieldnameattemptid;
     baseurl = config.baseurl;
+    rev = config.jsrev;
     window.jQuery = window.$;
     window.colorhighlighter = config.colorhighlighter;
     const defaultPensize = config.defaultpensize;
