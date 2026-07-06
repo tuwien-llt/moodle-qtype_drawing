@@ -133,10 +133,11 @@
     height: 48px;
     padding-top: 6px;
     z-index: 3;
+    color: #999999;
 }
 
 .qtype_drawing_togglebutton i {
-    font-size: 30px;
+    font-size: 28px;
 }
 
 .qtype_drawing_togglebutton img {

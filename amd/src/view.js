@@ -79,7 +79,7 @@ export const init = (
     // 2. Fullscreen Toggle Logic
     // --------------------------------------------------------
     const toggleFullscreen = () => {
-        // Update status for saving safety
+        // Update status for saving safety.
         const statusInput = document.getElementById(`id_qtype_drawingsaving_status_${questionId}`);
         if (statusInput) {
             setTimeout(() => { statusInput.value = Math.random(); }, 1000);
@@ -88,29 +88,29 @@ export const init = (
         const $wrapper = $(document.getElementById(wrapperId));
         const $iframe = $(document.getElementById(iframeId));
         const $timerDiv = $(document.getElementById(timerId));
-        const $quizTimer = $('#quiz-timer'); // The actual Moodle timer element
+        const $quizTimer = $('#quiz-timer'); // The actual Moodle timer element.
+        const $quizTimerWrapper = $('#quiz-timer-wrapper');
 
         $wrapper.toggleClass("qtype_drawing_maximized");
         $iframe.css('height', '100%');
 
         if ($wrapper.hasClass("qtype_drawing_maximized")) {
-            // Enter Fullscreen
+            // Enter Fullscreen.
             $wrapper.css('height', '100%');
-            $('body').addClass('qtype-drawing-fullscreen-active'); // Helper class if needed
+            $('body').addClass('qtype-drawing-fullscreen-active'); // Helper class if needed.
 
-            if ($quizTimer.length) {
-                // Move Moodle timer into our fullscreen view
+            if ($quizTimer.length && $quizTimerWrapper.css('display') !== 'none') {
+                // Move Moodle timer into our fullscreen view.
                 $timerDiv.append($quizTimer);
                 $timerDiv.css('display', 'block');
                 const calculatedHeight = $(window).height() - $timerDiv.outerHeight();
                 $iframe.css('height', calculatedHeight + "px");
             } else {
-                $timerDiv.empty(); // Clean up if no timer
+                $timerDiv.empty(); // Clean up if no timer.
                 $iframe.css('height', $(window).height() + "px");
             }
-
         } else {
-            // Exit Fullscreen
+            // Exit Fullscreen.
             $('body').removeClass('qtype-drawing-fullscreen-active');
             let viewportHeight = $(window).height();
             if (viewportHeight > 650 || viewportHeight <= 500) {
@@ -121,8 +121,8 @@ export const init = (
             $wrapper.css('height', viewportHeight + "px");
 
             // Move timer back to original spot!
-            if ($quizTimer.length && $('#quiz-timer-wrapper').length) {
-                $('#quiz-timer-wrapper').prepend($quizTimer);
+            if ($quizTimer.length && $quizTimerWrapper.length  && $quizTimerWrapper.css('display') !== 'none') {
+                $quizTimerWrapper.prepend($quizTimer);
                 $timerDiv.css('margin-top', '0em').css('display', 'none');
             }
         }
