@@ -860,7 +860,17 @@ input[type=submit]:active, button:active {
     overflow-x: hidden;
     scrollbar-color: #4F80FF #444;
     scrollbar-width: thin;
+    /* Flex column so the zoom control (#zoom_panel, last child) can be pushed to the
+       bottom via margin-top:auto when there's room, yet fall into the scrollable flow
+       (and stay reachable) when the toolbar is too short to fit every tool. */
+    display: flex;
+    flex-direction: column;
+}
 
+/* Keep every tool at its intrinsic height so a short toolbar overflows and scrolls,
+   instead of the flex box squishing the buttons to fit. */
+#tools_left > * {
+    flex-shrink: 0;
 }
 
 #workarea.wireframe #svgcontent * {
@@ -2198,11 +2208,13 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 
 #zoom_panel {
     padding: 9px 0;
-    /*right: 175px;*/
-    left: 0;
-    right: 0;
-    position: absolute;
-    bottom: 20px;
+    /* In-flow (last item in the #tools_left flex column) instead of absolutely pinned,
+       so it scrolls into reach when the toolbar overflows. margin-top:auto keeps it at
+       the bottom when there's spare room; margin-bottom + the padding preserve the old
+       ~20px bottom gap. position:relative is a harmless local containing block. */
+    position: relative;
+    margin-top: auto;
+    margin-bottom: 11px;
     text-align: center;
     touch-action: manipulation;
 }
