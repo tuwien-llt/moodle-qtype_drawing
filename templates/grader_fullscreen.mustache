@@ -36,8 +36,9 @@
     * slot - Question slot number
     * attemptid - Quiz attempt ID
     * qubaid - Question usage ID
-    * currentmark - Current mark (if graded)
-    * maxmark - Maximum possible mark
+    * currentmark - Current mark (if graded), non-localized (dot) for the number input
+    * maxmark - Maximum possible mark, non-localized (dot) for the number input's max attribute
+    * maxmarkdisplay - Maximum possible mark, localized for display in the "/ max" label
     * comment - Current feedback comment
     * sesskey - Session key for form submission
     * id - Course module ID
@@ -162,7 +163,7 @@
                                max="{{maxmark}}"
                                step="0.01"
                                required>
-                        <span class="input-group-text">/ {{maxmark}}</span>
+                        <span class="input-group-text">/ {{maxmarkdisplay}}</span>
                     </div>
                 </div>
 

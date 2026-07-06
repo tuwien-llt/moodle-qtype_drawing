@@ -21,9 +21,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import Notification from 'core/notification';
 import {get_string as getString} from 'core/str';
 import Modal from 'core/modal';
+import {add as addToast} from 'core/toast';
 
 let dirty = false;
 let bypassGuard = false;
@@ -91,6 +91,26 @@ export const init = (config) => {
 
     // Bridge the theme's primary colour into the (theme-CSS-less) drawing iframe.
     initAnnotationButtonColor();
+};
+
+/**
+ * Show a "grade saved" success toast, then strip the `graded` flag from the URL
+ * so a manual refresh doesn't re-trigger it. Called from grade.php via
+ * js_call_amd on the page landed on after a save redirect (same attempt, next
+ * student, or the overview). A toast is used instead of a banner so it never
+ * pushes the fullscreen grader down and hides the bottom controls.
+ */
+export const showSavedToast = async() => {
+    addToast(await getString('gradesaved', 'qtype_drawing'), {type: 'success'});
+    try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('graded')) {
+            url.searchParams.delete('graded');
+            window.history.replaceState({}, '', url.toString());
+        }
+    } catch (e) {
+        // URL API unavailable — the toast still showed; ignore.
+    }
 };
 
 /**
@@ -688,10 +708,7 @@ const initFormValidation = (maxMark) => {
         if (isNaN(mark) || mark < 0 || mark > maxMark) {
             e.preventDefault();
             const errorMsg = await getString('invalidmark', 'qtype_drawing');
-            Notification.alert(
-                await getString('error'),
-                errorMsg + ` (0 - ${maxMark})`
-            );
+            addToast(errorMsg + ` (0 - ${maxMark})`, {type: 'danger'});
             markInput.focus();
             return false;
         }

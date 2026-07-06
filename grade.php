@@ -65,7 +65,10 @@ if ($action === 'savegrade' && confirm_sesskey()) {
         grade_processor::save_annotation($qubaid, $gradeslot, $gradeattemptid, $annotation);
     }
 
-    // Redirect based on whether there's a next attempt.
+    // Redirect based on whether there's a next attempt. The "grade saved"
+    // confirmation is shown as an auto-dismissing toast on the destination page
+    // (via the graded=1 flag below) instead of a banner, so it never pushes the
+    // fullscreen grader down and hides the bottom controls.
     $savenext = optional_param('savenext', 0, PARAM_INT);
     $next = optional_param('next', null, PARAM_INT);
     $returnurl = optional_param('returnurl', '', PARAM_LOCALURL);
@@ -75,22 +78,28 @@ if ($action === 'savegrade' && confirm_sesskey()) {
             'mode' => 'drawing',
             'slot' => $gradeslot,
             'attemptid' => $next,
+            'graded' => 1,
         ]));
     } else if (!empty($returnurl)) {
-        redirect(
-            new moodle_url($returnurl),
-            get_string('gradesaved', 'qtype_drawing'),
-            null,
-            \core\output\notification::NOTIFY_SUCCESS
-        );
+        $returnurlobj = new moodle_url($returnurl);
+        $returnurlobj->param('graded', 1);
+        redirect($returnurlobj);
     } else {
         redirect(new moodle_url('/mod/quiz/report.php', [
             'id' => $id,
             'mode' => 'drawing',
             'slot' => $gradeslot,
             'attemptid' => $gradeattemptid,
-        ]), get_string('gradesaved', 'qtype_drawing'), null, \core\output\notification::NOTIFY_SUCCESS);
+            'graded' => 1,
+        ]));
     }
+}
+
+// Show an auto-dismissing toast (not a layout-pushing banner) after a save.
+// Runs for whichever view renders below (same attempt, next student, or overview).
+$graded = optional_param('graded', 0, PARAM_INT);
+if ($graded) {
+    $PAGE->requires->js_call_amd('qtype_drawing/grader_ui', 'showSavedToast');
 }
 
 // Setup page.
@@ -255,8 +264,15 @@ if ($attemptid === null) {
         'slot' => $slot,
         'attemptid' => $attemptid,
         'qubaid' => $qubaid,
-        'currentmark' => $currentmark !== null ? format_float($currentmark, 2) : '',
-        'maxmark' => format_float($maxmark, 2),
+        // The mark/max feed an <input type="number">, whose value + max attributes
+        // must use a "." decimal separator regardless of the user's language. A
+        // localized value (e.g. "1,00" in German) is rejected by the number input,
+        // leaving the field blank and disabling the max range check — so format
+        // these non-localized (dot). The visible "/ max" label uses maxmarkdisplay,
+        // which stays localized for the reader.
+        'currentmark' => $currentmark !== null ? format_float($currentmark, 2, false) : '',
+        'maxmark' => format_float($maxmark, 2, false),
+        'maxmarkdisplay' => format_float($maxmark, 2),
         'comment' => $currentcomment,
         'commentformat' => $currentcommentformat,
         'sesskey' => sesskey(),
