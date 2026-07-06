@@ -139,6 +139,28 @@ const loadscripts = (callback) => {
 const MIN_CANVAS_HEIGHT = 120;
 const MIN_TEXT_HEIGHT = 40;
 
+/**
+ * Keep the parent page's fullscreen toggle button aligned with the top of the drawing area.
+ *
+ * The button lives in the parent document at the wrapper's top-right (top: 0). When the question text
+ * is embedded, an editable text strip + drag bar sit above the canvas, so a top: 0 button overlaps the
+ * question-text show/hide toggle. Push the button down by the strip height so it always lands on the
+ * drawing toolbar's top-right (offset is 0 when the text is not embedded, leaving the default in place).
+ *
+ * @param {number} offset Height of everything stacked above the drawing area, in px.
+ */
+const positionFullscreenToggle = (offset) => {
+    try {
+        const id = 'qtype_drawing_togglebutton_id_' + window.attemptid + window.uniquefieldnameattemptid;
+        const btn = window.parent.document.getElementById(id);
+        if (btn) {
+            btn.style.top = Math.max(0, Math.round(offset)) + 'px';
+        }
+    } catch (e) {
+        // Cross-origin/detached parent (or no button, e.g. the grader) — leave the CSS default in place.
+    }
+};
+
 const fixDrawingHeight = () => {
     const drawing = document.getElementById('question_drawing');
     if (!drawing) {
@@ -154,6 +176,8 @@ const fixDrawingHeight = () => {
         calculatedHeight = MIN_CANVAS_HEIGHT;
     }
     drawing.style.height = calculatedHeight + 'px';
+    // Same offset positions the fullscreen toggle over the drawing area, in every state.
+    positionFullscreenToggle(top);
 };
 
 /**
