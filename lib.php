@@ -30,6 +30,29 @@ defined('MOODLE_INTERNAL') || die();
 
 
 /**
+ * Canonical list of the per-question drawing tool visibility options.
+ *
+ * Each name is both the qtype_drawing table column and the admin default config key
+ * (qtype_drawing/<name>). Shared by settings.php, the edit form, questiontype.php and
+ * drawingarea.php so the tool set is defined in a single place.
+ *
+ * @return string[] ordered list of tool option field names
+ */
+function qtype_drawing_tool_names() {
+    return [
+        'toolselect',
+        'tooldraw',
+        'tooltext',
+        'toolhighlighter',
+        'toolline',
+        'toolrect',
+        'toolcircle',
+        'tooleraser',
+        'toolundoredo',
+    ];
+}
+
+/**
  * Checks file access for drawing questions.
  *
  * @param int $course Course ID.

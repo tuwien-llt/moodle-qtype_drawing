@@ -50,6 +50,24 @@ class qtype_drawing_question extends question_graded_by_strategy implements ques
     public $colorhighlighter;
     public $questionembed;
     public $hidemenu;
+    /** @var int show the select tool */
+    public $toolselect;
+    /** @var int show the drawing (pencil) tool */
+    public $tooldraw;
+    /** @var int show the text tool */
+    public $tooltext;
+    /** @var int show the highlighter tool */
+    public $toolhighlighter;
+    /** @var int show the line tool */
+    public $toolline;
+    /** @var int show the rectangle tool */
+    public $toolrect;
+    /** @var int show the circle tool */
+    public $toolcircle;
+    /** @var int show the eraser tool */
+    public $tooleraser;
+    /** @var int show the back/forward (undo/redo) tools */
+    public $toolundoredo;
 
     /** @var array of question_answer. */
     public $answers = [];

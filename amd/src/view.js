@@ -120,15 +120,15 @@ export const init = (
             $iframe.css('height', viewportHeight + "px");
             $wrapper.css('height', viewportHeight + "px");
 
-            // Move timer back to original spot
+            // Move timer back to original spot!
             if ($quizTimer.length && $('#quiz-timer-wrapper').length) {
-                $('#quiz-timer-wrapper').append($quizTimer);
+                $('#quiz-timer-wrapper').prepend($quizTimer);
                 $timerDiv.css('margin-top', '0em').css('display', 'none');
             }
         }
     };
 
-    // Bind click event to the toggle button
+    // Bind click event to the toggle button!
     $('#' + toggleButtonId).on('click', toggleFullscreen);
 
     const frame = document.getElementById(`qtype_drawing_editor_${attemptUniqueId}`);

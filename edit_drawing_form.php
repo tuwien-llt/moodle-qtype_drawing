@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/renderer.php');
+require_once(dirname(__FILE__) . '/lib.php');
 class qtype_drawing_edit_form extends question_edit_form {
     /**
      * (non-PHPdoc).
@@ -240,6 +241,33 @@ class qtype_drawing_edit_form extends question_edit_form {
 
         $mform->addElement('selectyesno', 'hidemenu', get_string('hidemenu', 'qtype_drawing'));
         $mform->setDefault('hidemenu', 0);
+
+        // Drawing tool configuration: per-question switches for which canvas tools students see.
+        // One "parameter" with a checkbox per tool; appendName=false keeps flat element names so
+        // they map straight onto the qtype_drawing columns / extra_question_fields().
+        $toolcheckboxes = [];
+        foreach (qtype_drawing_tool_names() as $tool) {
+            $toolcheckboxes[] = & $mform->createElement(
+                'advcheckbox',
+                $tool,
+                '',
+                get_string('showtool_' . $tool, 'qtype_drawing'),
+                [],
+                [0, 1]
+            );
+        }
+        $mform->addGroup(
+            $toolcheckboxes,
+            'drawingtoolconfig',
+            get_string('drawingtoolconfig', 'qtype_drawing'),
+            '<br>',
+            false
+        );
+        $mform->addHelpButton('drawingtoolconfig', 'drawingtoolconfig', 'qtype_drawing');
+        foreach (qtype_drawing_tool_names() as $tool) {
+            $mform->setType($tool, PARAM_INT);
+            $mform->setDefault($tool, isset($drawingconfig->$tool) ? $drawingconfig->$tool : 1);
+        }
 
         $canvassizearray = [];
         $canvassizearray[] = & $mform->createElement(

@@ -19,6 +19,15 @@
         <FIELD NAME="colorhighlighter" TYPE="char" LENGTH="16" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="questionembed" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="hidemenu" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Hide the top menu bar in the drawing canvas to enlarge the drawing area."/>
+        <FIELD NAME="toolselect" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the select tool to students."/>
+        <FIELD NAME="tooldraw" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the drawing (pencil) tool to students."/>
+        <FIELD NAME="tooltext" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the text tool to students."/>
+        <FIELD NAME="toolhighlighter" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the highlighter tool to students."/>
+        <FIELD NAME="toolline" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the line tool to students."/>
+        <FIELD NAME="toolrect" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the rectangle tool to students."/>
+        <FIELD NAME="toolcircle" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the circle tool to students."/>
+        <FIELD NAME="tooleraser" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the eraser tool to students."/>
+        <FIELD NAME="toolundoredo" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the back/forward (undo/redo) tools to students."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

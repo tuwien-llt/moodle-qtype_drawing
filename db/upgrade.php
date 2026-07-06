@@ -175,5 +175,31 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025120201, 'qtype', 'drawing');
     }
 
+    if ($oldversion < 2026070400) {
+        // Add per-question drawing tool visibility switches. Default 1 (shown) so that all existing
+        // questions keep every tool available after the upgrade.
+        $table = new xmldb_table('qtype_drawing');
+
+        $tools = [
+            'toolselect' => 'hidemenu',
+            'tooldraw' => 'toolselect',
+            'tooltext' => 'tooldraw',
+            'toolhighlighter' => 'tooltext',
+            'toolline' => 'toolhighlighter',
+            'toolrect' => 'toolline',
+            'toolcircle' => 'toolrect',
+            'tooleraser' => 'toolcircle',
+            'toolundoredo' => 'tooleraser',
+        ];
+        foreach ($tools as $name => $previous) {
+            $field = new xmldb_field($name, XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', $previous);
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+
+        upgrade_plugin_savepoint(true, 2026070400, 'qtype', 'drawing');
+    }
+
     return true;
 }

@@ -402,6 +402,33 @@ export const init = (config) => {
                 window.svgCanvas.setColor('stroke', defaultColor);
                 window.svgCanvas.setColor('fill', defaultColor);
 
+                // If the teacher hid the drawing (pencil) tool, the canvas would otherwise start in the
+                // now-invisible freehand mode. Switch to the first tool that is still visible so students
+                // get a sensible, usable default instead of an active-but-hidden tool. methodDraw
+                // force-selects the pencil at the very end of its init (after this ready callback), so
+                // defer with a timeout to make our switch run afterwards and stick.
+                if (config.enabledtools && !config.enabledtools.tooldraw) {
+                    const fallbacktools = [
+                        ['toolselect', '#tool_select'],
+                        ['tooltext', '#tool_text'],
+                        ['toolhighlighter', '#tool_highlighter'],
+                        ['toolline', '#tool_line'],
+                        ['toolrect', '#tool_rect'],
+                        ['toolcircle', '#tool_ellipse'],
+                    ];
+                    setTimeout(function() {
+                        for (let i = 0; i < fallbacktools.length; i++) {
+                            if (config.enabledtools[fallbacktools[i][0]]) {
+                                const btn = document.querySelector(fallbacktools[i][1]);
+                                if (btn) {
+                                    btn.click();
+                                }
+                                break;
+                            }
+                        }
+                    }, 150);
+                }
+
             });
             window.methodDraw.init();
         } else {

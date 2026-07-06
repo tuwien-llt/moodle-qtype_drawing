@@ -139,6 +139,18 @@ $context = [
     'showallcolorschooser' => $showallcolorschooser,
 ];
 
+// Per-question drawing tool visibility. Restrictions apply to the student-facing canvas only;
+// when a teacher is annotating during grading (mod/quiz:grade + readonly) every tool stays available.
+$restricttools = ($useupdateannotationjs != 1);
+$enabledtools = [];
+foreach (qtype_drawing_tool_names() as $tool) {
+    $enabledtools[$tool] = $restricttools ? !empty($fhd->$tool) : true;
+    // Boolean flag consumed by the template to add the matching hide class on #svg_editor.
+    $context[$tool] = $enabledtools[$tool];
+}
+// Same flags for the JS default-tool fallback (pick a visible tool if the pencil is hidden).
+$context['enabledtoolsjson'] = json_encode($enabledtools);
+
 // Very, very dirty hack to get rid of theme css
 $baseurl = preg_quote($CFG->wwwroot . '/theme/styles.php', '#');
 $baseurl2 = preg_quote($CFG->wwwroot . '/theme/styles_debug.php', '#');

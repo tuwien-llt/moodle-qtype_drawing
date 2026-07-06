@@ -78,6 +78,26 @@ if ($ADMIN->fulltree) {
         )
     );
 
+    // Drawing tool configuration: instance-wide defaults for which canvas tools students see.
+    // Teachers can override these per question in the edit form. Default 1 (shown) for all tools.
+    $settings->add(
+        new admin_setting_heading(
+            'qtype_drawing/drawingtoolsheading',
+            get_string('drawingtoolconfig', 'qtype_drawing'),
+            get_string('drawingtoolconfig_help', 'qtype_drawing')
+        )
+    );
+    foreach (qtype_drawing_tool_names() as $tool) {
+        $settings->add(
+            new admin_setting_configcheckbox(
+                'qtype_drawing/' . $tool,
+                get_string('showtool_' . $tool, 'qtype_drawing'),
+                get_string('showtool_' . $tool . '_help', 'qtype_drawing'),
+                1
+            )
+        );
+    }
+
     // Add setting colorsjson - textarea
     $defaultjson = '{"colors":[{"hex":"#336699","avail_student":true,"avail_trainer":true,"def_student":false,"def_trainer":false},{"hex":"#456","avail_student":true,"avail_trainer":true,"def_student":false,"def_trainer":false},{"hex":"#ccc","avail_student":true,"avail_trainer":true,"def_student":true,"def_trainer":false},{"hex":"#ee0","avail_student":false,"avail_trainer":true,"def_student":false,"def_trainer":false},{"hex":"#f00","avail_student":false,"avail_trainer":true,"def_student":false,"def_trainer":true}],"globalSettings":{"trainerAvailable":true,"studentAvailable":true}}';
     $settings->add(

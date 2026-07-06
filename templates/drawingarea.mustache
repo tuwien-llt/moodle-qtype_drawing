@@ -353,7 +353,7 @@
     </div>
 {{/questionembed}}
 <div id="question_drawing">
-    <div id="svg_editor"{{#hidemenu}} class="qtype_drawing_hidemenu"{{/hidemenu}}>
+    <div id="svg_editor" class="{{#hidemenu}}qtype_drawing_hidemenu {{/hidemenu}}{{^toolselect}}qtype_drawing_hide_toolselect {{/toolselect}}{{^tooldraw}}qtype_drawing_hide_tooldraw {{/tooldraw}}{{^tooltext}}qtype_drawing_hide_tooltext {{/tooltext}}{{^toolhighlighter}}qtype_drawing_hide_toolhighlighter {{/toolhighlighter}}{{^toolline}}qtype_drawing_hide_toolline {{/toolline}}{{^toolrect}}qtype_drawing_hide_toolrect {{/toolrect}}{{^toolcircle}}qtype_drawing_hide_toolcircle {{/toolcircle}}{{^tooleraser}}qtype_drawing_hide_tooleraser {{/tooleraser}}{{^toolundoredo}}qtype_drawing_hide_toolundoredo {{/toolundoredo}}">
         <div id="rulers">
             <div id="ruler_corner"></div>
             <div id="ruler_x">
@@ -1116,6 +1116,7 @@
                 uniquefieldnameattemptid: "{{uniquefieldnameattemptid}}",
                 defaultColor: "{{defaultcolor.hex}}",
                 colorhighlighter: "{{colorhighlighter}}",
+                enabledtools: {{{enabledtoolsjson}}},
             useupdateannotationjs: {{#useupdateannotationjs}}true{{/useupdateannotationjs}}{{^useupdateannotationjs}}false{{/useupdateannotationjs}}
             });
         });

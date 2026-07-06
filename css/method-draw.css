@@ -650,6 +650,25 @@ body.touch #workarea {
     display: none;
 }
 
+/* qtype_drawing: per-question "Drawing tool configuration" — hide the individual toolbar tools a
+ * teacher has switched off for students. Each qtype_drawing_hide_* class is added to #svg_editor
+ * server-side (see drawingarea.mustache). This also covers #tool_eraser, which the ext-eraser.js
+ * extension injects into #tools_left at runtime — the rule is already in place before it appears,
+ * so it never flashes. */
+#svg_editor.qtype_drawing_hide_toolselect #tool_select,
+#svg_editor.qtype_drawing_hide_tooldraw #tool_fhpath,
+#svg_editor.qtype_drawing_hide_tooltext #tool_text,
+#svg_editor.qtype_drawing_hide_toolhighlighter #tool_highlighter,
+#svg_editor.qtype_drawing_hide_toolhighlighter #fastcolorhighlighterpicks,
+#svg_editor.qtype_drawing_hide_toolline #tool_line,
+#svg_editor.qtype_drawing_hide_toolrect #tool_rect,
+#svg_editor.qtype_drawing_hide_toolcircle #tool_ellipse,
+#svg_editor.qtype_drawing_hide_tooleraser #tool_eraser,
+#svg_editor.qtype_drawing_hide_toolundoredo #tool_undo,
+#svg_editor.qtype_drawing_hide_toolundoredo #tool_redo {
+    display: none !important;
+}
+
 .touch div#workarea {
     top: 40px;
 }

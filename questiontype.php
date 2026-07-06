@@ -31,6 +31,7 @@ require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->dirroot . '/question/engine/lib.php');
 require_once($CFG->dirroot . '/question/type/drawing/question.php');
 require_once(dirname(__FILE__) . '/renderer.php');
+require_once(dirname(__FILE__) . '/lib.php');
 
 /**
  * The drawing question type.
@@ -52,6 +53,15 @@ class qtype_drawing extends question_type {
             'colorhighlighter',
             'questionembed',
             'hidemenu',
+            'toolselect',
+            'tooldraw',
+            'tooltext',
+            'toolhighlighter',
+            'toolline',
+            'toolrect',
+            'toolcircle',
+            'tooleraser',
+            'toolundoredo',
         ];
     }
 
@@ -128,6 +138,9 @@ class qtype_drawing extends question_type {
             $options->colorsjson = $drawingconfig->colorsjson;
             $options->colorhighlighter = $drawingconfig->colorhighlighter;
             $options->hidemenu = 0;
+            foreach (qtype_drawing_tool_names() as $tool) {
+                $options->$tool = isset($drawingconfig->$tool) ? $drawingconfig->$tool : 1;
+            }
             $options->id = $DB->insert_record('qtype_drawing', $options);
         }
         if (isset($question->allowstudentimage)) {
@@ -145,6 +158,13 @@ class qtype_drawing extends question_type {
         $options->colorsjson = isset($question->colorsjson) ? $question->colorsjson : $drawingconfig->colorsjson;
         $options->colorhighlighter = isset($question->colorhighlighter) ? $question->colorhighlighter : $drawingconfig->colorhighlighter;
         $options->hidemenu = !empty($question->hidemenu) ? 1 : 0;
+        foreach (qtype_drawing_tool_names() as $tool) {
+            if (isset($question->$tool)) {
+                $options->$tool = $question->$tool ? 1 : 0;
+            } else if (!isset($options->$tool)) {
+                $options->$tool = isset($drawingconfig->$tool) ? $drawingconfig->$tool : 1;
+            }
+        }
 
         $DB->update_record('qtype_drawing', $options);
         $this->save_hints($question);
