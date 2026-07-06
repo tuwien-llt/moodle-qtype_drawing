@@ -32,6 +32,13 @@ let baselineUndoSize = null;
 const VIEWMODE_KEY = 'qtype_drawing_grader_viewmode';
 const VIEWMODES = ['sidebar', 'both', 'canvas'];
 
+// Draggable divider bounds (sidebar width as a percentage of the grader width).
+// The chosen width is session-only — nothing is persisted, matching mod_assign.
+const SIDEBAR_MIN = 15;
+const SIDEBAR_MAX = 70;
+const SIDEBAR_DEFAULT = 32;
+const SIDEBAR_STEP = 2;
+
 /**
  * Initialize the grader UI.
  *
@@ -72,6 +79,9 @@ export const init = (config) => {
 
     // Layout view mode toggles.
     initViewModeToggle();
+
+    // Draggable divider between the drawing and the grading sidebar.
+    initResizableDivider();
 
     // Per-student attempt selector.
     initAttemptDropdown();
@@ -342,6 +352,92 @@ const initViewModeToggle = () => {
                 // Ignore.
             }
         });
+    });
+};
+
+/**
+ * Make the vertical divider between the drawing canvas and the grading sidebar
+ * draggable, so teachers can resize the two panels (e.g. widen the feedback
+ * side while still seeing the drawing). Mirrors the mod_assign grading resizer:
+ * a CSS custom property (--qtype-drawing-sidebar-width) drives the grid column,
+ * and drag / arrow keys update it. The width is session-only — nothing is
+ * persisted, so it resets to the default split on reload.
+ *
+ * Reuses the pointer-capture drag pattern already used for the question-text bar
+ * in drawingarea.js, and adds an .is-resizing class so the drawing iframe stops
+ * swallowing the pointer stream mid-drag.
+ */
+const initResizableDivider = () => {
+    const container = document.querySelector('.qtype-drawing-grader-fullscreen');
+    const splitter = container && container.querySelector('.qtype-drawing-grader-splitter');
+    if (!container || !splitter) {
+        return;
+    }
+
+    let currentPct = SIDEBAR_DEFAULT;
+
+    const applyWidth = (pct) => {
+        currentPct = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, pct));
+        container.style.setProperty('--qtype-drawing-sidebar-width', currentPct + '%');
+        splitter.setAttribute('aria-valuenow', String(Math.round(currentPct)));
+    };
+
+    // Pointer drag. The sidebar is the right panel, so its width grows as the
+    // pointer moves left (towards the canvas).
+    const onMove = (e) => {
+        const rect = container.getBoundingClientRect();
+        if (rect.width <= 0) {
+            return;
+        }
+        applyWidth(((rect.right - e.clientX) / rect.width) * 100);
+    };
+
+    const onEnd = (e) => {
+        splitter.removeEventListener('pointermove', onMove);
+        splitter.removeEventListener('pointerup', onEnd);
+        splitter.removeEventListener('pointercancel', onEnd);
+        container.classList.remove('is-resizing');
+        try {
+            splitter.releasePointerCapture(e.pointerId);
+        } catch (ex) {
+            // Capture may not have been set — ignore.
+        }
+    };
+
+    splitter.addEventListener('pointerdown', (e) => {
+        if (typeof e.button === 'number' && e.button !== 0) {
+            return;
+        }
+        e.preventDefault();
+        container.classList.add('is-resizing');
+        try {
+            splitter.setPointerCapture(e.pointerId);
+        } catch (ex) {
+            // Unsupported — the document-level move listener still works.
+        }
+        splitter.addEventListener('pointermove', onMove);
+        splitter.addEventListener('pointerup', onEnd);
+        splitter.addEventListener('pointercancel', onEnd);
+    });
+
+    // Keyboard: arrows nudge the divider, Home resets it. Left grows the sidebar
+    // (divider moves left); Right shrinks it.
+    splitter.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') {
+            applyWidth(currentPct + SIDEBAR_STEP);
+            e.preventDefault();
+        } else if (e.key === 'ArrowRight') {
+            applyWidth(currentPct - SIDEBAR_STEP);
+            e.preventDefault();
+        } else if (e.key === 'Home') {
+            applyWidth(SIDEBAR_DEFAULT);
+            e.preventDefault();
+        }
+    });
+
+    // Double-click restores the default split.
+    splitter.addEventListener('dblclick', () => {
+        applyWidth(SIDEBAR_DEFAULT);
     });
 };
 

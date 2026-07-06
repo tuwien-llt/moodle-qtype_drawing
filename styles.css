@@ -161,7 +161,11 @@
 
 .qtype-drawing-grader-fullscreen {
     display: grid;
-    grid-template-columns: 1fr 32%;
+    /* Middle 6px track is the draggable splitter; the sidebar width is driven by
+       a CSS custom property so the divider can resize the panels. The 32% fallback
+       keeps today's split whenever the property is unset (initial load / reload)
+       — the chosen width is session-only and is never persisted. */
+    grid-template-columns: minmax(0, 1fr) 6px var(--qtype-drawing-sidebar-width, 32%);
     grid-template-rows: 1fr auto;
     height: calc(100vh - 2px);
     min-height: 500px;
@@ -217,8 +221,49 @@
     width: 100%;
 }
 
-.qtype-drawing-grader-sidebar {
+/* Draggable vertical divider (middle grid column). */
+.qtype-drawing-grader-splitter {
     grid-area: 1 / 2 / 2 / 3;
+    position: relative;
+    background-color: #dee2e6;
+    cursor: ew-resize;
+    z-index: 5;
+    user-select: none;
+    touch-action: none;
+}
+
+/* Centered grip indicator, echoing the question-text bar handle. */
+.qtype-drawing-grader-splitter::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 28px;
+    transform: translate(-50%, -50%);
+    background-color: #adb5bd;
+    border-radius: 1px;
+}
+
+.qtype-drawing-grader-splitter:hover,
+.qtype-drawing-grader-splitter:focus {
+    background-color: #adb5bd;
+    outline: none;
+}
+
+.qtype-drawing-grader-splitter:hover::before,
+.qtype-drawing-grader-splitter:focus::before {
+    background-color: #6c757d;
+}
+
+/* While dragging, stop the drawing iframe from swallowing the pointer stream
+   (mirrors mod_assign's resize safeguard). */
+.qtype-drawing-grader-fullscreen.is-resizing iframe {
+    pointer-events: none;
+}
+
+.qtype-drawing-grader-sidebar {
+    grid-area: 1 / 3 / 2 / 4;
     background-color: #fff;
     border-left: 1px solid #dee2e6;
     overflow-y: auto;
@@ -245,14 +290,14 @@
 }
 
 .qtype-drawing-grader-nav {
-    grid-area: 2 / 1 / 3 / 3;
+    grid-area: 2 / 1 / 3 / 4;
     background-color: #f8f9fa;
     border-top: 1px solid #dee2e6;
 }
 
 /* View mode: default = both; classes override grid + visibility */
 .qtype-drawing-grader-fullscreen.viewmode-canvas {
-    grid-template-columns: 1fr 0;
+    grid-template-columns: 1fr 0 0;
 }
 
 .qtype-drawing-grader-fullscreen.viewmode-canvas .qtype-drawing-grader-sidebar {
@@ -260,7 +305,7 @@
 }
 
 .qtype-drawing-grader-fullscreen.viewmode-sidebar {
-    grid-template-columns: 0 1fr;
+    grid-template-columns: 0 0 1fr;
 }
 
 .qtype-drawing-grader-fullscreen.viewmode-sidebar .qtype-drawing-grader-canvas {
@@ -268,8 +313,14 @@
 }
 
 .qtype-drawing-grader-fullscreen.viewmode-sidebar .qtype-drawing-grader-sidebar {
-    grid-area: 1 / 1 / 2 / 3;
+    grid-area: 1 / 1 / 2 / 4;
     border-left: none;
+}
+
+/* The splitter only makes sense when both panels are visible. */
+.qtype-drawing-grader-fullscreen.viewmode-canvas .qtype-drawing-grader-splitter,
+.qtype-drawing-grader-fullscreen.viewmode-sidebar .qtype-drawing-grader-splitter {
+    display: none;
 }
 
 .qtype-drawing-grader-viewmode-btn.active {
@@ -372,6 +423,11 @@
     .qtype-drawing-grader-fullscreen {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr 1fr auto;
+    }
+
+    /* Stacked layout has no vertical divider to drag. */
+    .qtype-drawing-grader-splitter {
+        display: none;
     }
 
     .qtype-drawing-grader-canvas {

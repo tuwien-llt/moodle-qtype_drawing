@@ -96,6 +96,13 @@
         {{{drawing_area_html}}}
     </div>
 
+    {{! Draggable divider between the drawing and the grading sidebar }}
+    <div class="qtype-drawing-grader-splitter"
+         role="separator" aria-orientation="vertical" tabindex="0"
+         aria-valuemin="15" aria-valuemax="70" aria-valuenow="32"
+         aria-label="{{#str}}resizepanels, qtype_drawing{{/str}}"
+         title="{{#str}}resizepanels, qtype_drawing{{/str}}"></div>
+
     {{! Right column: Grading sidebar }}
     <div class="qtype-drawing-grader-sidebar " >
         <div class="grader-sidebar-content p-3">

@@ -196,6 +196,7 @@ $string['rectangle'] = 'Rectangle';
 $string['recttool'] = 'Rectangle tool';
 $string['redo_drawing'] = 'Redo';
 $string['reorientpath'] = 'Reorient path';
+$string['resizepanels'] = 'Drag to resize the panels';
 $string['responses'] = 'Student responses';
 $string['review'] = 'Review';
 $string['reviewquestion'] = 'Review';
