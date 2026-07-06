@@ -19,6 +19,18 @@
     display: none;
 }
 
+/* The "Save annotation" button sits in the iframe annotation drawer (#tools_top,
+   145px usable width). Long locale labels (e.g. German "Annotation speichern")
+   must wrap and stay inside the drawer instead of overflowing it. The iframe
+   forces box-sizing:content-box !important on everything, so override it here
+   (higher specificity) so the button's padding is counted within max-width. */
+#tool_saveannotation {
+    box-sizing: border-box !important; /* stylelint-disable-line declaration-no-important */
+    max-width: calc(100% - 5px);
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
 .fitem_id_qtype_drawing_textarea_id_0 {
     display: block;
 }
