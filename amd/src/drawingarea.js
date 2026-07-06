@@ -129,16 +129,158 @@ const loadscripts = (callback) => {
     });
 };
 
+const MIN_CANVAS_HEIGHT = 120;
+const MIN_TEXT_HEIGHT = 40;
+
 const fixDrawingHeight = () => {
-    const $questionText = $(IDENTIFIERS.QUESTION_TEXT);
-    const $questionDrawing = $(IDENTIFIERS.QUESTION_DRAWING);
-    let questionTextHeight = 0;
-    if ($questionText.length) {
-        questionTextHeight = $questionText.outerHeight();
+    const drawing = document.getElementById('question_drawing');
+    if (!drawing) {
+        return;
     }
     const windowHeight = $(window).height();
-    const calculatedHeight = windowHeight - questionTextHeight;
-    $questionDrawing.css('height', calculatedHeight + 'px');
+    // Everything stacked above the canvas (the question-text holder + the drag bar,
+    // when the question is embedded) determines where the canvas starts; give it the
+    // rest of the viewport. Falls back to full height when nothing is above it.
+    const top = drawing.getBoundingClientRect().top;
+    let calculatedHeight = windowHeight - top;
+    if (calculatedHeight < MIN_CANVAS_HEIGHT) {
+        calculatedHeight = MIN_CANVAS_HEIGHT;
+    }
+    drawing.style.height = calculatedHeight + 'px';
+};
+
+/**
+ * Wire up the collapse button and the drag-to-resize bar that sit between the
+ * embedded question text and the drawing canvas. No-op when the question text is
+ * not embedded (the bar/holder are absent). Persists the chosen size and the
+ * collapsed state per question in localStorage so they survive page reloads.
+ *
+ * @param {object} config Configuration object passed to init().
+ */
+const initQuestionTextControls = (config) => {
+    const holder = document.getElementById('question_text-holder');
+    const bar = document.getElementById('qtype_drawing_qtext_bar');
+    const toggle = document.getElementById('qtype_drawing_qtext_toggle');
+    if (!holder || !bar || !toggle) {
+        return;
+    }
+
+    const chevron = document.getElementById('qtype_drawing_qtext_chevron');
+    const label = document.getElementById('qtype_drawing_qtext_label');
+    const body = document.body;
+    const storeKey = 'qtype_drawing_qtext_' + (config.questionid || 'x');
+    const CHEVRON_UP = '▲';   // ▲ (collapse the text upwards)
+    const CHEVRON_DOWN = '▼'; // ▼ (expand the text downwards)
+
+    let collapsed = false;
+
+    const readState = () => {
+        try {
+            const raw = window.localStorage.getItem(storeKey);
+            if (raw) {
+                return JSON.parse(raw);
+            }
+        } catch (e) {
+            // localStorage blocked or corrupt value — ignore.
+        }
+        return null;
+    };
+
+    const persist = () => {
+        try {
+            const h = holder.style.height ? parseInt(holder.style.height, 10) : null;
+            window.localStorage.setItem(storeKey, JSON.stringify({collapsed: collapsed, height: h}));
+        } catch (e) {
+            // localStorage blocked — ignore.
+        }
+    };
+
+    const applyCollapsed = (isCollapsed) => {
+        collapsed = isCollapsed;
+        body.classList.toggle('qtype-drawing-qtext-collapsed', collapsed);
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        const text = collapsed ? config.str.showquestiontext : config.str.hidequestiontext;
+        if (label) {
+            label.textContent = text;
+        }
+        if (chevron) {
+            chevron.textContent = collapsed ? CHEVRON_DOWN : CHEVRON_UP;
+        }
+        toggle.setAttribute('title', text);
+        fixDrawingHeight();
+    };
+
+    // Apply an explicit holder height, clamped so neither area collapses past its
+    // minimum. Setting an explicit height means the user is in control, so drop the
+    // default max-height cap. Reflows the canvas afterwards.
+    const setHolderHeight = (px) => {
+        const barHeight = bar.offsetHeight || 0;
+        const maxHeight = $(window).height() - barHeight - MIN_CANVAS_HEIGHT;
+        const clamped = Math.max(MIN_TEXT_HEIGHT, Math.min(px, maxHeight));
+        holder.style.height = clamped + 'px';
+        holder.style.maxHeight = 'none';
+        fixDrawingHeight();
+    };
+
+    // Restore any persisted layout.
+    const saved = readState();
+    if (saved) {
+        if (typeof saved.height === 'number' && saved.height > 0) {
+            setHolderHeight(saved.height);
+        }
+        if (saved.collapsed) {
+            applyCollapsed(true);
+        }
+    }
+
+    // Collapse/expand. Stop the pointer from also starting a drag on the bar.
+    toggle.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+    });
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        applyCollapsed(!collapsed);
+        persist();
+    });
+
+    // Drag the bar to resize the two areas (disabled while collapsed). Uses
+    // pointer events + capture so it works with mouse, touch and pen, and keeps
+    // receiving moves even when the pointer travels over the canvas below.
+    bar.addEventListener('pointerdown', (e) => {
+        if (collapsed || (typeof e.button === 'number' && e.button !== 0)) {
+            return;
+        }
+        e.preventDefault();
+        const startY = e.clientY;
+        const startHeight = holder.getBoundingClientRect().height;
+        body.classList.add('qtype-drawing-qtext-dragging');
+        try {
+            bar.setPointerCapture(e.pointerId);
+        } catch (ex) {
+            // Pointer capture unsupported — the listeners below still work.
+        }
+
+        const onMove = (moveEvent) => {
+            setHolderHeight(startHeight + (moveEvent.clientY - startY));
+        };
+        const onEnd = () => {
+            bar.removeEventListener('pointermove', onMove);
+            bar.removeEventListener('pointerup', onEnd);
+            bar.removeEventListener('pointercancel', onEnd);
+            body.classList.remove('qtype-drawing-qtext-dragging');
+            persist();
+        };
+        bar.addEventListener('pointermove', onMove);
+        bar.addEventListener('pointerup', onEnd);
+        bar.addEventListener('pointercancel', onEnd);
+    });
+
+    // Keep an explicit (dragged) height within bounds when the viewport changes.
+    $(window).resize(() => {
+        if (!collapsed && holder.style.height) {
+            setHolderHeight(parseInt(holder.style.height, 10));
+        }
+    });
 };
 /**
  * Initialize the drawing area iframe.
@@ -191,6 +333,7 @@ export const init = (config) => {
     }
     fixDrawingHeight();
     $(window).resize(fixDrawingHeight);
+    initQuestionTextControls(config);
 
     // Make the existing `.touch` CSS rules in method-draw.css active so
     // menu titles render with bigger tap targets on touch devices (iPad).

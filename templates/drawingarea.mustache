@@ -187,10 +187,94 @@
         background-color: #fff;
         padding: 10px;
         box-sizing: border-box !important;
+        /* Cap the embedded question text so a long question can't eat the canvas;
+           it scrolls instead. The drag bar below can override this height (the JS
+           sets max-height:none when an explicit height is applied). */
+        max-height: 35vh;
+        overflow-y: auto;
     }
 
     #question_drawing {
         position: relative;
+    }
+
+    /* Combined drag/collapse bar between the question text and the canvas.
+       Dragging it resizes the two areas; its button hides/shows the text. */
+    #qtype_drawing_qtext_bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        height: 16px;
+        background-color: #e6e6e6;
+        border-top: 1px solid #cfcfcf;
+        border-bottom: 1px solid #cfcfcf;
+        cursor: ns-resize;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    /* A small grip indicator centred on the bar. */
+    #qtype_drawing_qtext_bar::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 44px;
+        height: 4px;
+        border-top: 1px solid #9a9a9a;
+        border-bottom: 1px solid #9a9a9a;
+        pointer-events: none;
+    }
+
+    #qtype_drawing_qtext_toggle {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin: 0 6px;
+        padding: 1px 8px;
+        background-color: #fff;
+        color: #333;
+        border: 1px solid #bcbcbc;
+        border-radius: 3px;
+        font-family: sans-serif;
+        font-size: 11px;
+        line-height: 16px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    #qtype_drawing_qtext_toggle:hover {
+        background-color: #f2f2f2;
+    }
+
+    #qtype_drawing_qtext_chevron {
+        font-size: 9px;
+        line-height: 1;
+    }
+
+    /* Collapsed state: hide the text, keep the bar as the un-hide affordance. */
+    body.qtype-drawing-qtext-collapsed #question_text-holder {
+        display: none;
+    }
+
+    body.qtype-drawing-qtext-collapsed #qtype_drawing_qtext_bar {
+        cursor: default;
+    }
+
+    /* While dragging, keep the ns-resize cursor and stop the canvas from
+       swallowing the pointer move events. */
+    body.qtype-drawing-qtext-dragging {
+        cursor: ns-resize;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    body.qtype-drawing-qtext-dragging #question_drawing {
+        pointer-events: none;
     }
 
     .qtype_drawing_editor_loading {
@@ -258,6 +342,14 @@
 {{#questionembed}}
     <div id="question_text-holder">
         {{{questiontext}}}
+    </div>
+    <div id="qtype_drawing_qtext_bar" role="separator" aria-orientation="horizontal">
+        <button type="button" id="qtype_drawing_qtext_toggle"
+                title="{{#str}}hidequestiontext,qtype_drawing{{/str}}"
+                aria-expanded="true">
+            <span id="qtype_drawing_qtext_chevron" aria-hidden="true">&#9650;</span>
+            <span id="qtype_drawing_qtext_label">{{#str}}hidequestiontext,qtype_drawing{{/str}}</span>
+        </button>
     </div>
 {{/questionembed}}
 <div id="question_drawing">
@@ -1008,7 +1100,9 @@
                     viewgrid: "{{#str}}viewgrid,qtype_drawing{{/str}}",
                     annotationsaved: "{{#str}}annotationsaved,qtype_drawing{{/str}}",
                     saving: "{{#str}}saving,qtype_drawing{{/str}}",
-                    saveannotation: "{{#str}}saveannotation,qtype_drawing{{/str}}"
+                    saveannotation: "{{#str}}saveannotation,qtype_drawing{{/str}}",
+                    hidequestiontext: "{{#str}}hidequestiontext,qtype_drawing{{/str}}",
+                    showquestiontext: "{{#str}}showquestiontext,qtype_drawing{{/str}}"
                 },
                 baseurl: "{{base_url}}",
                 //  fhd_display_mode: "{{reducedmode}}",
