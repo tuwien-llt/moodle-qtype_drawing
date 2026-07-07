@@ -134,6 +134,8 @@
     padding-top: 6px;
     z-index: 3;
     color: #999;
+    /* Hidden until the drawing editor finishes loading; drawingarea.js reveals it (revealFullscreenToggle). */
+    visibility: hidden;
 }
 
 .qtype_drawing_togglebutton i {

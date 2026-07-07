@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-let baseurl = ""; // Your base URL variable
+let baseurl = ""; // Your base URL variable!
 let rev = ""; // Moodle JS cache revision, used to cache-bust the bundled lib/ scripts.
 
 const co = window.console;
@@ -44,7 +44,7 @@ const addScriptChain = (scriptArray, dependsOnModule) => {
     let previousModuleId = dependsOnModule;
 
     scriptArray.forEach((scriptPath) => {
-        // Create ID: "lib/editor/draw.js" -> "lib/editor/draw"
+        // Create ID: "lib/editor/draw.js" -> "lib/editor/draw"!
         const moduleId = scriptPath.replace(/\.js$/, '');
         // 1. Define Path (Prepend your baseurl variable). Add ".js" + the rev query
         // explicitly: RequireJS skips its own ".js" append when the URL contains "?",
@@ -54,12 +54,12 @@ const addScriptChain = (scriptArray, dependsOnModule) => {
         // 2. Define Shim (The "Synchronous" Chain)
         shim[moduleId] = {};
 
-        // If there is a previous module, make this one wait for it
+        // If there is a previous module, make this one wait for it.
         if (previousModuleId) {
             shim[moduleId].deps = [previousModuleId];
         }
 
-        // Update previous to current for the next iteration
+        // Update previous to current for the next iteration.
         previousModuleId = moduleId;
     });
 
@@ -70,7 +70,7 @@ const addScriptChain = (scriptArray, dependsOnModule) => {
         enforceDefine: false
     });
 
-    // Return the last module ID so the next group can wait for it
+    // Return the last module ID so the next group can wait for it.
     return previousModuleId;
 };
 
@@ -80,7 +80,7 @@ const IDENTIFIERS = {
 };
 
 const scripts_default = [
-    // "lib/jquery.js", // Assuming jQuery is already loaded
+    // "lib/jquery.js", // Assuming jQuery is already loaded.
     "lib/pathseg.js",
     "lib/touch.js",
     "lib/js-hotkeys/jquery.hotkeys.min.js",
@@ -149,15 +149,46 @@ const MIN_TEXT_HEIGHT = 40;
  *
  * @param {number} offset Height of everything stacked above the drawing area, in px.
  */
-const positionFullscreenToggle = (offset) => {
+const getFullscreenToggle = () => {
     try {
         const id = 'qtype_drawing_togglebutton_id_' + window.attemptid + window.uniquefieldnameattemptid;
-        const btn = window.parent.document.getElementById(id);
-        if (btn) {
-            btn.style.top = Math.max(0, Math.round(offset)) + 'px';
+        return window.parent.document.getElementById(id);
+    } catch (e) {
+        // Cross-origin/detached parent (or no button, e.g. the grader).
+        return null;
+    }
+};
+
+const positionFullscreenToggle = (offset) => {
+    const btn = getFullscreenToggle();
+    if (!btn) {
+        return;
+    }
+    // The button is absolutely positioned inside the drawing wrapper. If anything sits between the
+    // wrapper top and the iframe (e.g. the quiz timer, which is moved into the wrapper in fullscreen),
+    // the iframe is pushed down within the wrapper; include that gap so the button lands on the drawing
+    // area rather than floating up over the question-text toggle. The gap is 0 in the normal layout.
+    let extra = 0;
+    try {
+        const parent = btn.offsetParent;
+        const iframe = window.frameElement;
+        if (parent && iframe) {
+            extra = iframe.getBoundingClientRect().top - parent.getBoundingClientRect().top;
         }
     } catch (e) {
-        // Cross-origin/detached parent (or no button, e.g. the grader) — leave the CSS default in place.
+        extra = 0;
+    }
+    btn.style.top = Math.max(0, Math.round(offset + extra)) + 'px';
+};
+
+/**
+ * Reveal the fullscreen toggle once the drawing editor is ready. It is hidden by default (see
+ * styles.css) so it does not float over the loading overlay while the canvas is still loading.
+ */
+const revealFullscreenToggle = () => {
+    const btn = getFullscreenToggle();
+    if (btn) {
+        btn.style.visibility = 'visible';
     }
 };
 
@@ -397,6 +428,10 @@ export const init = (config) => {
                     editorOverlay.addEventListener('transitionend', removeOverlay);
                     setTimeout(removeOverlay, 600);
                 }
+                // The drawing area is now loaded and visible: reveal the fullscreen toggle, which was
+                // hidden while the canvas was still loading. Reposition first so it appears in place.
+                fixDrawingHeight();
+                revealFullscreenToggle();
 
                 const postReadyToParent = function() {
                     try {
