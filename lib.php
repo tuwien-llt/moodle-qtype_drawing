@@ -1,5 +1,4 @@
 <?php
-// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -24,10 +23,6 @@
  * @copyright  ETHZ LET <amr.hourani@id.ethz.ch>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-
-defined('MOODLE_INTERNAL') || die();
-
 
 /**
  * Canonical list of the per-question drawing tool visibility options.

@@ -1,5 +1,4 @@
 <?php
-// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -22,7 +21,6 @@
  * @copyright ETHZ LET <amr.hourani@id.ethz.ch>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 class restore_qtype_drawing_plugin extends restore_qtype_plugin {
     /**
      * Returns the paths to be handled by the plugin at question level
@@ -117,12 +115,25 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
         }
     }
 
+    /**
+     * Executed after all the questions of the restore have been processed.
+     *
+     * @return void
+     */
     public function after_execute_question() {
         global $DB;
         // Now that all the questions have been restored, let's process
         // the created question_multianswer sequences (list of question ids).
     }
 
+    /**
+     * Recode a response as part of the restore process.
+     *
+     * @param int $questionid The restored question ID.
+     * @param int $sequencenumber The step sequence number.
+     * @param array $response The response data.
+     * @return array The recoded response data.
+     */
     public function recode_response($questionid, $sequencenumber, array $response) {
         if (array_key_exists('_order', $response)) {
             $response['_order'] = $this->recode_choice_order($response['_order']);

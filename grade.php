@@ -43,8 +43,7 @@ $action = optional_param('action', '', PARAM_ALPHA);
 // Load course module and quiz.
 $context = context_module::instance($cm->id);
 
-// Security checks.
-// require_login($course, false, $cm);
+// Security checks. The including report has already called require_login().
 require_capability('mod/quiz:grade', $context);
 
 // Process grade submission.

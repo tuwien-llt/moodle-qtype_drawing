@@ -1,5 +1,4 @@
 <?php
-// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,9 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Admin settings for the drawing question type.
+ *
  * @package qtype_drawing
  * @author Amr Hourani amr.hourani@id.ethz.ch
  * @copyright ETHz 2016 amr.hourani@id.ethz.ch
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
@@ -68,7 +70,7 @@ if ($ADMIN->fulltree) {
         )
     );
 
-    // add setting questionembed
+    // Add setting questionembed.
     $settings->add(
         new admin_setting_configcheckbox(
             'qtype_drawing/questionembed',
@@ -98,8 +100,14 @@ if ($ADMIN->fulltree) {
         );
     }
 
-    // Add setting colorsjson - textarea
-    $defaultjson = '{"colors":[{"hex":"#336699","avail_student":true,"avail_trainer":true,"def_student":false,"def_trainer":false},{"hex":"#456","avail_student":true,"avail_trainer":true,"def_student":false,"def_trainer":false},{"hex":"#ccc","avail_student":true,"avail_trainer":true,"def_student":true,"def_trainer":false},{"hex":"#ee0","avail_student":false,"avail_trainer":true,"def_student":false,"def_trainer":false},{"hex":"#f00","avail_student":false,"avail_trainer":true,"def_student":false,"def_trainer":true}],"globalSettings":{"trainerAvailable":true,"studentAvailable":true}}';
+    // Add setting colorsjson - textarea.
+    $defaultjson = '{"colors":[' .
+        '{"hex":"#336699","avail_student":true,"avail_trainer":true,"def_student":false,"def_trainer":false},' .
+        '{"hex":"#456","avail_student":true,"avail_trainer":true,"def_student":false,"def_trainer":false},' .
+        '{"hex":"#ccc","avail_student":true,"avail_trainer":true,"def_student":true,"def_trainer":false},' .
+        '{"hex":"#ee0","avail_student":false,"avail_trainer":true,"def_student":false,"def_trainer":false},' .
+        '{"hex":"#f00","avail_student":false,"avail_trainer":true,"def_student":false,"def_trainer":true}' .
+        '],"globalSettings":{"trainerAvailable":true,"studentAvailable":true}}';
     $settings->add(
         new admin_setting_configtextarea(
             'qtype_drawing/colorsjson',
@@ -112,8 +120,14 @@ if ($ADMIN->fulltree) {
 
     $PAGE->requires->js_call_amd('qtype_drawing/color_config', 'init', ['id_s_qtype_drawing_colorsjson']);
 
-    // Add setting colorhighlighter - text
+    // Add setting colorhighlighter - text.
     $settings->add(
-        new admin_setting_configtext('qtype_drawing/colorhighlighter', get_string('color:highlighter', 'qtype_drawing'), get_string('color:highlighter_help', 'qtype_drawing'), '#ff0', PARAM_RAW)
+        new admin_setting_configtext(
+            'qtype_drawing/colorhighlighter',
+            get_string('color:highlighter', 'qtype_drawing'),
+            get_string('color:highlighter_help', 'qtype_drawing'),
+            '#ff0',
+            PARAM_RAW
+        )
     );
 }

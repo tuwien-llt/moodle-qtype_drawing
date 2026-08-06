@@ -1,5 +1,4 @@
 <?php
-// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -40,6 +39,11 @@ require_once(dirname(__FILE__) . '/lib.php');
  * @license    http://opensource.org/licenses/BSD-3-Clause
  */
 class qtype_drawing extends question_type {
+    /**
+     * Return the table name and column names of the extra question fields.
+     *
+     * @return array The options table name followed by its column names.
+     */
     public function extra_question_fields() {
         return [
             'qtype_drawing',
@@ -65,6 +69,11 @@ class qtype_drawing extends question_type {
         ];
     }
 
+    /**
+     * Return the name of the column holding the question ID in the options table.
+     *
+     * @return string The column name.
+     */
     public function questionid_column_name() {
         return 'questionid';
     }
@@ -156,7 +165,8 @@ class qtype_drawing extends question_type {
         $options->questionembed = isset($question->questionembed) ? $question->questionembed : $drawingconfig->questionembed;
         $options->defaultpensize = isset($question->defaultpensize) ? $question->defaultpensize : $drawingconfig->defaultpensize;
         $options->colorsjson = isset($question->colorsjson) ? $question->colorsjson : $drawingconfig->colorsjson;
-        $options->colorhighlighter = isset($question->colorhighlighter) ? $question->colorhighlighter : $drawingconfig->colorhighlighter;
+        $options->colorhighlighter = isset($question->colorhighlighter)
+            ? $question->colorhighlighter : $drawingconfig->colorhighlighter;
         $options->hidemenu = !empty($question->hidemenu) ? 1 : 0;
         foreach (qtype_drawing_tool_names() as $tool) {
             if (isset($question->$tool)) {
@@ -233,15 +243,34 @@ class qtype_drawing extends question_type {
     }
 
 
+    /**
+     * Initialise a question definition instance from question data.
+     *
+     * @param question_definition $question The question definition to initialise.
+     * @param object $questiondata The question data loaded from the database.
+     * @return void
+     */
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
         $this->initialise_question_answers($question, $questiondata);
     }
 
+    /**
+     * Return the score a student would get by guessing randomly.
+     *
+     * @param object $questiondata The question data.
+     * @return int Always 0 for drawing questions.
+     */
     public function get_random_guess_score($questiondata) {
         return 0;
     }
 
+    /**
+     * Return the possible responses for reporting purposes.
+     *
+     * @param object $questiondata The question data.
+     * @return array Possible responses indexed by question ID.
+     */
     public function get_possible_responses($questiondata) {
         $responses = [];
         $starfound = false;
@@ -265,6 +294,14 @@ class qtype_drawing extends question_type {
         return [$questiondata->id => $responses];
     }
 
+    /**
+     * Export a drawing question to Moodle XML format.
+     *
+     * @param object $question The question to export.
+     * @param qformat_xml $format The XML format instance.
+     * @param mixed $extra Extra data (unused).
+     * @return string|false The question XML, or false if the question cannot be exported.
+     */
     public function export_to_xml($question, qformat_xml $format, $extra = null) {
         $extraquestionfields = $this->extra_question_fields();
         if (!is_array($extraquestionfields)) {
@@ -304,6 +341,15 @@ class qtype_drawing extends question_type {
         }
         return $expout;
     }
+    /**
+     * Import a drawing question from Moodle XML format.
+     *
+     * @param array $data The parsed XML data.
+     * @param object $question The question object to fill (unused, a new one is created).
+     * @param qformat_xml $format The XML format instance.
+     * @param mixed $extra Extra data (unused).
+     * @return object|false The imported question, or false if the data is not a drawing question.
+     */
     public function import_from_xml($data, $question, qformat_xml $format, $extra = null) {
         if (!isset($data['@']['type']) || $data['@']['type'] != 'drawing') {
             return false;
@@ -393,59 +439,59 @@ class qtype_drawing extends question_type {
 
         // 2. Define role-specific keys based on $teacherview
         if ($teacherview) {
-            $global_avail_key = 'trainerAvailable';
-            $item_avail_key = 'avail_trainer';
-            $default_key = 'def_trainer';
+            $globalavailkey = 'trainerAvailable';
+            $itemavailkey = 'avail_trainer';
+            $defaultkey = 'def_trainer';
         } else {
-            $global_avail_key = 'studentAvailable';
-            $item_avail_key = 'avail_student';
-            $default_key = 'def_student';
+            $globalavailkey = 'studentAvailable';
+            $itemavailkey = 'avail_student';
+            $defaultkey = 'def_student';
         }
 
         // 3. Check Global Availability - now it is a palette chooser
         // If the "Color selection available for X" checkbox is unchecked, return empty list.
-        if (!empty($config->globalSettings->$global_avail_key)) {
+        if (!empty($config->globalSettings->$globalavailkey)) {
             $showallcolorschooser = true;
         }
 
-        $filtered_colors = [];
-        $default_color = null;
+        $filteredcolors = [];
+        $defaultcolor = null;
 
         // 4. Iterate and Filter
         $colorid = 1;
         foreach ($config->colors as $color) {
-            // Ensure data integrity
+            // Ensure data integrity.
             if (empty($color->hex)) {
                 continue;
             }
 
-            // Check if this specific color is available for the current role
-            // We cast to bool to ensure correct comparison
-            $is_available = !empty($color->$item_avail_key);
-            $is_default = !empty($color->$default_key);
+            // Check if this specific color is available for the current role.
+            // We cast to bool to ensure correct comparison.
+            $isavailable = !empty($color->$itemavailkey);
+            $isdefault = !empty($color->$defaultkey);
 
-            // Logic: Include the color if it is explicitly available OR if it is marked as the default
-            // (A default color should strictly be available, but this prevents errors if a user misconfigures it)
-            if ($is_available || $is_default) {
-                $color_obj = [
+            // Logic: Include the color if it is explicitly available OR if it is marked as the default.
+            // (A default color should strictly be available, but this prevents errors if a user misconfigures it.)
+            if ($isavailable || $isdefault) {
+                $colorobj = [
                     'hex' => $color->hex,
-                    'selected' => $is_default,
+                    'selected' => $isdefault,
                     'colorid' => $colorid++,
                 ];
 
-                if ($is_default) {
-                    $default_color = $color_obj;
+                if ($isdefault) {
+                    $defaultcolor = $colorobj;
                 } else {
-                    $filtered_colors[] = $color_obj;
+                    $filteredcolors[] = $colorobj;
                 }
             }
         }
 
         // 5. Sort: Place the default color at the very beginning of the array
-        if ($default_color) {
-            array_unshift($filtered_colors, $default_color);
+        if ($defaultcolor) {
+            array_unshift($filteredcolors, $defaultcolor);
         }
 
-        return [$filtered_colors, $default_color, $showallcolorschooser];
+        return [$filteredcolors, $defaultcolor, $showallcolorschooser];
     }
 }

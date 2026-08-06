@@ -1,0 +1,328 @@
+<?xml version="1.0"?>
+<libraries>
+    <library>
+        <location>lib/editor</location>
+        <name>Method Draw</name>
+        <description>Core SVG drawing editor (svgcanvas.js, method-draw.js and the
+            svgedit.* support modules), a fork of SVG-Edit 2.6 by Mark MacKay.
+            Locally modified for qtype_drawing. Note: d3.js, flat.js, flatten.js,
+            path_polyfill.js and simplify.js inside this directory are separate
+            libraries listed individually below.</description>
+        <version>2020.08.02</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/methodofaction/Method-Draw</repository>
+        <copyrights>
+            <copyright>2010 Alexis Deveria</copyright>
+            <copyright>2010 Pavol Rusnak</copyright>
+            <copyright>2010 Jeff Schiller</copyright>
+            <copyright>2010 Narendra Sisodiya</copyright>
+            <copyright>2012 Mark MacKay</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/editor/d3.js</location>
+        <name>D3.js</name>
+        <version>5.15.0</version>
+        <license>BSD</license>
+        <licenseversion>3-Clause</licenseversion>
+        <repository>https://github.com/d3/d3</repository>
+        <copyrights>
+            <copyright>2019 Mike Bostock</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/editor/path_polyfill.js</location>
+        <name>SVGPathSeg API polyfill</name>
+        <version></version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/progers/pathseg</repository>
+    </library>
+    <library>
+        <location>lib/editor/flat.js</location>
+        <name>SVG getPathData()/setPathData() polyfill</name>
+        <version></version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/jarek-foksa/path-data-polyfill</repository>
+        <copyrights>
+            <copyright>Jarosław Foksa</copyright>
+            <copyright>Jeremy Apthorp</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/editor/flatten.js</location>
+        <name>flatten.js (SVG flattener)</name>
+        <version></version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/timo22345/flatten.js</repository>
+        <copyrights>
+            <copyright>2014 Timo (https://github.com/timo22345)</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/editor/simplify.js</location>
+        <name>Simplify.js</name>
+        <version></version>
+        <license>BSD</license>
+        <licenseversion>2-Clause</licenseversion>
+        <repository>https://github.com/mourner/simplify-js</repository>
+        <copyrights>
+            <copyright>2013 Vladimir Agafonkin</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/extensions</location>
+        <name>SVG-Edit / Method Draw extensions</name>
+        <description>Editor extensions (ext-*.js) with their icons and assets.
+            Several are locally modified or added for qtype_drawing (eraser,
+            background). mtouch-events.js and shapelib are separate works
+            listed individually below.</description>
+        <version></version>
+        <license>Apache</license>
+        <licenseversion>2.0</licenseversion>
+        <copyrights>
+            <copyright>2010 Alexis Deveria</copyright>
+            <copyright>2010 Christian Tzurcanu</copyright>
+            <copyright>2010 Redou Mine</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/extensions/mtouch-events.js</location>
+        <name>mtouch-events</name>
+        <description>Multi-touch event helper based on d3.behavior.drag and
+            d3.behavior.zoom.</description>
+        <version></version>
+        <license>BSD</license>
+        <licenseversion>3-Clause</licenseversion>
+    </library>
+    <library>
+        <location>lib/extensions/shapelib</location>
+        <name>Shape libraries for the shapes extension</name>
+        <description>JSON shape collections used by ext-shapes.js, including
+            shapes derived from the Raphaël library.</description>
+        <version></version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>lib/canvg/canvg.js</location>
+        <name>canvg</name>
+        <description>JavaScript SVG parser and renderer on Canvas.</description>
+        <version></version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/canvg/canvg</repository>
+        <copyrights>
+            <copyright>Gabe Lerner (gabelerner@gmail.com)</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/canvg/rgbcolor.js</location>
+        <name>RGBColor</name>
+        <description>Class to parse CSS color values, required by canvg.</description>
+        <version></version>
+        <license>Public Domain ("Use it if you like it")</license>
+        <licenseversion></licenseversion>
+        <copyrights>
+            <copyright>Stoyan Stefanov (sstoo@gmail.com)</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/contextmenu.js</location>
+        <name>svgedit.contextmenu</name>
+        <description>Context menu extension support for SVG-Edit.</description>
+        <version></version>
+        <license>Apache</license>
+        <licenseversion>2.0</licenseversion>
+        <copyrights>
+            <copyright>Adam Bender</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/contextmenu/jquery.contextMenu.js</location>
+        <name>jQuery Context Menu Plugin</name>
+        <version>1.01</version>
+        <license>MIT/GPL</license>
+        <licenseversion></licenseversion>
+        <copyrights>
+            <copyright>A Beautiful Site, LLC (Cory S.N. LaViska), modified by Alexis Deveria</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/filesaver.js</location>
+        <name>FileSaver.js</name>
+        <version>1.1.20151003</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/eligrey/FileSaver.js</repository>
+        <copyrights>
+            <copyright>Eli Grey (http://eligrey.com)</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/jgraduate</location>
+        <name>jGraduate</name>
+        <description>jQuery plugin for a gradient picker. Includes jpicker.min.js,
+            listed separately below.</description>
+        <version>0.4</version>
+        <license>Apache</license>
+        <licenseversion>2.0</licenseversion>
+        <copyrights>
+            <copyright>2010 Jeff Schiller</copyright>
+            <copyright>2010 Alexis Deveria</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/jgraduate/jpicker.min.js</location>
+        <name>jPicker</name>
+        <description>jQuery plugin for a Photoshop-style color picker.</description>
+        <version>1.1.6</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <copyrights>
+            <copyright>2010 Christopher T. Tillman, Digital Magic Productions, Inc.</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/jquery-draginput.js</location>
+        <name>jQuery dragInput</name>
+        <description>Draggable number input from Method Draw. Locally modified
+            for qtype_drawing (touch support fixes).</description>
+        <version></version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/methodofaction/Method-Draw</repository>
+    </library>
+    <library>
+        <location>lib/jquery-svgicons</location>
+        <name>SVG Icon Loader</name>
+        <description>jQuery plugin for loading SVG icons from a single file.</description>
+        <version>2.0</version>
+        <license>Apache</license>
+        <licenseversion>2.0</licenseversion>
+        <copyrights>
+            <copyright>2009 Alexis Deveria</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/jquerybbq</location>
+        <name>jQuery BBQ: Back Button &amp; Query Library</name>
+        <description>Includes the jQuery hashchange event plugin v1.2 by the
+            same author.</description>
+        <version>1.2.1</version>
+        <license>MIT/GPL</license>
+        <licenseversion></licenseversion>
+        <copyrights>
+            <copyright>2010 "Cowboy" Ben Alman</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/js-hotkeys</location>
+        <name>jQuery Hotkeys Plugin</name>
+        <version>0.8</version>
+        <license>MIT/GPL</license>
+        <licenseversion>/2</licenseversion>
+        <repository>https://github.com/jeresig/jquery.hotkeys</repository>
+        <copyrights>
+            <copyright>2010 John Resig</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/mousewheel.js</location>
+        <name>jQuery Mousewheel</name>
+        <version>3.0.6</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <copyrights>
+            <copyright>2011 Brandon Aaron (http://brandonaaron.net)</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/pathseg.js</location>
+        <name>SVGPathSeg API polyfill</name>
+        <description>Second copy of the polyfill, loaded via RequireJS by
+            amd/src/drawingarea.js.</description>
+        <version></version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/progers/pathseg</repository>
+    </library>
+    <library>
+        <location>lib/requestanimationframe.js</location>
+        <name>requestAnimationFrame polyfill</name>
+        <description>Polyfill by Erik Möller, with fixes from Paul Irish and
+            Tino Zijdel.</description>
+        <version></version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>lib/taphold.js</location>
+        <name>jQuery taphold event</name>
+        <version></version>
+        <license>Apache</license>
+        <licenseversion>2.0</licenseversion>
+        <copyrights>
+            <copyright>2011 Zauber S.A. (Guido Marucci Blas)</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>lib/touch.js</location>
+        <name>Touch-to-mouse event shim</name>
+        <description>Originally from SVG-Edit / Method Draw; heavily rewritten
+            for qtype_drawing (multi-touch state machine, pen support).</description>
+        <version></version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>amd/src/embedapi.js</location>
+        <name>SVG-Edit Embed API</name>
+        <description>SVG-Edit's embedapi.js adapted as an AMD module for
+            qtype_drawing (also present as amd/build/embedapi.min.js).</description>
+        <version></version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/SVG-Edit/svgedit</repository>
+    </library>
+    <library>
+        <location>css/method-draw.css</location>
+        <name>Method Draw stylesheet</name>
+        <version>2020.08.02</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/methodofaction/Method-Draw</repository>
+    </library>
+    <library>
+        <location>css/fonts.css</location>
+        <name>Method Draw font stylesheet</name>
+        <description>@font-face declarations for the bundled web fonts.</description>
+        <version>2020.08.02</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/methodofaction/Method-Draw</repository>
+    </library>
+    <library>
+        <location>css/font-files</location>
+        <name>Web fonts bundled with Method Draw</name>
+        <description>Arvo (Anton Koovit), Euphoria Script, Fanwood, Junction,
+            League Gothic, Shadows Into Light, Simonetta — in woff/ttf/eot/svg
+            formats.</description>
+        <version></version>
+        <license>SIL Open Font License (OFL)</license>
+        <licenseversion>1.1</licenseversion>
+    </library>
+    <library>
+        <location>images</location>
+        <name>Method Draw / SVG-Edit editor icons</name>
+        <description>Toolbar and UI icons for the bundled editor. Many originate
+            from the Tango art-libre icon set (public domain); see
+            images/README.txt for per-file origins.</description>
+        <version></version>
+        <license>MIT / Public Domain</license>
+        <licenseversion></licenseversion>
+    </library>
+</libraries>

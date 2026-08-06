@@ -1,5 +1,4 @@
 <?php
-// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -67,7 +66,6 @@ $stylesheetsurls = [
     new moodle_url('/question/type/drawing/lib/jgraduate/css/jgraduate.css'),
     new moodle_url('/question/type/drawing/css/method-draw.css'),
     new moodle_url('/question/type/drawing/css/fonts.css'),
-    // new moodle_url('/question/type/drawing/lib/jquery-ui/jquery-ui.css'),
     new moodle_url('/question/type/drawing/styles.css'),
 ];
 
@@ -88,7 +86,7 @@ if (has_capability('mod/quiz:grade', $cmcontext) && $readonly == 1) {
 }
 
 
-// Annotations
+// Annotations.
 $annotationslist = [];
 $fields = ['questionid' => $question->id, 'attemptid' => $attemptid, 'annotatedfor' => $stid, 'attemptcount' => $attemptcount];
 if ($annotations = $DB->get_records('qtype_drawing_annotations', $fields, 'timemodified DESC')) {
@@ -151,7 +149,7 @@ foreach (qtype_drawing_tool_names() as $tool) {
 // Same flags for the JS default-tool fallback (pick a visible tool if the pencil is hidden).
 $context['enabledtoolsjson'] = json_encode($enabledtools);
 
-// Very, very dirty hack to get rid of theme css
+// Very, very dirty hack to get rid of theme css.
 $baseurl = preg_quote($CFG->wwwroot . '/theme/styles.php', '#');
 $baseurl2 = preg_quote($CFG->wwwroot . '/theme/styles_debug.php', '#');
 $pattern = '#<link\b[^>]*\bhref=(["\'])' . $baseurl . '\/[^\/]+\/[^\/]+\/all\1[^>]*>#i'; // Normal styles.

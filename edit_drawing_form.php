@@ -1,5 +1,4 @@
 <?php
-// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -27,6 +26,13 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/renderer.php');
 require_once(dirname(__FILE__) . '/lib.php');
+
+/**
+ * Editing form for the drawing question type.
+ *
+ * @copyright  ETHZ LET <amr.hourani@id.ethz.ch>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class qtype_drawing_edit_form extends question_edit_form {
     /**
      * (non-PHPdoc).
@@ -113,7 +119,10 @@ class qtype_drawing_edit_form extends question_edit_form {
             }
         }
 
-        if (class_exists('qbank_editquestion\\editquestion_helper') && !empty($this->question->id) && !$this->question->beingcopied) {
+        if (
+            class_exists('qbank_editquestion\\editquestion_helper')
+                && !empty($this->question->id) && !$this->question->beingcopied
+        ) {
             // Add extra information from plugins when editing a question (e.g.: Authors, version control and usage).
             $functionname = 'edit_form_display';
             $questiondata = [];
@@ -205,7 +214,8 @@ class qtype_drawing_edit_form extends question_edit_form {
                     $buttonarray[] = $mform->createElement('static', 'previewlink', '', $previewlink);
                 }
             } else {
-                $previewlink = $PAGE->get_renderer('core_question')->question_preview_link($this->question->id, $this->context, true);
+                $previewlink = $PAGE->get_renderer('core_question')
+                    ->question_preview_link($this->question->id, $this->context, true);
                 $buttonarray[] = $mform->createElement('static', 'previewlink', '', $previewlink);
             }
         }
@@ -215,11 +225,20 @@ class qtype_drawing_edit_form extends question_edit_form {
 
         $this->add_action_buttons(true, get_string('savechanges'));
 
-        if ((!empty($this->question->id)) && (!($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew))) {
+        if (
+            (!empty($this->question->id))
+                && (!($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew))
+        ) {
             $mform->hardFreezeAllVisibleExcept(['categorymoveto', 'buttonar', 'currentgrp']);
         }
     }
 
+    /**
+     * Add the drawing-specific fields to the question editing form.
+     *
+     * @param MoodleQuickForm $mform The form being built.
+     * @return void
+     */
     protected function definition_inner($mform) {
         global $PAGE, $CFG, $USER, $COURSE;
 
@@ -308,7 +327,7 @@ class qtype_drawing_edit_form extends question_edit_form {
         $mform->setDefault('colorsjson', $drawingconfig->colorsjson);
         $PAGE->requires->js_call_amd('qtype_drawing/color_config', 'init', ['id_colorsjson']);
 
-        // Add colorhighlighter text field
+        // Add colorhighlighter text field.
         $mform->addElement('text', 'colorhighlighter', get_string('color:highlighter', 'qtype_drawing'));
         $mform->setType('colorhighlighter', PARAM_RAW);
         $mform->setDefault('colorhighlighter', $drawingconfig->colorhighlighter);
@@ -385,8 +404,10 @@ class qtype_drawing_edit_form extends question_edit_form {
                 $mform->addElement(
                     'html',
                     "<div class=\"fitem\"><div class=\"fitemtitle\">" .
-                                     get_string("selected_background_image_filename", "qtype_drawing") . "</div><div class=\"felement\">
-                                  <input type=\"button\" class=\"fp-btn-choose\" value=\"" . get_string("choosebackgroundimage", "qtype_drawing"). "\"
+                        get_string("selected_background_image_filename", "qtype_drawing") .
+                        "</div><div class=\"felement\">
+                                  <input type=\"button\" class=\"fp-btn-choose\" value=\"" .
+                        get_string("choosebackgroundimage", "qtype_drawing") . "\"
                                    name=\"qtype_drawing_image_filechoose_another\">
                                   <br /><br /><img src='$finalbackground' class=\"img-thumbnail\"></div></div>"
                 );
@@ -416,14 +437,19 @@ class qtype_drawing_edit_form extends question_edit_form {
         $mform->setExpanded('qtype_drawing_drawing_background_image');
     }
 
+    /**
+     * Wire up the JavaScript used by the drawing edit form.
+     *
+     * @return void
+     */
     public function js_call() {
         global $PAGE;
         $drawingconfig = get_config('qtype_drawing');
 
-        // Load strings for JS usage
+        // Load strings for JS usage.
         qtype_drawing_renderer::translate_to_js($PAGE);
 
-        // Call the AMD module
+        // Call the AMD module.
         $PAGE->requires->js_call_amd(
             'qtype_drawing/form',
             'qtype_drawing_size_listener',
@@ -439,18 +465,24 @@ class qtype_drawing_edit_form extends question_edit_form {
         if ($qid == 0) {
             $PAGE->requires->js_call_amd('qtype_drawing/form', 'newquestion', []);
         } else {
-            // Ensure options exist to prevent warnings
-            $bg_height = isset($this->question->options->backgroundheight) ? $this->question->options->backgroundheight : 0;
-            $bg_width = isset($this->question->options->backgroundwidth) ? $this->question->options->backgroundwidth : 0;
+            // Ensure options exist to prevent warnings.
+            $bgheight = isset($this->question->options->backgroundheight) ? $this->question->options->backgroundheight : 0;
+            $bgwidth = isset($this->question->options->backgroundwidth) ? $this->question->options->backgroundwidth : 0;
 
             $PAGE->requires->js_call_amd(
                 'qtype_drawing/form',
                 'editquestion',
-                [$qid, $bg_height, $bg_width]
+                [$qid, $bgheight, $bgwidth]
             );
         }
     }
 
+    /**
+     * Perform preprocessing of the question data before the form is displayed.
+     *
+     * @param object $question The question data being edited.
+     * @return object The processed question data.
+     */
     protected function data_preprocessing($question) {
         global $PAGE;
         $question = parent::data_preprocessing($question);
@@ -460,6 +492,13 @@ class qtype_drawing_edit_form extends question_edit_form {
         return $question;
     }
 
+    /**
+     * Validate the submitted form data.
+     *
+     * @param array $data The submitted data.
+     * @param array $files The submitted files.
+     * @return array Array of error messages, empty if there are none.
+     */
     public function validation($data, $files) {
         global $USER;
         $errors = parent::validation($data, $files);

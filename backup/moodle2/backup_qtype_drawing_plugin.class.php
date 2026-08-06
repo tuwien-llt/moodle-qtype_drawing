@@ -1,5 +1,4 @@
 <?php
-// phpcs:ignoreFile
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -22,7 +21,6 @@
  * @copyright ETHZ LET <amr.hourani@id.ethz.ch>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 class backup_qtype_drawing_plugin extends backup_qtype_plugin {
     /**
      * Returns the qtype information to attach to question element
