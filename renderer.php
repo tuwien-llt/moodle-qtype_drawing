@@ -404,7 +404,7 @@ class qtype_drawing_renderer extends qtype_renderer {
             // Toggle button logic.
             $data['showannotationtoggle'] = $hasannotations && !empty($studentmergedanswer);
 
-            $this->page->requires->js_call_amd('qtype_drawing/view', 'init_annotation_toggle', [
+            $this->page->requires->js_call_amd('qtype_drawing/view', 'initAnnotationToggle', [
                 'id_qtype_drawing_toggle_annotation_' . $attemptuniqueid,
                 'qtype_drawing_final_student_toggle_annotation_' . $attemptuniqueid,
                 'qtype_drawing_final_student_toggle_answer_' . $attemptuniqueid,

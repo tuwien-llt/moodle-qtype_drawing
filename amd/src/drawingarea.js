@@ -1,4 +1,3 @@
-/* eslint-disable */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -74,12 +73,7 @@ const addScriptChain = (scriptArray, dependsOnModule) => {
     return previousModuleId;
 };
 
-const IDENTIFIERS = {
-    QUESTION_DRAWING: '#question_drawing',
-    QUESTION_TEXT: '#question_text-holder',
-};
-
-const scripts_default = [
+const scriptsDefault = [
     // "lib/jquery.js", // Assuming jQuery is already loaded.
     "lib/pathseg.js",
     "lib/touch.js",
@@ -120,12 +114,9 @@ const scripts_default = [
     "lib/extensions/ext-eraser.js",
 ];
 
-
-
-
 const loadscripts = (callback) => {
 
-    let lastLoaded = addScriptChain(scripts_default, null);
+    const lastLoaded = addScriptChain(scriptsDefault, null);
 
     require([baseurl + "lib/editor/d3.js" + revSuffix()], function(d3) {
         window.d3 = d3;
@@ -140,14 +131,9 @@ const MIN_CANVAS_HEIGHT = 120;
 const MIN_TEXT_HEIGHT = 40;
 
 /**
- * Keep the parent page's fullscreen toggle button aligned with the top of the drawing area.
+ * Find the parent page's fullscreen toggle button for this drawing area.
  *
- * The button lives in the parent document at the wrapper's top-right (top: 0). When the question text
- * is embedded, an editable text strip + drag bar sit above the canvas, so a top: 0 button overlaps the
- * question-text show/hide toggle. Push the button down by the strip height so it always lands on the
- * drawing toolbar's top-right (offset is 0 when the text is not embedded, leaving the default in place).
- *
- * @param {number} offset Height of everything stacked above the drawing area, in px.
+ * @returns {?HTMLElement} The toggle button, or null when there is none (e.g. the grader).
  */
 const getFullscreenToggle = () => {
     try {
@@ -159,6 +145,16 @@ const getFullscreenToggle = () => {
     }
 };
 
+/**
+ * Keep the parent page's fullscreen toggle button aligned with the top of the drawing area.
+ *
+ * The button lives in the parent document at the wrapper's top-right (top: 0). When the question text
+ * is embedded, an editable text strip + drag bar sit above the canvas, so a top: 0 button overlaps the
+ * question-text show/hide toggle. Push the button down by the strip height so it always lands on the
+ * drawing toolbar's top-right (offset is 0 when the text is not embedded, leaving the default in place).
+ *
+ * @param {number} offset Height of everything stacked above the drawing area, in px.
+ */
 const positionFullscreenToggle = (offset) => {
     const btn = getFullscreenToggle();
     if (!btn) {
@@ -231,7 +227,7 @@ const initQuestionTextControls = (config) => {
     const label = document.getElementById('qtype_drawing_qtext_label');
     const body = document.body;
     const storeKey = 'qtype_drawing_qtext_' + (config.questionid || 'x');
-    const CHEVRON_UP = '▲';   // ▲ (collapse the text upwards)
+    const CHEVRON_UP = '▲'; // ▲ (collapse the text upwards)
     const CHEVRON_DOWN = '▼'; // ▼ (expand the text downwards)
 
     let collapsed = false;
@@ -243,7 +239,7 @@ const initQuestionTextControls = (config) => {
                 return JSON.parse(raw);
             }
         } catch (e) {
-            // localStorage blocked or corrupt value — ignore.
+            // Blocked localStorage or corrupt value — ignore.
         }
         return null;
     };
@@ -253,7 +249,7 @@ const initQuestionTextControls = (config) => {
             const h = holder.style.height ? parseInt(holder.style.height, 10) : null;
             window.localStorage.setItem(storeKey, JSON.stringify({collapsed: collapsed, height: h}));
         } catch (e) {
-            // localStorage blocked — ignore.
+            // Blocked localStorage — ignore.
         }
     };
 
@@ -350,27 +346,33 @@ const initQuestionTextControls = (config) => {
  * @param {object} config Configuration object.
  */
 export const init = (config) => {
-// Set globals expected by legacy scripts
-    window.qtype_drawing_str_comment = config.str.comment;
-    window.qtype_drawing_str_newconfirmationmsg = config.str.newconfirmationmsg;
-    window.qtype_drawing_str_eraseconfirmationmsg = config.str.eraseconfirmationmsg;
-    window.qtype_drawing_str_parsingerror = config.str.parsingerror;
-    window.qtype_drawing_str_ignorechanges = config.str.ignorechanges;
-    window.qtype_drawing_str_ok = config.str.ok;
-    window.qtype_drawing_str_cancel = config.str.cancel;
-    window.qtype_drawing_str_eyedroppertool = config.str.eyedroppertool;
-    window.qtype_drawing_str_shapelibrary = config.str.shapelibrary;
-    window.qtype_drawing_str_drag_markers = config.str.drawmarkers;
-    window.qtype_drawing_str_solidcolor = config.str.solidcolor;
-    window.qtype_drawing_str_lingrad = config.str.lingrad;
-    window.qtype_drawing_str_radgrad = config.str.radgrad;
-    window.qtype_drawing_str_new = config.str.new;
-    window.qtype_drawing_str_current = config.str.current;
-    window.qtype_drawing_str_viewgrid = config.str.viewgrid;
- //   window.fhd_display_mode = config.fhd_display_mode;
-    window.qtype_drawing_str_annotationsaved = config.str.annotationsaved;
-    window.qtype_drawing_str_saving = config.str.saving;
-    window.qtype_drawing_str_saveannotation = config.str.saveannotation;
+    // The bundled method-draw editor (lib/editor) reads its UI strings from
+    // window.qtype_drawing_str_* globals; the names are a contract with that
+    // third-party code, so keep them as they are.
+    const editorStrings = {
+        'comment': config.str.comment,
+        'newconfirmationmsg': config.str.newconfirmationmsg,
+        'eraseconfirmationmsg': config.str.eraseconfirmationmsg,
+        'parsingerror': config.str.parsingerror,
+        'ignorechanges': config.str.ignorechanges,
+        'ok': config.str.ok,
+        'cancel': config.str.cancel,
+        'eyedroppertool': config.str.eyedroppertool,
+        'shapelibrary': config.str.shapelibrary,
+        'drag_markers': config.str.drawmarkers,
+        'solidcolor': config.str.solidcolor,
+        'lingrad': config.str.lingrad,
+        'radgrad': config.str.radgrad,
+        'new': config.str.new,
+        'current': config.str.current,
+        'viewgrid': config.str.viewgrid,
+        'annotationsaved': config.str.annotationsaved,
+        'saving': config.str.saving,
+        'saveannotation': config.str.saveannotation,
+    };
+    Object.entries(editorStrings).forEach(([key, value]) => {
+        window['qtype_drawing_str_' + key] = value;
+    });
     window.questionid = config.questionid;
     window.sesskey = config.sesskey;
     window.stid = config.stid;
@@ -405,17 +407,15 @@ export const init = (config) => {
     }
 
     loadscripts(function() {
-        window.parent.init_qtype_drawing_embed(window.attemptid + window.uniquefieldnameattemptid);
+        window.parent.initQtypeDrawingEmbed(window.attemptid + window.uniquefieldnameattemptid);
         if (window.methodDraw) {
             window.methodDraw.ready(function() {
-                var svg = window.d3.select("#svgcontent");
+                const svg = window.d3.select("#svgcontent");
                 svg.append('g').attr('id', 'erase');
 
-// Get current student answer - if any!
+                // Load the current student answer - if any!
                 if (window.methodDraw.lastanswer && 0 !== window.methodDraw.lastanswer.length) {
                     window.methodDraw.loadFromString(window.methodDraw.lastanswer);
-// eslint-disable-next-line no-console
-                    console.log("loading answer from lastansswer");
                 }
                 const editorOverlay = document.getElementById('qtype-drawing-editor-loading');
                 if (editorOverlay) {

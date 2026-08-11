@@ -1,4 +1,3 @@
-/* eslint-disable */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *  description here.
+ * Colour palette editor decorating the colorsjson admin setting textarea.
  *
  * @module     qtype_drawing/color_config
  * @copyright  2025 Simeon Naydenov <moniNaydenov@gmail.com>
@@ -63,7 +62,7 @@ class ColorConfig {
             if (raw) {
                 const parsed = JSON.parse(raw);
                 this.state.colors = parsed.colors || [];
-                this.state.globalSettings = parsed.globalSettings || { trainerAvailable: false, studentAvailable: false };
+                this.state.globalSettings = parsed.globalSettings || {trainerAvailable: false, studentAvailable: false};
             }
         } catch (e) {
             co.error('Invalid JSON in color config textarea', e);
@@ -85,7 +84,7 @@ class ColorConfig {
 
         try {
             // Render the shell
-            const { html, js } = await Templates.renderForPromise('qtype_drawing/color_config_form', context);
+            const {html, js} = await Templates.renderForPromise('qtype_drawing/color_config_form', context);
             // Insert after textarea
             const container = document.createElement('div');
             container.innerHTML = html;
@@ -126,12 +125,13 @@ class ColorConfig {
     async appendRow(data = null) {
         const id = Date.now().toString(); // Simple ID generation
 
+        // The snake_case keys mirror the stored colorsjson schema (see settings.php).
         const rowData = data || {
-            hex: '',
-            avail_student: false,
-            avail_trainer: true, // Default per screenshot
-            def_student: false,
-            def_trainer: false
+            'hex': '',
+            'avail_student': false,
+            'avail_trainer': true, // Default per screenshot
+            'def_student': false,
+            'def_trainer': false
         };
 
         const context = {
@@ -226,11 +226,11 @@ class ColorConfig {
 
         rows.forEach(row => {
             colors.push({
-                hex: row.querySelector('[data-field="hex"]').value,
-                avail_student: row.querySelector('[data-field="avail_student"]').checked,
-                avail_trainer: row.querySelector('[data-field="avail_trainer"]').checked,
-                def_student: row.querySelector('[data-field="def_student"]').checked,
-                def_trainer: row.querySelector('[data-field="def_trainer"]').checked
+                'hex': row.querySelector('[data-field="hex"]').value,
+                'avail_student': row.querySelector('[data-field="avail_student"]').checked,
+                'avail_trainer': row.querySelector('[data-field="avail_trainer"]').checked,
+                'def_student': row.querySelector('[data-field="def_student"]').checked,
+                'def_trainer': row.querySelector('[data-field="def_trainer"]').checked
             });
         });
 

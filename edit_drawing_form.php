@@ -452,7 +452,7 @@ class qtype_drawing_edit_form extends question_edit_form {
         // Call the AMD module.
         $PAGE->requires->js_call_amd(
             'qtype_drawing/form',
-            'qtype_drawing_size_listener',
+            'initSizeListener',
             [$drawingconfig->defaultcanvaswidth, $drawingconfig->defaultcanvasheight]
         );
 

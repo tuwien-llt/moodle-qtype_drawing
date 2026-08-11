@@ -1,4 +1,3 @@
-/* eslint-disable */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -14,8 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import $ from 'jquery';
-
 /**
  * Frontend view logic for qtype_drawing
  *
@@ -23,8 +20,19 @@ import $ from 'jquery';
  * @copyright  2025 ETH Zurich LET
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-// eslint-disable-next-line no-unused-vars
-const co = window.console;
+
+import $ from 'jquery';
+
+/**
+ * Initialize the student-side drawing iframe: resizing and the fullscreen toggle.
+ *
+ * @param {string} attemptUniqueId Unique attempt token for this question attempt.
+ * @param {number} questionId The question id.
+ * @param {string} iframeId DOM id of the drawing iframe.
+ * @param {string} wrapperId DOM id of the iframe wrapper element.
+ * @param {string} toggleButtonId DOM id of the fullscreen toggle button.
+ * @param {string} timerId DOM id of the timer placeholder inside the wrapper.
+ */
 export const init = (
     attemptUniqueId,
     questionId,
@@ -82,7 +90,9 @@ export const init = (
         // Update status for saving safety.
         const statusInput = document.getElementById(`id_qtype_drawingsaving_status_${questionId}`);
         if (statusInput) {
-            setTimeout(() => { statusInput.value = Math.random(); }, 1000);
+            setTimeout(() => {
+                statusInput.value = Math.random();
+            }, 1000);
         }
 
         const $wrapper = $(document.getElementById(wrapperId));
@@ -121,7 +131,7 @@ export const init = (
             $wrapper.css('height', viewportHeight + "px");
 
             // Move timer back to original spot!
-            if ($quizTimer.length && $quizTimerWrapper.length  && $quizTimerWrapper.css('display') !== 'none') {
+            if ($quizTimer.length && $quizTimerWrapper.length && $quizTimerWrapper.css('display') !== 'none') {
                 $quizTimerWrapper.prepend($quizTimer);
                 $timerDiv.css('margin-top', '0em').css('display', 'none');
             }
@@ -137,7 +147,7 @@ export const init = (
     // --------------------------------------------------------
     // Expose the init function globally for the iframe onload callback if strictly necessary,
     // though postMessage is preferred in modern Moodle.
-    window.init_qtype_drawing_embed = (id) => {
+    window.initQtypeDrawingEmbed = (id) => {
         // This function is called by the iframe onload in the template
         // We can keep the logic here or just rely on the iframe loading itself.
         if (frame && window.embedded_svg_edit) {
@@ -164,7 +174,7 @@ export const init = (
  * @param {string} strShowAnswer
  * @param {string} strShowAnnotation
  */
-export const init_annotation_toggle = (btnId, annotationDivId, studentDivId, strShowAnswer, strShowAnnotation) => {
+export const initAnnotationToggle = (btnId, annotationDivId, studentDivId, strShowAnswer, strShowAnnotation) => {
     const btn = document.getElementById(btnId);
     const annotationDiv = document.getElementById(annotationDivId);
     const studentDiv = document.getElementById(studentDivId);

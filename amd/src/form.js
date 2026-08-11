@@ -1,4 +1,3 @@
-/* eslint-disable */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -45,8 +44,6 @@ let originalWidth = null;
 let naturalHeight = null;
 let naturalWidth = null;
 let editMode = false;
-// eslint-disable-next-line no-unused-vars
-let drawingQuestionId = null;
 const emptyCanvasDataURL = [];
 
 /**
@@ -93,7 +90,7 @@ const calculateWidth = (height) => {
  */
 const resizeCanvasW = (e) => {
     if (e.which < 48 || e.which > 57) {
-        if (e.which !== 8 && e.which !== 46) { // allow backspace/delete
+        if (e.which !== 8 && e.which !== 46) { // Allow backspace/delete.
             e.preventDefault();
         }
     }
@@ -180,8 +177,9 @@ const filePickerChange = () => {
  */
 const chooseNewImageFileClick = () => {
     if (editMode === true) {
-        // We rely on M.util.get_string for synchronous confirmation inside click handler
-        // eslint-disable-next-line no-undef
+        // A synchronous confirm() is needed here so the filepicker dialog can be
+        // closed again right away when the user cancels.
+        // eslint-disable-next-line no-alert
         if (confirm(M.util.get_string('are_you_sure_you_want_to_pick_a_new_bgimage', 'qtype_drawing')) === false) {
             // Close the filepicker dialog if open, or cancel the action
             $('.file-picker.fp-generallayout .yui3-button-close').trigger('click'); // Legacy selector support
@@ -199,7 +197,7 @@ const chooseNewImageFileClick = () => {
  * @param {number} width
  * @param {number} height
  */
-export const qtype_drawing_size_listener = (width, height) => {
+export const initSizeListener = (width, height) => {
     originalHeight = height;
     originalWidth = width;
 
@@ -211,7 +209,6 @@ export const qtype_drawing_size_listener = (width, height) => {
  * Initialize for a NEW question.
  */
 export const newquestion = () => {
-    drawingQuestionId = 0;
     emptyCanvasDataURL[0] = 1;
 
     // Special case: "Save as new" or similar flows might render the "Choose another" button!
@@ -236,8 +233,6 @@ export const newquestion = () => {
  * @param {number} width
  */
 export const editquestion = (id, height, width) => {
-    drawingQuestionId = id;
-
     if ($(SELECTORS.CHOOSEANOTHERFILEBUTTON).length > 0) {
         emptyCanvasDataURL[id] = id;
         $(SELECTORS.CHOOSEANOTHERFILEBUTTON).addClass('btn btn-secondary fp-btn-choose');
@@ -259,10 +254,3 @@ export const editquestion = (id, height, width) => {
     $(document).on('click', SELECTORS.CHOOSEFILEBUTTON, chooseNewImageFileClick);
     $(document).on('contextmenu', SELECTORS.DRAWINGCANVAS, disableContextMenu);
 };
-
-/**
- * Placeholder for attempt view.
- */
-/*export const attemptquestion = (questionID, background, width, height, datatype) => {
-    // Logic for attempt view can be added here if not handled by renderer/iframe
-};*/

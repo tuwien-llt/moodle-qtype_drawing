@@ -1,4 +1,3 @@
-/* eslint-disable */
 /*
  * @package    qtype_drawing
  * @copyright  ETHZ LET <amr.hourani@id.ethz.ch>
@@ -355,7 +354,9 @@
 .qtype-drawing-feedback-wrap.editor-fullscreen .editor_atto_content,
 .qtype-drawing-feedback-wrap.editor-fullscreen .tox-tinymce {
     flex: 1 1 auto;
-    height: auto !important;  /* stylelint-disable-line declaration-no-important */
+    /* The !important is needed to beat the inline height TinyMCE/Atto set on
+       their containers, so the editor can flex-fill the fullscreen wrapper. */
+    height: auto !important; /* stylelint-disable-line declaration-no-important */
     min-height: 60vh;
 }
 

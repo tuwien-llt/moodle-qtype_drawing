@@ -356,7 +356,7 @@ const initViewModeToggle = () => {
             saved = v;
         }
     } catch (e) {
-        // localStorage unavailable (private mode etc.) — fall back to default.
+        // Unavailable localStorage (private mode etc.) — fall back to default.
     }
     applyViewMode(saved);
     buttons.forEach(btn => {
@@ -759,6 +759,18 @@ const initSaveNextButton = () => {
 };
 
 /**
+ * Follow one of the prev/next navigation links, unless it is disabled.
+ *
+ * @param {string} selector CSS selector of the navigation link.
+ */
+const clickNavLink = (selector) => {
+    const link = document.querySelector(selector);
+    if (link && !link.closest('button[disabled]')) {
+        link.click();
+    }
+};
+
+/**
  * Initialize keyboard shortcuts for efficient grading.
  */
 const initKeyboardShortcuts = () => {
@@ -790,17 +802,11 @@ const initKeyboardShortcuts = () => {
 
         // Arrow keys for navigation (when not in input).
         if (e.key === 'ArrowLeft' && !e.target.closest('input, textarea')) {
-            const prevLink = document.querySelector('.qtype-drawing-grader-nav a[href*="attemptid"]:first-child');
-            if (prevLink && !prevLink.closest('button[disabled]')) {
-                prevLink.click();
-            }
+            clickNavLink('.qtype-drawing-grader-nav a[href*="attemptid"]:first-child');
         }
 
         if (e.key === 'ArrowRight' && !e.target.closest('input, textarea')) {
-            const nextLink = document.querySelector('.qtype-drawing-grader-nav a[href*="attemptid"]:last-child');
-            if (nextLink && !nextLink.closest('button[disabled]')) {
-                nextLink.click();
-            }
+            clickNavLink('.qtype-drawing-grader-nav a[href*="attemptid"]:last-child');
         }
     });
 };
