@@ -34,6 +34,8 @@ $attemptid = required_param('attemptid', PARAM_RAW_TRIMMED);
 $uniquefieldnameattemptid = required_param('uniquefieldnameattemptid', PARAM_RAW_TRIMMED);
 $sesskey = required_param('sesskey', PARAM_RAW);
 $attemptcount = optional_param('attemptcount', 1, PARAM_INT);
+$qubaid = optional_param('qubaid', 0, PARAM_INT);
+$slot = optional_param('slot', 0, PARAM_INT);
 
 $question = question_bank::load_question_data($id);
 
@@ -113,6 +115,23 @@ if ($jsrev < 1) {
     $jsrev = time();
 }
 
+// Rewrite @@PLUGINFILE@@ URLs in the question text. Question text files are served through
+// the attempt path (pluginfile.php/{ctx}/question/questiontext/{qubaid}/{slot}/{questionid}/...),
+// so the usage id and slot passed by the renderer are needed to build valid URLs.
+$questiontext = $question->questiontext;
+if ($qubaid && $slot) {
+    $questiontext = question_rewrite_question_urls(
+        $questiontext,
+        'pluginfile.php',
+        $question->contextid,
+        'question',
+        'questiontext',
+        [$qubaid, $slot],
+        $question->id
+    );
+}
+$questiontext = format_text($questiontext, $question->questiontextformat, ['context' => $cmcontext]);
+
 $context = [
     'base_url' => $CFG->wwwroot . '/question/type/drawing/',
     'jsrev' => $jsrev,
@@ -122,7 +141,7 @@ $context = [
     'backgroundheight' => $fhd->backgroundheight,
     'questionembed' => $fhd->questionembed == 1,
     'hidemenu' => !empty($fhd->hidemenu),
-    'questiontext' => $question->questiontext,
+    'questiontext' => $questiontext,
     'defaultpensize' => $fhd->defaultpensize,
     'stid' => $stid,
     'attemptid' => strip_tags($attemptid),
