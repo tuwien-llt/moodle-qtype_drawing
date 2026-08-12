@@ -1,0 +1,500 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Frontend logic for drawing area iframe.
+ *
+ * @module     qtype_drawing/drawingarea
+ * @copyright  2025 ETH Zurich LET
+ *
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+let baseurl = ""; // Your base URL variable!
+let rev = ""; // Moodle JS cache revision, used to cache-bust the bundled lib/ scripts.
+
+const co = window.console;
+
+// Query string that ties a lib/ script URL to Moodle's JS revision so that
+// "Purge all caches" (which bumps $CFG->jsrev) forces browsers to refetch it.
+const revSuffix = () => (rev ? "?rev=" + rev : "");
+
+const $ = window.$;
+// 1. Helper function to generate config and chain dependencies
+const addScriptChain = (scriptArray, dependsOnModule) => {
+    if (!scriptArray || scriptArray.length === 0) {
+        return dependsOnModule;
+    }
+
+    const paths = {};
+    const shim = {};
+    let previousModuleId = dependsOnModule;
+
+    scriptArray.forEach((scriptPath) => {
+        // Create ID: "lib/editor/draw.js" -> "lib/editor/draw"!
+        const moduleId = scriptPath.replace(/\.js$/, '');
+        // 1. Define Path (Prepend your baseurl variable). Add ".js" + the rev query
+        // explicitly: RequireJS skips its own ".js" append when the URL contains "?",
+        // and the query busts the browser cache when Moodle's jsrev changes.
+        paths[moduleId] = baseurl + moduleId + ".js" + revSuffix();
+
+        // 2. Define Shim (The "Synchronous" Chain)
+        shim[moduleId] = {};
+
+        // If there is a previous module, make this one wait for it.
+        if (previousModuleId) {
+            shim[moduleId].deps = [previousModuleId];
+        }
+
+        // Update previous to current for the next iteration.
+        previousModuleId = moduleId;
+    });
+
+    // 3. Extend the existing RequireJS configuration
+    window.require.config({
+        paths: paths,
+        shim: shim,
+        enforceDefine: false
+    });
+
+    // Return the last module ID so the next group can wait for it.
+    return previousModuleId;
+};
+
+const scriptsDefault = [
+    // "lib/jquery.js", // Assuming jQuery is already loaded.
+    "lib/pathseg.js",
+    "lib/touch.js",
+    "lib/js-hotkeys/jquery.hotkeys.min.js",
+    "lib/jquery-svgicons/jquery.svgicons.js",
+    "lib/jgraduate/jquery.jgraduate.js",
+    "lib/contextmenu/jquery.contextMenu.js",
+  //  "lib/jquery-ui/jquery-ui-1.8.17.custom.min.js",
+    "lib/editor/browser.js",
+    "lib/editor/svgtransformlist.js",
+    "lib/editor/math.js",
+    "lib/editor/units.js",
+    "lib/editor/svgutils.js",
+    "lib/editor/sanitize.js",
+    "lib/editor/history.js",
+    "lib/editor/select.js",
+    "lib/editor/draw.js",
+    "lib/editor/path_polyfill.js",
+    "lib/editor/path.js",
+    "lib/editor/dialog.js",
+    "lib/editor/svgcanvas.js",
+    "lib/editor/method-draw.js",
+    "lib/jquery-draginput.js",
+    "lib/contextmenu.js",
+    "lib/jgraduate/jpicker.min.js",
+    "lib/mousewheel.js",
+    "lib/extensions/mtouch-events.js",
+    "lib/editor/simplify.js",
+    "lib/extensions/ext-grid.js",
+    "lib/requestanimationframe.js",
+    "lib/taphold.js",
+    "lib/filesaver.js",
+    "lib/extensions/ext-eyedropper.js",
+    "lib/extensions/ext-shapes.js",
+    "lib/editor/flat.js",
+    "lib/editor/flatten.js",
+    "lib/extensions/erase.js",
+    "lib/extensions/ext-eraser.js",
+];
+
+const loadscripts = (callback) => {
+
+    const lastLoaded = addScriptChain(scriptsDefault, null);
+
+    require([baseurl + "lib/editor/d3.js" + revSuffix()], function(d3) {
+        window.d3 = d3;
+        require([lastLoaded], function() {
+            co.log("All grouped scripts loaded in sequence.");
+            callback();
+        });
+    });
+};
+
+const MIN_CANVAS_HEIGHT = 120;
+const MIN_TEXT_HEIGHT = 40;
+
+/**
+ * Find the parent page's fullscreen toggle button for this drawing area.
+ *
+ * @returns {?HTMLElement} The toggle button, or null when there is none (e.g. the grader).
+ */
+const getFullscreenToggle = () => {
+    try {
+        const id = 'qtype_drawing_togglebutton_id_' + window.attemptid + window.uniquefieldnameattemptid;
+        return window.parent.document.getElementById(id);
+    } catch (e) {
+        // Cross-origin/detached parent (or no button, e.g. the grader).
+        return null;
+    }
+};
+
+/**
+ * Keep the parent page's fullscreen toggle button aligned with the top of the drawing area.
+ *
+ * The button lives in the parent document at the wrapper's top-right (top: 0). When the question text
+ * is embedded, an editable text strip + drag bar sit above the canvas, so a top: 0 button overlaps the
+ * question-text show/hide toggle. Push the button down by the strip height so it always lands on the
+ * drawing toolbar's top-right (offset is 0 when the text is not embedded, leaving the default in place).
+ *
+ * @param {number} offset Height of everything stacked above the drawing area, in px.
+ */
+const positionFullscreenToggle = (offset) => {
+    const btn = getFullscreenToggle();
+    if (!btn) {
+        return;
+    }
+    // The button is absolutely positioned inside the drawing wrapper. If anything sits between the
+    // wrapper top and the iframe (e.g. the quiz timer, which is moved into the wrapper in fullscreen),
+    // the iframe is pushed down within the wrapper; include that gap so the button lands on the drawing
+    // area rather than floating up over the question-text toggle. The gap is 0 in the normal layout.
+    let extra = 0;
+    try {
+        const parent = btn.offsetParent;
+        const iframe = window.frameElement;
+        if (parent && iframe) {
+            extra = iframe.getBoundingClientRect().top - parent.getBoundingClientRect().top;
+        }
+    } catch (e) {
+        extra = 0;
+    }
+    btn.style.top = Math.max(0, Math.round(offset + extra)) + 'px';
+};
+
+/**
+ * Reveal the fullscreen toggle once the drawing editor is ready. It is hidden by default (see
+ * styles.css) so it does not float over the loading overlay while the canvas is still loading.
+ */
+const revealFullscreenToggle = () => {
+    const btn = getFullscreenToggle();
+    if (btn) {
+        btn.style.visibility = 'visible';
+    }
+};
+
+const fixDrawingHeight = () => {
+    const drawing = document.getElementById('question_drawing');
+    if (!drawing) {
+        return;
+    }
+    const windowHeight = $(window).height();
+    // Everything stacked above the canvas (the question-text holder + the drag bar,
+    // when the question is embedded) determines where the canvas starts; give it the
+    // rest of the viewport. Falls back to full height when nothing is above it.
+    const top = drawing.getBoundingClientRect().top;
+    let calculatedHeight = windowHeight - top;
+    if (calculatedHeight < MIN_CANVAS_HEIGHT) {
+        calculatedHeight = MIN_CANVAS_HEIGHT;
+    }
+    drawing.style.height = calculatedHeight + 'px';
+    // Same offset positions the fullscreen toggle over the drawing area, in every state.
+    positionFullscreenToggle(top);
+};
+
+/**
+ * Wire up the collapse button and the drag-to-resize bar that sit between the
+ * embedded question text and the drawing canvas. No-op when the question text is
+ * not embedded (the bar/holder are absent). Persists the chosen size and the
+ * collapsed state per question in localStorage so they survive page reloads.
+ *
+ * @param {object} config Configuration object passed to init().
+ */
+const initQuestionTextControls = (config) => {
+    const holder = document.getElementById('question_text-holder');
+    const bar = document.getElementById('qtype_drawing_qtext_bar');
+    const toggle = document.getElementById('qtype_drawing_qtext_toggle');
+    if (!holder || !bar || !toggle) {
+        return;
+    }
+
+    const chevron = document.getElementById('qtype_drawing_qtext_chevron');
+    const label = document.getElementById('qtype_drawing_qtext_label');
+    const body = document.body;
+    const storeKey = 'qtype_drawing_qtext_' + (config.questionid || 'x');
+    const CHEVRON_UP = '▲'; // ▲ (collapse the text upwards)
+    const CHEVRON_DOWN = '▼'; // ▼ (expand the text downwards)
+
+    let collapsed = false;
+
+    const readState = () => {
+        try {
+            const raw = window.localStorage.getItem(storeKey);
+            if (raw) {
+                return JSON.parse(raw);
+            }
+        } catch (e) {
+            // Blocked localStorage or corrupt value — ignore.
+        }
+        return null;
+    };
+
+    const persist = () => {
+        try {
+            const h = holder.style.height ? parseInt(holder.style.height, 10) : null;
+            window.localStorage.setItem(storeKey, JSON.stringify({collapsed: collapsed, height: h}));
+        } catch (e) {
+            // Blocked localStorage — ignore.
+        }
+    };
+
+    const applyCollapsed = (isCollapsed) => {
+        collapsed = isCollapsed;
+        body.classList.toggle('qtype-drawing-qtext-collapsed', collapsed);
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        const text = collapsed ? config.str.showquestiontext : config.str.hidequestiontext;
+        if (label) {
+            label.textContent = text;
+        }
+        if (chevron) {
+            chevron.textContent = collapsed ? CHEVRON_DOWN : CHEVRON_UP;
+        }
+        toggle.setAttribute('title', text);
+        fixDrawingHeight();
+    };
+
+    // Apply an explicit holder height, clamped so neither area collapses past its
+    // minimum. Setting an explicit height means the user is in control, so drop the
+    // default max-height cap. Reflows the canvas afterwards.
+    const setHolderHeight = (px) => {
+        const barHeight = bar.offsetHeight || 0;
+        const maxHeight = $(window).height() - barHeight - MIN_CANVAS_HEIGHT;
+        const clamped = Math.max(MIN_TEXT_HEIGHT, Math.min(px, maxHeight));
+        holder.style.height = clamped + 'px';
+        holder.style.maxHeight = 'none';
+        fixDrawingHeight();
+    };
+
+    // Restore any persisted layout.
+    const saved = readState();
+    if (saved) {
+        if (typeof saved.height === 'number' && saved.height > 0) {
+            setHolderHeight(saved.height);
+        }
+        if (saved.collapsed) {
+            applyCollapsed(true);
+        }
+    }
+
+    // Collapse/expand. Stop the pointer from also starting a drag on the bar.
+    toggle.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+    });
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        applyCollapsed(!collapsed);
+        persist();
+    });
+
+    // Drag the bar to resize the two areas (disabled while collapsed). Uses
+    // pointer events + capture so it works with mouse, touch and pen, and keeps
+    // receiving moves even when the pointer travels over the canvas below.
+    bar.addEventListener('pointerdown', (e) => {
+        if (collapsed || (typeof e.button === 'number' && e.button !== 0)) {
+            return;
+        }
+        e.preventDefault();
+        const startY = e.clientY;
+        const startHeight = holder.getBoundingClientRect().height;
+        body.classList.add('qtype-drawing-qtext-dragging');
+        try {
+            bar.setPointerCapture(e.pointerId);
+        } catch (ex) {
+            // Pointer capture unsupported — the listeners below still work.
+        }
+
+        const onMove = (moveEvent) => {
+            setHolderHeight(startHeight + (moveEvent.clientY - startY));
+        };
+        const onEnd = () => {
+            bar.removeEventListener('pointermove', onMove);
+            bar.removeEventListener('pointerup', onEnd);
+            bar.removeEventListener('pointercancel', onEnd);
+            body.classList.remove('qtype-drawing-qtext-dragging');
+            persist();
+        };
+        bar.addEventListener('pointermove', onMove);
+        bar.addEventListener('pointerup', onEnd);
+        bar.addEventListener('pointercancel', onEnd);
+    });
+
+    // Keep an explicit (dragged) height within bounds when the viewport changes.
+    $(window).resize(() => {
+        if (!collapsed && holder.style.height) {
+            setHolderHeight(parseInt(holder.style.height, 10));
+        }
+    });
+};
+/**
+ * Initialize the drawing area iframe.
+ *
+ * @param {object} config Configuration object.
+ */
+export const init = (config) => {
+    // The bundled method-draw editor (lib/editor) reads its UI strings from
+    // window.qtype_drawing_str_* globals; the names are a contract with that
+    // third-party code, so keep them as they are.
+    const editorStrings = {
+        'comment': config.str.comment,
+        'newconfirmationmsg': config.str.newconfirmationmsg,
+        'eraseconfirmationmsg': config.str.eraseconfirmationmsg,
+        'parsingerror': config.str.parsingerror,
+        'ignorechanges': config.str.ignorechanges,
+        'ok': config.str.ok,
+        'cancel': config.str.cancel,
+        'eyedroppertool': config.str.eyedroppertool,
+        'shapelibrary': config.str.shapelibrary,
+        'drag_markers': config.str.drawmarkers,
+        'solidcolor': config.str.solidcolor,
+        'lingrad': config.str.lingrad,
+        'radgrad': config.str.radgrad,
+        'new': config.str.new,
+        'current': config.str.current,
+        'viewgrid': config.str.viewgrid,
+        'annotationsaved': config.str.annotationsaved,
+        'saving': config.str.saving,
+        'saveannotation': config.str.saveannotation,
+    };
+    Object.entries(editorStrings).forEach(([key, value]) => {
+        window['qtype_drawing_str_' + key] = value;
+    });
+    window.questionid = config.questionid;
+    window.sesskey = config.sesskey;
+    window.stid = config.stid;
+    window.attemptid = config.attemptid;
+    window.attemptcount = config.attemptcount;
+    window.uniquefieldnameattemptid = config.uniquefieldnameattemptid;
+    baseurl = config.baseurl;
+    rev = config.jsrev;
+    window.jQuery = window.$;
+    window.colorhighlighter = config.colorhighlighter;
+    const defaultPensize = config.defaultpensize;
+    const defaultColor = config.defaultColor;
+
+// Logic for save button state based on parent window input
+    const answertxtarea = $(
+        '#qtype_drawing_original_stdanswer_id_' + window.attemptid + window.uniquefieldnameattemptid,
+        window.parent.document
+    ).val();
+
+    if (answertxtarea && answertxtarea.length === 0) {
+        $("#tool_saveannotation").attr('disabled', 'disabled');
+        $("#tool_saveannotation").css('background', '#ddd');
+    }
+    fixDrawingHeight();
+    $(window).resize(fixDrawingHeight);
+    initQuestionTextControls(config);
+
+    // Make the existing `.touch` CSS rules in method-draw.css active so
+    // menu titles render with bigger tap targets on touch devices (iPad).
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        document.body.classList.add('touch');
+    }
+
+    loadscripts(function() {
+        window.parent.initQtypeDrawingEmbed(window.attemptid + window.uniquefieldnameattemptid);
+        if (window.methodDraw) {
+            window.methodDraw.ready(function() {
+                const svg = window.d3.select("#svgcontent");
+                svg.append('g').attr('id', 'erase');
+
+                // Load the current student answer - if any!
+                if (window.methodDraw.lastanswer && 0 !== window.methodDraw.lastanswer.length) {
+                    window.methodDraw.loadFromString(window.methodDraw.lastanswer);
+                }
+                const editorOverlay = document.getElementById('qtype-drawing-editor-loading');
+                if (editorOverlay) {
+                    editorOverlay.classList.add('is-hidden');
+                    editorOverlay.setAttribute('aria-busy', 'false');
+                    const removeOverlay = function() {
+                        editorOverlay.style.display = 'none';
+                        editorOverlay.removeEventListener('transitionend', removeOverlay);
+                    };
+                    editorOverlay.addEventListener('transitionend', removeOverlay);
+                    setTimeout(removeOverlay, 600);
+                }
+                // The drawing area is now loaded and visible: reveal the fullscreen toggle, which was
+                // hidden while the canvas was still loading. Reposition first so it appears in place.
+                fixDrawingHeight();
+                revealFullscreenToggle();
+
+                const postReadyToParent = function() {
+                    try {
+                        if (window.parent && window.parent !== window) {
+                            window.parent.postMessage(
+                                {type: 'qtype_drawing_ready'},
+                                window.location.origin
+                            );
+                        }
+                    } catch (e) {
+                        // Cross-origin or detached parent — ignore.
+                    }
+                };
+                postReadyToParent();
+                setTimeout(postReadyToParent, 100);
+                setTimeout(postReadyToParent, 500);
+                setTimeout(postReadyToParent, 1500);
+
+                if (config.useupdateannotationjs) {
+                    window.setInterval(window.methodDraw.updateAnnotationDetails, 30000);
+                }
+
+
+                $('#stroke_width').val(defaultPensize);
+                window.svgCanvas.setStrokeWidth(defaultPensize);
+
+                window.svgCanvas.setColor('stroke', defaultColor);
+                window.svgCanvas.setColor('fill', defaultColor);
+
+                // If the teacher hid the drawing (pencil) tool, the canvas would otherwise start in the
+                // now-invisible freehand mode. Switch to the first tool that is still visible so students
+                // get a sensible, usable default instead of an active-but-hidden tool. methodDraw
+                // force-selects the pencil at the very end of its init (after this ready callback), so
+                // defer with a timeout to make our switch run afterwards and stick.
+                if (config.enabledtools && !config.enabledtools.tooldraw) {
+                    const fallbacktools = [
+                        ['toolselect', '#tool_select'],
+                        ['tooltext', '#tool_text'],
+                        ['toolhighlighter', '#tool_highlighter'],
+                        ['toolline', '#tool_line'],
+                        ['toolrect', '#tool_rect'],
+                        ['toolcircle', '#tool_ellipse'],
+                    ];
+                    setTimeout(function() {
+                        for (let i = 0; i < fallbacktools.length; i++) {
+                            if (config.enabledtools[fallbacktools[i][0]]) {
+                                const btn = document.querySelector(fallbacktools[i][1]);
+                                if (btn) {
+                                    btn.click();
+                                }
+                                break;
+                            }
+                        }
+                    }, 150);
+                }
+
+            });
+            window.methodDraw.init();
+        } else {
+            co.log("methodDraw not yet initialized");
+        }
+    });
+
+// Initialize methodDraw when ready
+
+};

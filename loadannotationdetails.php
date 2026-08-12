@@ -17,8 +17,7 @@
 /**
  * drawing question renderer class.
  *
- * @package    qtype
- * @subpackage drawing
+ * @package    qtype_drawing
  * @copyright ETHZ LET <amr.hourani@id.ethz.ch>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

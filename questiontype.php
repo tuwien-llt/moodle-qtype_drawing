@@ -30,6 +30,7 @@ require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->dirroot . '/question/engine/lib.php');
 require_once($CFG->dirroot . '/question/type/drawing/question.php');
 require_once(dirname(__FILE__) . '/renderer.php');
+require_once(dirname(__FILE__) . '/lib.php');
 
 /**
  * The drawing question type.
@@ -39,30 +40,51 @@ require_once(dirname(__FILE__) . '/renderer.php');
  */
 class qtype_drawing extends question_type {
     /**
-     * Get extra question fields for this question type.
+     * Return the table name and column names of the extra question fields.
      *
-     * @return array
+     * @return array The options table name followed by its column names.
      */
     public function extra_question_fields() {
-        return ['qtype_drawing', 'drawingmode', 'backgrounduploaded',
-                     'backgroundwidth', 'backgroundheight', 'preservear', 'drawingoptions', 'alloweraser'];
+        return [
+            'qtype_drawing',
+            'backgrounduploaded',
+            'backgroundwidth',
+            'backgroundheight',
+            'preservear',
+            'drawingoptions',
+            'colorsjson',
+            'defaultpensize',
+            'colorhighlighter',
+            'questionembed',
+            'hidemenu',
+            'toolselect',
+            'tooldraw',
+            'tooltext',
+            'toolhighlighter',
+            'toolline',
+            'toolrect',
+            'toolcircle',
+            'tooleraser',
+            'toolundoredo',
+        ];
     }
 
     /**
-     * Get the column name for the question ID.
+     * Return the name of the column holding the question ID in the options table.
      *
-     * @return string
+     * @return string The column name.
      */
     public function questionid_column_name() {
         return 'questionid';
     }
 
     /**
-     * Move question files to a new context.
+     * Moves all files associated with the given question to a new context.
      *
-     * @param int $questionid
-     * @param int $oldcontextid
-     * @param int $newcontextid
+     * @param int $questionid The question ID.
+     * @param int $oldcontextid The old context ID.
+     * @param int $newcontextid The new context ID.
+     * @return void
      */
     public function move_files($questionid, $oldcontextid, $newcontextid) {
         parent::move_files($questionid, $oldcontextid, $newcontextid);
@@ -71,22 +93,23 @@ class qtype_drawing extends question_type {
     }
 
     /**
-     * Delete question files.
+     * Deletes all files associated with the given question.
      *
-     * @param int $questionid
-     * @param int $contextid
+     * @param int $questionid The question ID.
+     * @param int $contextid The context ID.
+     * @return void
      */
     protected function delete_files($questionid, $contextid) {
         parent::delete_files($questionid, $contextid);
         $this->delete_files_in_answers($questionid, $contextid, true);
         $this->delete_files_in_hints($questionid, $contextid);
     }
+
     /**
      * Custom method for deleting drawing questions.
      *
-     * @param int $questionid
-     * @param int $contextid
-     * @see question_type::delete_question()
+     * @param int $questionid The question ID.
+     * @param int $contextid The context ID.
      */
     public function delete_question($questionid, $contextid) {
         global $DB;
@@ -97,9 +120,9 @@ class qtype_drawing extends question_type {
     }
 
     /**
-     * Save question options.
+     * Saves the question options.
      *
-     * @param stdClass $question
+     * @param question_definition $question The question definition.
      * @return void
      */
     public function save_question_options($question) {
@@ -108,28 +131,27 @@ class qtype_drawing extends question_type {
         $drawingconfig = get_config('qtype_drawing');
         $result = new stdClass();
         // Insert all the new options.
-        $options = $DB->get_record(
-            'qtype_drawing',
-            ['questionid' => $question->id,
-            ]
-        );
-        if (!$question->drawingmode) {
-            $question->drawingmode = 1;
-        }
+        $options = $DB->get_record('qtype_drawing', ['questionid' => $question->id]);
+
         if (!$options) {
             $options = new stdClass();
             $options->questionid = $question->id;
-            $options->drawingmode = 1;
             $options->allowstudentimage = 0;
             $options->backgrounduploaded = 0;
             $options->backgroundwidth = $drawingconfig->defaultcanvaswidth;
             $options->backgroundheight = $drawingconfig->defaultcanvasheight;
             $options->preservear = 1;
             $options->drawingoptions = '';
-            $options->alloweraser = 0;
+            $options->questionembed = $drawingconfig->questionembed;
+            $options->defaultpensize = $drawingconfig->defaultpensize;
+            $options->colorsjson = $drawingconfig->colorsjson;
+            $options->colorhighlighter = $drawingconfig->colorhighlighter;
+            $options->hidemenu = 0;
+            foreach (qtype_drawing_tool_names() as $tool) {
+                $options->$tool = isset($drawingconfig->$tool) ? $drawingconfig->$tool : 1;
+            }
             $options->id = $DB->insert_record('qtype_drawing', $options);
         }
-        $options->drawingmode = $question->drawingmode;
         if (isset($question->allowstudentimage)) {
             $options->allowstudentimage = $question->allowstudentimage;
         }
@@ -140,10 +162,19 @@ class qtype_drawing extends question_type {
             $question->preservear = 0;
         }
         $options->preservear = $question->preservear;
-        if (!isset($question->alloweraser)) {
-            $question->alloweraser = 0;
+        $options->questionembed = isset($question->questionembed) ? $question->questionembed : $drawingconfig->questionembed;
+        $options->defaultpensize = isset($question->defaultpensize) ? $question->defaultpensize : $drawingconfig->defaultpensize;
+        $options->colorsjson = isset($question->colorsjson) ? $question->colorsjson : $drawingconfig->colorsjson;
+        $options->colorhighlighter = isset($question->colorhighlighter)
+            ? $question->colorhighlighter : $drawingconfig->colorhighlighter;
+        $options->hidemenu = !empty($question->hidemenu) ? 1 : 0;
+        foreach (qtype_drawing_tool_names() as $tool) {
+            if (isset($question->$tool)) {
+                $options->$tool = $question->$tool ? 1 : 0;
+            } else if (!isset($options->$tool)) {
+                $options->$tool = isset($drawingconfig->$tool) ? $drawingconfig->$tool : 1;
+            }
         }
-        $options->alloweraser = $question->alloweraser;
 
         $DB->update_record('qtype_drawing', $options);
         $this->save_hints($question);
@@ -213,10 +244,11 @@ class qtype_drawing extends question_type {
 
 
     /**
-     * Initialise the question instance.
+     * Initialise a question definition instance from question data.
      *
-     * @param question_definition $question
-     * @param stdClass $questiondata
+     * @param question_definition $question The question definition to initialise.
+     * @param object $questiondata The question data loaded from the database.
+     * @return void
      */
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
@@ -224,20 +256,20 @@ class qtype_drawing extends question_type {
     }
 
     /**
-     * Get the random guess score for this question.
+     * Return the score a student would get by guessing randomly.
      *
-     * @param stdClass $questiondata
-     * @return int
+     * @param object $questiondata The question data.
+     * @return int Always 0 for drawing questions.
      */
     public function get_random_guess_score($questiondata) {
         return 0;
     }
 
     /**
-     * Get possible responses for this question.
+     * Return the possible responses for reporting purposes.
      *
-     * @param stdClass $questiondata
-     * @return array
+     * @param object $questiondata The question data.
+     * @return array Possible responses indexed by question ID.
      */
     public function get_possible_responses($questiondata) {
         $responses = [];
@@ -263,12 +295,12 @@ class qtype_drawing extends question_type {
     }
 
     /**
-     * Export the question to XML format.
+     * Export a drawing question to Moodle XML format.
      *
-     * @param stdClass $question
-     * @param qformat_xml $format
-     * @param string $extra
-     * @return string|bool
+     * @param object $question The question to export.
+     * @param qformat_xml $format The XML format instance.
+     * @param mixed $extra Extra data (unused).
+     * @return string|false The question XML, or false if the question cannot be exported.
      */
     public function export_to_xml($question, qformat_xml $format, $extra = null) {
         $extraquestionfields = $this->extra_question_fields();
@@ -309,15 +341,14 @@ class qtype_drawing extends question_type {
         }
         return $expout;
     }
-
     /**
-     * Import the question from XML format.
+     * Import a drawing question from Moodle XML format.
      *
-     * @param array $data
-     * @param stdClass $question
-     * @param qformat_xml $format
-     * @param string $extra
-     * @return stdClass|bool
+     * @param array $data The parsed XML data.
+     * @param object $question The question object to fill (unused, a new one is created).
+     * @param qformat_xml $format The XML format instance.
+     * @param mixed $extra Extra data (unused).
+     * @return object|false The imported question, or false if the data is not a drawing question.
      */
     public function import_from_xml($data, $question, qformat_xml $format, $extra = null) {
         if (!isset($data['@']['type']) || $data['@']['type'] != 'drawing') {
@@ -383,5 +414,84 @@ class qtype_drawing extends question_type {
                $fs->create_file_from_string($record, $imgbinarydata);
         }
         return $question;
+    }
+
+    /**
+     * Returns a list of colors for the template, filtered by role availability
+     * and sorted with the default color first.
+     *
+     * @param bool $teacherview True for Trainer/Teacher view, False for Student view.
+     * @param string $colorsjson The JSON string from the configuration field.
+     * @return array List of color objects (e.g., [['hex' => '#ff0000', 'selected' => true], ...])
+     */
+    public static function get_colors_for_template($teacherview, $colorsjson) {
+        // 1. Decode the JSON configuration
+        if (empty($colorsjson)) {
+            return [];
+        }
+
+        $config = json_decode($colorsjson);
+        if (json_last_error() !== JSON_ERROR_NONE || !isset($config->colors)) {
+            return [];
+        }
+
+        $showallcolorschooser = false;
+
+        // 2. Define role-specific keys based on $teacherview
+        if ($teacherview) {
+            $globalavailkey = 'trainerAvailable';
+            $itemavailkey = 'avail_trainer';
+            $defaultkey = 'def_trainer';
+        } else {
+            $globalavailkey = 'studentAvailable';
+            $itemavailkey = 'avail_student';
+            $defaultkey = 'def_student';
+        }
+
+        // 3. Check Global Availability - now it is a palette chooser
+        // If the "Color selection available for X" checkbox is unchecked, return empty list.
+        if (!empty($config->globalSettings->$globalavailkey)) {
+            $showallcolorschooser = true;
+        }
+
+        $filteredcolors = [];
+        $defaultcolor = null;
+
+        // 4. Iterate and Filter
+        $colorid = 1;
+        foreach ($config->colors as $color) {
+            // Ensure data integrity.
+            if (empty($color->hex)) {
+                continue;
+            }
+
+            // Check if this specific color is available for the current role.
+            // We cast to bool to ensure correct comparison.
+            $isavailable = !empty($color->$itemavailkey);
+            $isdefault = !empty($color->$defaultkey);
+
+            // Logic: Include the color if it is explicitly available OR if it is marked as the default.
+            // (A default color should strictly be available, but this prevents errors if a user misconfigures it.)
+            if ($isavailable || $isdefault) {
+                $colorobj = [
+                    'hex' => $color->hex,
+                    'selected' => $isdefault,
+                    'colorid' => $colorid++,
+                ];
+
+                if ($isdefault) {
+                    $defaultcolor = $colorobj;
+                } else {
+                    $filteredcolors[] = $colorobj;
+                }
+            }
+        }
+
+        // 5. Sort: Place the default color at the very beginning of the array
+        if ($defaultcolor) {
+            array_unshift($filteredcolors, $defaultcolor);
+        }
+
+        return [$filteredcolors, $defaultcolor, $showallcolorschooser];
     }
 }

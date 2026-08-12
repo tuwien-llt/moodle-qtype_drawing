@@ -17,17 +17,16 @@
 /**
  * drawing question type version information.
  *
- * @package    qtype
- * @subpackage drawing
+ * @package    qtype_drawing
  * @copyright  ETH Zurich <moodle@id.ethz.ch>
  * @license  http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2026051500;
-$plugin->requires = 2025041400.00;
-$plugin->supported = [500, 502];
 $plugin->component = 'qtype_drawing';
+$plugin->version  = 2026070400;
+$plugin->requires = 2021050100; // Moodle >=3.11+.
+
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '5.2.0';
+$plugin->release = '5.1';

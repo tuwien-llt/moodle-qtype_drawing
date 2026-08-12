@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="question/type/drawing/db" VERSION="20191005" COMMENT="XMLDB file for Moodle question/type/drawing"
+<XMLDB PATH="question/type/drawing/db" VERSION="20251217" COMMENT="XMLDB file for Moodle question/type/drawing"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
@@ -8,14 +8,26 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="drawingmode" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1: Basic, 2: Advanced."/>
         <FIELD NAME="allowstudentimage" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Allow students to upload images."/>
-        <FIELD NAME="alloweraser" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Allow students to use eraser."/>
         <FIELD NAME="backgrounduploaded" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Is there a Background image?."/>
         <FIELD NAME="backgroundwidth" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Background image width."/>
         <FIELD NAME="backgroundheight" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Background image height."/>
         <FIELD NAME="preservear" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Preserve aspect ratio"/>
         <FIELD NAME="drawingoptions" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="DataURI for the background image."/>
+        <FIELD NAME="colorsjson" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="defaultpensize" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="colorhighlighter" TYPE="char" LENGTH="16" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="questionembed" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="hidemenu" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Hide the top menu bar in the drawing canvas to enlarge the drawing area."/>
+        <FIELD NAME="toolselect" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the select tool to students."/>
+        <FIELD NAME="tooldraw" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the drawing (pencil) tool to students."/>
+        <FIELD NAME="tooltext" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the text tool to students."/>
+        <FIELD NAME="toolhighlighter" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the highlighter tool to students."/>
+        <FIELD NAME="toolline" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the line tool to students."/>
+        <FIELD NAME="toolrect" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the rectangle tool to students."/>
+        <FIELD NAME="toolcircle" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the circle tool to students."/>
+        <FIELD NAME="tooleraser" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the eraser tool to students."/>
+        <FIELD NAME="toolundoredo" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Show the back/forward (undo/redo) tools to students."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -25,7 +37,7 @@
     <TABLE NAME="qtype_drawing_annotations" COMMENT="Teacher annotation for Hand Drawing qtype">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="attemptid" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false"  COMMENT="Unique and never changes in restore."/>
+        <FIELD NAME="attemptid" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" COMMENT="Unique and never changes in restore."/>
         <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="annotatedby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="annotatedfor" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -39,7 +51,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="questionid_idx" UNIQUE="false" FIELDS="questionid" />
+        <INDEX NAME="questionid_idx" UNIQUE="false" FIELDS="questionid"/>
       </INDEXES>
     </TABLE>
   </TABLES>

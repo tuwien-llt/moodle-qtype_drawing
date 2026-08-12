@@ -25,12 +25,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/renderer.php');
+require_once(dirname(__FILE__) . '/lib.php');
 
 /**
- * Class for editing drawing questions.
+ * Editing form for the drawing question type.
  *
- * @copyright ETH Zurich LET <amr.hourani@id.ethz.ch>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  ETHZ LET <amr.hourani@id.ethz.ch>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_drawing_edit_form extends question_edit_form {
     /**
@@ -120,8 +121,7 @@ class qtype_drawing_edit_form extends question_edit_form {
 
         if (
             class_exists('qbank_editquestion\\editquestion_helper')
-            && !empty($this->question->id)
-            && !$this->question->beingcopied
+                && !empty($this->question->id) && !$this->question->beingcopied
         ) {
             // Add extra information from plugins when editing a question (e.g.: Authors, version control and usage).
             $functionname = 'edit_form_display';
@@ -214,11 +214,8 @@ class qtype_drawing_edit_form extends question_edit_form {
                     $buttonarray[] = $mform->createElement('static', 'previewlink', '', $previewlink);
                 }
             } else {
-                $previewlink = $PAGE->get_renderer('core_question')->question_preview_link(
-                    $this->question->id,
-                    $this->context,
-                    true
-                );
+                $previewlink = $PAGE->get_renderer('core_question')
+                    ->question_preview_link($this->question->id, $this->context, true);
                 $buttonarray[] = $mform->createElement('static', 'previewlink', '', $previewlink);
             }
         }
@@ -230,16 +227,17 @@ class qtype_drawing_edit_form extends question_edit_form {
 
         if (
             (!empty($this->question->id))
-            && (!($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew))
+                && (!($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew))
         ) {
             $mform->hardFreezeAllVisibleExcept(['categorymoveto', 'buttonar', 'currentgrp']);
         }
     }
 
     /**
-     * Build the form for drawing-specific fields.
+     * Add the drawing-specific fields to the question editing form.
      *
-     * @param MoodleQuickForm $mform
+     * @param MoodleQuickForm $mform The form being built.
+     * @return void
      */
     protected function definition_inner($mform) {
         global $PAGE, $CFG, $USER, $COURSE;
@@ -255,6 +253,40 @@ class qtype_drawing_edit_form extends question_edit_form {
         $mform->setExpanded('drawsetting');
 
         $drawingconfig = get_config('qtype_drawing');
+
+        $mform->addElement('selectyesno', 'questionembed', get_string('questionembed', 'qtype_drawing'));
+        $mform->setDefault('questionembed', $drawingconfig->questionembed);
+        $mform->addHelpButton('questionembed', 'questionembed', 'qtype_drawing');
+
+        $mform->addElement('selectyesno', 'hidemenu', get_string('hidemenu', 'qtype_drawing'));
+        $mform->setDefault('hidemenu', 0);
+
+        // Drawing tool configuration: per-question switches for which canvas tools students see.
+        // One "parameter" with a checkbox per tool; appendName=false keeps flat element names so
+        // they map straight onto the qtype_drawing columns / extra_question_fields().
+        $toolcheckboxes = [];
+        foreach (qtype_drawing_tool_names() as $tool) {
+            $toolcheckboxes[] = & $mform->createElement(
+                'advcheckbox',
+                $tool,
+                '',
+                get_string('showtool_' . $tool, 'qtype_drawing'),
+                [],
+                [0, 1]
+            );
+        }
+        $mform->addGroup(
+            $toolcheckboxes,
+            'drawingtoolconfig',
+            get_string('drawingtoolconfig', 'qtype_drawing'),
+            '<br>',
+            false
+        );
+        $mform->addHelpButton('drawingtoolconfig', 'drawingtoolconfig', 'qtype_drawing');
+        foreach (qtype_drawing_tool_names() as $tool) {
+            $mform->setType($tool, PARAM_INT);
+            $mform->setDefault($tool, isset($drawingconfig->$tool) ? $drawingconfig->$tool : 1);
+        }
 
         $canvassizearray = [];
         $canvassizearray[] = & $mform->createElement(
@@ -282,30 +314,24 @@ class qtype_drawing_edit_form extends question_edit_form {
         $mform->setType('preservear', PARAM_INT);
         $mform->setDefault('preservear', 1);
 
-        if (isset($drawingconfig->allowteachertochosemode) && $drawingconfig->allowteachertochosemode == 1) {
-            $options = [1 => get_string('basicmode', 'qtype_drawing'), 2 => get_string('advancedmode', 'qtype_drawing')];
-            $mform->addElement(
-                'select',
-                'drawingmode',
-                get_string('drawingmode', 'qtype_drawing'),
-                $options,
-                ['onchange' => 'document.getElementById("id_alloweraser").checked = false;']
-            );
-            $mform->addHelpButton('drawingmode', 'drawingmode', 'qtype_drawing');
-        } else {
-            $mform->addElement('hidden', 'drawingmode', 1);
+        $pensizearray = [];
+        for ($i = 1; $i < 100; $i++) {
+            $pensizearray[$i] = strval($i) . 'px';
         }
-        if (isset($drawingconfig->enableeraser) && $drawingconfig->enableeraser == 1) {
-            $mform->addElement('checkbox', 'alloweraser', get_string('alloweraser', 'qtype_drawing'));
-            $mform->disabledIf('alloweraser', 'drawingmode', 'eq', 2);
-        } else {
-            $mform->addElement('hidden', 'alloweraser', 0);
-        }
+        $mform->addElement('select', 'defaultpensize', get_string('defaultpensize', 'qtype_drawing'), $pensizearray);
+        $mform->setDefault('defaultpensize', $drawingconfig->defaultpensize);
+        $mform->addHelpButton('defaultpensize', 'defaultpensize', 'qtype_drawing');
 
-        $mform->setType('alloweraser', PARAM_INT);
-        $mform->setDefault('alloweraser', 0);
-        $mform->setType('drawingmode', PARAM_INT);
-        $mform->setDefault('drawingmode', 1);
+        $mform->addElement('textarea', 'colorsjson', get_string('colors:config', 'qtype_drawing'));
+        $mform->setType('colorsjson', PARAM_RAW);
+        $mform->setDefault('colorsjson', $drawingconfig->colorsjson);
+        $PAGE->requires->js_call_amd('qtype_drawing/color_config', 'init', ['id_colorsjson']);
+
+        // Add colorhighlighter text field.
+        $mform->addElement('text', 'colorhighlighter', get_string('color:highlighter', 'qtype_drawing'));
+        $mform->setType('colorhighlighter', PARAM_RAW);
+        $mform->setDefault('colorhighlighter', $drawingconfig->colorhighlighter);
+        $mform->addHelpButton('colorhighlighter', 'color:highlighter', 'qtype_drawing');
 
         $mform->addElement('html', '<div style="display:none">'); // Hide until version 2.
         $mform->addElement('checkbox', 'allowstudentimage', get_string('allowstudentimage', 'qtype_drawing'), '&nbsp;');
@@ -377,12 +403,13 @@ class qtype_drawing_edit_form extends question_edit_form {
                 );
                 $mform->addElement(
                     'html',
-                    "<div class=\"fitem\"><div class=\"fitemtitle\">"
-                    . get_string("selected_background_image_filename", "qtype_drawing")
-                    . "</div><div class=\"felement\">
-                    <input type=\"button\" class=\"fp-btn-choose\" value=\"Choose a different file...\"
-                     name=\"qtype_drawing_image_filechoose_another\">
-                    <br /><br /><img src='$finalbackground' class=\"img-thumbnail\"></div></div>"
+                    "<div class=\"fitem\"><div class=\"fitemtitle\">" .
+                        get_string("selected_background_image_filename", "qtype_drawing") .
+                        "</div><div class=\"felement\">
+                                  <input type=\"button\" class=\"fp-btn-choose\" value=\"" .
+                        get_string("choosebackgroundimage", "qtype_drawing") . "\"
+                                   name=\"qtype_drawing_image_filechoose_another\">
+                                  <br /><br /><img src='$finalbackground' class=\"img-thumbnail\"></div></div>"
                 );
             }
         }
@@ -411,40 +438,50 @@ class qtype_drawing_edit_form extends question_edit_form {
     }
 
     /**
-     * Call JavaScript to initialize form handling.
+     * Wire up the JavaScript used by the drawing edit form.
+     *
+     * @return void
      */
     public function js_call() {
-        $drawingconfig = get_config('qtype_drawing');
         global $PAGE;
-        $PAGE->requires->yui_module(
-            'moodle-qtype_drawing-form',
-            'Y.Moodle.qtype_drawing.form.qtype_drawing_size_listener',
+        $drawingconfig = get_config('qtype_drawing');
+
+        // Load strings for JS usage.
+        qtype_drawing_renderer::translate_to_js($PAGE);
+
+        // Call the AMD module.
+        $PAGE->requires->js_call_amd(
+            'qtype_drawing/form',
+            'initSizeListener',
             [$drawingconfig->defaultcanvaswidth, $drawingconfig->defaultcanvasheight]
         );
+
         if (isset($this->question->id)) {
             $qid = $this->question->id;
         } else {
             $qid = 0;
         }
-        qtype_drawing_renderer::translate_to_js($PAGE);
-        $PAGE->requires->jquery();
+
         if ($qid == 0) {
-            $PAGE->requires->yui_module('moodle-qtype_drawing-form', 'Y.Moodle.qtype_drawing.form.newquestion', []);
+            $PAGE->requires->js_call_amd('qtype_drawing/form', 'newquestion', []);
         } else {
-            $PAGE->requires->yui_module(
-                'moodle-qtype_drawing-form',
-                'Y.Moodle.qtype_drawing.form.editquestion',
-                [$qid, $this->question->options->backgroundheight,
-                $this->question->options->backgroundwidth]
+            // Ensure options exist to prevent warnings.
+            $bgheight = isset($this->question->options->backgroundheight) ? $this->question->options->backgroundheight : 0;
+            $bgwidth = isset($this->question->options->backgroundwidth) ? $this->question->options->backgroundwidth : 0;
+
+            $PAGE->requires->js_call_amd(
+                'qtype_drawing/form',
+                'editquestion',
+                [$qid, $bgheight, $bgwidth]
             );
         }
     }
 
     /**
-     * Preprocess the question data before display.
+     * Perform preprocessing of the question data before the form is displayed.
      *
-     * @param stdClass $question
-     * @return stdClass
+     * @param object $question The question data being edited.
+     * @return object The processed question data.
      */
     protected function data_preprocessing($question) {
         global $PAGE;
@@ -456,11 +493,11 @@ class qtype_drawing_edit_form extends question_edit_form {
     }
 
     /**
-     * Validate the form data.
+     * Validate the submitted form data.
      *
-     * @param array $data
-     * @param array $files
-     * @return array
+     * @param array $data The submitted data.
+     * @param array $files The submitted files.
+     * @return array Array of error messages, empty if there are none.
      */
     public function validation($data, $files) {
         global $USER;

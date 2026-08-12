@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Configuration settings for the drawing question type.
+ * Admin settings for the drawing question type.
  *
  * @package qtype_drawing
  * @author Amr Hourani amr.hourani@id.ethz.ch
@@ -31,24 +31,7 @@ if ($ADMIN->fulltree) {
     $settings->add(
         new admin_setting_heading('configintro', '', get_string('configintro', 'qtype_drawing'))
     );
-    // Teachers can chose which drawing mode?.
-    $settings->add(
-        new admin_setting_configcheckbox(
-            'qtype_drawing/allowteachertochosemode',
-            get_string('allowteachertochosemode', 'qtype_drawing'),
-            get_string('allowteachertochosemode_help', 'qtype_drawing'),
-            0
-        )
-    );
-    // Teachers can allow Eraser?.
-    $settings->add(
-        new admin_setting_configcheckbox(
-            'qtype_drawing/enableeraser',
-            get_string('enableeraser', 'qtype_drawing'),
-            get_string('enableeraser_help', 'qtype_drawing'),
-            0
-        )
-    );
+
     // Default canvas width.
     $settings->add(
         $x = new admin_setting_configtext(
@@ -69,6 +52,82 @@ if ($ADMIN->fulltree) {
             400,
             PARAM_INT,
             4
+        )
+    );
+
+    // Default pen size.
+    $pensizechoices = [];
+    for ($i = 1; $i < 100; $i++) {
+        $pensizechoices[$i] = $i . 'px';
+    }
+    $settings->add(
+        new admin_setting_configselect(
+            'qtype_drawing/defaultpensize',
+            get_string('defaultpensize', 'qtype_drawing'),
+            get_string('defaultpensize_help', 'qtype_drawing'),
+            10,
+            $pensizechoices
+        )
+    );
+
+    // Add setting questionembed.
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'qtype_drawing/questionembed',
+            get_string('questionembed', 'qtype_drawing'),
+            get_string('questionembed_help', 'qtype_drawing'),
+            1
+        )
+    );
+
+    // Drawing tool configuration: instance-wide defaults for which canvas tools students see.
+    // Teachers can override these per question in the edit form. Default 1 (shown) for all tools.
+    $settings->add(
+        new admin_setting_heading(
+            'qtype_drawing/drawingtoolsheading',
+            get_string('drawingtoolconfig', 'qtype_drawing'),
+            get_string('drawingtoolconfig_help', 'qtype_drawing')
+        )
+    );
+    foreach (qtype_drawing_tool_names() as $tool) {
+        $settings->add(
+            new admin_setting_configcheckbox(
+                'qtype_drawing/' . $tool,
+                get_string('showtool_' . $tool, 'qtype_drawing'),
+                get_string('showtool_' . $tool . '_help', 'qtype_drawing'),
+                1
+            )
+        );
+    }
+
+    // Add setting colorsjson - textarea.
+    $defaultjson = '{"colors":[' .
+        '{"hex":"#336699","avail_student":true,"avail_trainer":true,"def_student":false,"def_trainer":false},' .
+        '{"hex":"#456","avail_student":true,"avail_trainer":true,"def_student":false,"def_trainer":false},' .
+        '{"hex":"#ccc","avail_student":true,"avail_trainer":true,"def_student":true,"def_trainer":false},' .
+        '{"hex":"#ee0","avail_student":false,"avail_trainer":true,"def_student":false,"def_trainer":false},' .
+        '{"hex":"#f00","avail_student":false,"avail_trainer":true,"def_student":false,"def_trainer":true}' .
+        '],"globalSettings":{"trainerAvailable":true,"studentAvailable":true}}';
+    $settings->add(
+        new admin_setting_configtextarea(
+            'qtype_drawing/colorsjson',
+            get_string('colors:config', 'qtype_drawing'),
+            get_string('colors:config_help', 'qtype_drawing'),
+            $defaultjson,
+            PARAM_RAW
+        )
+    );
+
+    $PAGE->requires->js_call_amd('qtype_drawing/color_config', 'init', ['id_s_qtype_drawing_colorsjson']);
+
+    // Add setting colorhighlighter - text.
+    $settings->add(
+        new admin_setting_configtext(
+            'qtype_drawing/colorhighlighter',
+            get_string('color:highlighter', 'qtype_drawing'),
+            get_string('color:highlighter_help', 'qtype_drawing'),
+            '#ff0',
+            PARAM_RAW
         )
     );
 }

@@ -15,7 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides the information to backup drawing questions
  *
  * @package qtype
  * @subpackage drawing
@@ -79,7 +78,7 @@ class backup_qtype_drawing_plugin extends backup_qtype_plugin {
 
     /**
      * Returns one array with filearea => mappingname elements for the qtype.
-     * Used by {@see backup_qtype_plugin::get_components_and_fileareas()} to know about all the qtype
+     * Used by get_components_and_fileareas to know about all the qtype
      * files to be processed both in backup and restore.
      */
     public static function get_qtype_fileareas() {

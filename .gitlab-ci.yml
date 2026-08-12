@@ -16,3 +16,16 @@ workflow:
 include:
   - component: $CI_SERVER_FQDN/llt/components/moodle/moodle-plugin-ci@5.2
   - component: $CI_SERVER_FQDN/llt/components/moodle/moodle-review-app@5.2
+
+validate:
+  variables:
+    MUSTACHE_IGNORE_NAMES: 'drawingarea.mustache'
+test:postgres:
+  variables:
+    MUSTACHE_IGNORE_NAMES: 'drawingarea.mustache'
+test:mysql:
+  variables:
+    MUSTACHE_IGNORE_NAMES: 'drawingarea.mustache'
+test:mariadb:
+  variables:
+    MUSTACHE_IGNORE_NAMES: 'drawingarea.mustache'

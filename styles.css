@@ -1,6 +1,5 @@
 /*
- * @package    qtype
- * @subpackage drawing
+ * @package    qtype_drawing
  * @copyright  ETHZ LET <amr.hourani@id.ethz.ch>
  * @license  http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
 */
@@ -8,6 +7,7 @@
 .page {
     touch-action: none;
     -ms-touch-action: none;
+
 }
 
 #fitem_id_qtype_drawing_textarea {
@@ -16,6 +16,18 @@
 
 .qtype_drawing_textarea {
     display: none;
+}
+
+/* The "Save annotation" button sits in the iframe annotation drawer (#tools_top,
+   145px usable width). Long locale labels (e.g. German "Annotation speichern")
+   must wrap and stay inside the drawer instead of overflowing it. The iframe
+   forces box-sizing:content-box !important on everything, so override it here
+   (higher specificity) so the button's padding is counted within max-width. */
+#tool_saveannotation {
+    box-sizing: border-box !important; /* stylelint-disable-line declaration-no-important */
+    max-width: calc(100% - 5px);
+    white-space: normal;
+    overflow-wrap: break-word;
 }
 
 .fitem_id_qtype_drawing_textarea_id_0 {
@@ -109,13 +121,29 @@
 .qtype_drawing_togglebutton {
     position: absolute;
     cursor: pointer;
-    right: -6px;
+    text-align: center;
+    /*right: -6px;
     top: -6px;
     padding-bottom: 8px;
-    width: 32px;
+    width: 32px;*/
+    right: 0;
+    top: 0;
+    width: 48px;
+    height: 48px;
+    padding-top: 6px;
     z-index: 3;
-    /* stylelint-disable-next-line function-url-scheme-disallowed-list */
-    background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pg0KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgdmlld0JveD0iMCAwIDQ3My45MzEgNDczLjkzMSIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNDczLjkzMSA0NzMuOTMxOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQoNCg0KPGc+DQoJPHBhdGggc3R5bGU9ImZpbGw6IzE4OTBmZjsiIGQ9Ik0yNDkuNDU5LDIxNy43MThjMTguMTE4LDE4LjExOCwzOC42NTItMTEuODMxLDQ5Ljk5NC0yMy4xNzMNCgkJYzEwLjg1OS0xMC44NTksMjEuNzIxLTIxLjcyNSwzMi41OC0zMi41ODNjMS4wMSwxMS4zNTIsMi4wOTksMjIuNzA5LDMuNzcyLDMzLjk0OWMyLjY1MywxNy44NjcsMjQuNzgyLDI0LjU0MiwzMi45NDYsOC44MDENCgkJYzAuODQyLTEuMTE5LDEuMzgxLTIuNTIyLDEuNTk0LTQuMTU3YzAuMzc0LTEuNTIzLDAuMzgyLTIuOTIyLDAuMDc5LTQuMTc2Yy0wLjI5Mi0xNC43MjQtMC41ODQtMjkuNDQ4LTAuODc2LTQ0LjE3NQ0KCQljLTAuMjg0LTE0LjM1MywxLjY0My0yOS45NTMtMy42MTEtNDMuNDMxYy0wLjIwNi0wLjc2LTAuNDY4LTEuNTM0LTAuODYxLTIuMzE2Yy0xLjA1OS0yLjEyMi00LjUzOS04Ljk3Ni0wLjEwOS0wLjExNg0KCQljLTEuMjY1LTIuNTIyLTMuNTg4LTMuOTc0LTYuMTQ4LTQuNTEzYy0xMi40MDgtNC43MDctMjYuMTctMy4xNDctMzkuNDU3LTMuNDEyYy0xNi41MDEtMC4zMjktMzMuMDAyLTAuNjU1LTQ5LjUwMy0wLjk5Mg0KCQljLTE5LjA2OC0wLjM4Mi0xOS43NDUsMjQuMTIzLTUuODE4LDMyLjI4YzYuOTU2LDQuMDc5LDE4LjE0LDMuNjExLDI1Ljg2Myw0LjQwNGM0Ljk2OSwwLjUxMyw5LjkzOCwwLjk3NywxNC45MTUsMS40NjMNCgkJYy0xMC43OTUsMTAuNzg3LTIxLjU4MiwyMS41NzktMzIuMzY2LDMyLjM2MkMyNjEuMTI2LDE3OS4yNTMsMjMxLjM5NCwxOTkuNjUzLDI0OS40NTksMjE3LjcxOHoiICAvPg0KCTxwYXRoIHN0eWxlPSJmaWxsOiMxODkwZmY7IiBkPSJNOTYuNzM2LDE5OC4wMTRjLTAuMzgyLDE5LjA2OCwyNC4xMTYsMTkuNzQ1LDMyLjI3Myw1LjgxOGM0LjA3OS02Ljk1NiwzLjYxMS0xOC4xMzMsNC40LTI1Ljg2Mw0KCQljMC41MTMtNC45NjUsMC45OC05LjkzOCwxLjQ2My0xNC45MDdjMTAuNzg3LDEwLjc4NywyMS41NzUsMjEuNTgyLDMyLjM2NiwzMi4zNjZjMTEuMzE5LDExLjMyNiwzMS43MjYsNDEuMDU1LDQ5Ljc5OSwyMi45ODYNCgkJYzE4LjExLTE4LjExLTExLjgzOS0zOC42NDUtMjMuMTgtNDkuOTljLTEwLjg1OS0xMC44NTktMjEuNzIxLTIxLjcyMS0zMi41ODctMzIuNTc5YzExLjM1Ni0xLjAxNCwyMi43MTItMi4xMDMsMzMuOTUzLTMuNzcyDQoJCWMxNy44NjctMi42NTcsMjQuNTI3LTI0Ljc3NCw4LjgwOC0zMi45NWMtMS4xMTktMC44MzQtMi41MjItMS4zNzMtNC4xNTctMS41OTRjLTEuNTI3LTAuMzc0LTIuOTMtMC4zODItNC4xOTUtMC4wNzkNCgkJYy0xNC43MiwwLjI5Mi0yOS40MzYsMC41ODQtNDQuMTY0LDAuODc2Yy0xNC4zMDksMC4yODQtMjkuODY3LTEuNjMxLTQzLjMyMiwzLjU3Yy0wLjYyMSwwLjE1Ny0xLjIyNywwLjM5Ny0xLjgyNiwwLjcNCgkJYy0wLjE5OCwwLjA4Mi0wLjQsMC4xMzEtMC41OTEsMC4yMjVjMC4wMywwLjAxNSwwLjA2NywwLjAyNiwwLjEwMSwwLjA0MWMtMC4xMDksMC4wNi0wLjIxMywwLjEwNS0wLjMxNCwwLjE2OA0KCQljMC42NjYtMC45MDYsMC41Mi0wLjk5NS0xLjkwOCwxLjQzM2MtMS41NTcsMS41NTctMi4zNzYsMy4yOTYtMi42OSw1LjA1OWMtNC40OTQsMTIuMjg0LTIuOTc1LDI1Ljg3OC0zLjIzNywzOQ0KCQlDOTcuMzk0LDE2NS4wMTUsOTcuMDY1LDE4MS41MTMsOTYuNzM2LDE5OC4wMTR6Ii8+DQoJPHBhdGggc3R5bGU9ImZpbGw6IzE4OTBmZjsiIGQ9Ik0xMDMuNzgxLDM2NC4yMzhjMCwwLDAtMC4wMDctMC4wMDctMC4wMDdDMTA1LjI2MywzNjUuNzEyLDEwNi42NTEsMzY3LjEwOCwxMDMuNzgxLDM2NC4yMzh6Ii8+DQoJPHBhdGggc3R5bGU9ImZpbGw6IzE4OTBmZjsiIGQ9Ik0xMDMuNzY3LDM2NC4yMjNjMC4wMDcsMCwwLjAwNywwLjAwNCwwLjAwNywwLjAwNEMxMDIuMjE3LDM2Mi42NjYsMTAwLjU3OSwzNjEuMDM1LDEwMy43NjcsMzY0LjIyMw0KCQl6Ii8+DQoJPHBhdGggc3R5bGU9ImZpbGw6IzE4OTBmZjsiIGQ9Ik0yMTcuNzI5LDI1MC44NDRjLTE4LjExOC0xOC4xMTgtMzguNjUyLDExLjgzMS00OS45OTQsMjMuMTczDQoJCWMtMTAuODU5LDEwLjg2Mi0yMS43MjEsMjEuNzI4LTMyLjU3OSwzMi41ODdjLTEuMDEtMTEuMzU2LTIuMDk5LTIyLjcxMi0zLjc3Mi0zMy45NTNjLTIuNjUzLTE3Ljg2My0yNC43NzQtMjQuNTI3LTMyLjk0Ni04LjgwOA0KCQljLTAuODM0LDEuMTIzLTEuMzgxLDIuNTI5LTEuNTk0LDQuMTY1Yy0wLjM4MiwxLjUyNy0wLjM4MiwyLjkzLTAuMDc5LDQuMTg3YzAuMjkyLDE0LjcyLDAuNTg0LDI5LjQ0LDAuODc2LDQ0LjE2NA0KCQljMC4yNzcsMTQuMDc3LTEuNTcyLDI5LjM0NywzLjMxMSw0Mi42NDFjMC4zMDcsMS43NzQsMS4xMjYsMy41MjUsMi42OTgsNS4wOTZjMC4wNTIsMC4wNTYsMC4wNzksMC4wODIsMC4xMzEsMC4xMzgNCgkJYzEuNTU3LDEuNTQyLDMuMjg5LDIuMzY1LDUuMDM2LDIuNjc1YzEyLjI5Miw0LjUwNSwyNS44OTMsMi45ODIsMzkuMDEyLDMuMjQ0YzE2LjUwMSwwLjMyOSwzMy4wMDIsMC42NTksNDkuNTAzLDAuOTg4DQoJCWMxOS4wNjgsMC4zNzgsMTkuNzQ1LTI0LjExOSw1LjgxOC0zMi4yOGMtNi45NTYtNC4wNzktMTguMTQtMy42MDctMjUuODYzLTQuNGMtNC45NjktMC41MTMtOS45MzgtMC45NzMtMTQuOTE1LTEuNDYzDQoJCWMxMC43OTUtMTAuNzg4LDIxLjU4Mi0yMS41NzUsMzIuMzY2LTMyLjM2MkMyMDYuMDc0LDI4OS4zMDksMjM1Ljc5NSwyNjguOTA5LDIxNy43MjksMjUwLjg0NHoiLz4NCgk8cGF0aCBzdHlsZT0iZmlsbDojMTg5MGZmOyIgZD0iTTM3MC40NiwyNzAuNTRjMC4zODItMTkuMDY4LTI0LjExNi0xOS43NDktMzIuMjgtNS44MThjLTQuMDcxLDYuOTU2LTMuNjAzLDE4LjEzMy00LjQsMjUuODU5DQoJCWMtMC41MTMsNC45NjktMC45NzMsOS45NDItMS40NjMsMTQuOTExYy0xMC43ODgtMTAuNzkxLTIxLjU3NS0yMS41ODItMzIuMzU5LTMyLjM2NmMtMTEuMzI2LTExLjMyNi0zMS43My00MS4wNTUtNDkuNzk5LTIyLjk4Ng0KCQljLTE4LjExOCwxOC4xMSwxMS44MzEsMzguNjQ5LDIzLjE3Myw0OS45ODZjMTAuODY2LDEwLjg2MiwyMS43MjgsMjEuNzI1LDMyLjU4NywzMi41ODNjLTExLjM1NiwxLjAxNC0yMi43MTIsMi4xMDMtMzMuOTUzLDMuNzcyDQoJCWMtMTcuODY3LDIuNjU3LTI0LjUyNywyNC43NzQtOC44MDEsMzIuOTVjMS4xMTksMC44MzQsMi41MjIsMS4zNzMsNC4xNSwxLjU5NGMxLjUzNCwwLjM3NCwyLjkzNywwLjM4Miw0LjE5NSwwLjA3OQ0KCQljMTQuNzItMC4yOTIsMjkuNDQ0LTAuNTg0LDQ0LjE2NC0wLjg3NmMxNC4wNzctMC4yODEsMjkuMzUsMS41NjQsNDIuNjQxLTMuMzExYzEuNzc3LTAuMzA3LDMuNTI4LTEuMTI2LDUuMS0yLjY5OA0KCQljMi40MjUtMi40MzIsMi4zMzktMi41NzQsMS40MjYtMS45MDFjMC4wNi0wLjEwNSwwLjEwOC0wLjIxNywwLjE2OC0wLjMyMmMwLjAxNSwwLjAzNywwLjAzLDAuMDcxLDAuMDQ1LDAuMTAxDQoJCWMwLjA4Ni0wLjIwMiwwLjE0Ni0wLjQwOCwwLjIzNi0wLjYxYzAuMjg0LTAuNTY1LDAuNTEzLTEuMTUyLDAuNjc0LTEuNzQ3YzQuODMxLTEyLjQ3MSwzLjI0NC0yNi4zMjcsMy41MS0zOS43MDQNCgkJQzM2OS44MDIsMzAzLjUzOSwzNzAuMTMxLDI4Ny4wNDIsMzcwLjQ2LDI3MC41NHoiLz4NCjwvZz4NCg0KPC9zdmc+DQo=) no-repeat;
+    color: #999;
+    /* Hidden until the drawing editor finishes loading; drawingarea.js reveals it (revealFullscreenToggle). */
+    visibility: hidden;
+}
+
+.qtype_drawing_togglebutton i {
+    font-size: 28px;
+}
+
+.qtype_drawing_togglebutton img {
+    width: 30px;
+    height: 30px;
 }
 
 .qtype_drawing_maximized {
@@ -127,4 +155,334 @@
     border: 0 none;
     z-index: 99999999999;
     overscroll-behavior: contain;
+}
+
+/* ============================================
+   Grader Fullscreen Layout Styles
+   ============================================ */
+
+.qtype-drawing-grader-fullscreen {
+    display: grid;
+    /* Middle 6px track is the draggable splitter; the sidebar width is driven by
+       a CSS custom property so the divider can resize the panels. The 32% fallback
+       keeps today's split whenever the property is unset (initial load / reload)
+       — the chosen width is session-only and is never persisted. */
+    grid-template-columns: minmax(0, 1fr) 6px var(--qtype-drawing-sidebar-width, 32%);
+    grid-template-rows: 1fr auto;
+    height: calc(100vh - 2px);
+    min-height: 500px;
+}
+
+.qtype-drawing-grader-canvas {
+    grid-area: 1 / 1 / 2 / 2;
+    overflow: auto;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Stretch the core question-render chain (.que > .content > .formulation >
+   #qtype_drawing_attr_id_* > .qtype_drawing_drawingwrapper) so the drawing area
+   fills the canvas cell down to the bottom of the page. Scoped to the grader
+   canvas so the student attempt view and review page are untouched. The small
+   .qtext keeps its natural height at the top; the wrapper takes the rest. */
+.qtype-drawing-grader-canvas > .que,
+.qtype-drawing-grader-canvas > .que > .content,
+.qtype-drawing-grader-canvas > .que > .content > .formulation,
+.qtype-drawing-grader-canvas .formulation > [id^="qtype_drawing_attr_id_"],
+.qtype-drawing-grader-canvas .qtype_drawing_drawingwrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    /* Turning the chain into flex columns makes each level a shrink-wrapping
+       flex item; force full width so the drawing keeps the whole canvas column
+       (the theme sets align-items:start on .que, defeating cross-axis stretch). */
+    width: 100%;
+}
+
+.qtype-drawing-grader-canvas > .que,
+.qtype-drawing-grader-canvas > .que > .content,
+.qtype-drawing-grader-canvas > .que > .content > .formulation,
+.qtype-drawing-grader-canvas .formulation > [id^="qtype_drawing_attr_id_"] {
+    display: flex;
+    flex-direction: column;
+}
+
+.qtype-drawing-grader-canvas > .que {
+    margin-bottom: 0;
+}
+
+.qtype-drawing-grader-canvas .qtype_drawing_drawingwrapper {
+    padding-bottom: 0;
+}
+
+.qtype-drawing-grader-canvas .qtype_drawing_drawingwrapper iframe {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
+/* Draggable vertical divider (middle grid column). */
+.qtype-drawing-grader-splitter {
+    grid-area: 1 / 2 / 2 / 3;
+    position: relative;
+    background-color: #dee2e6;
+    cursor: ew-resize;
+    z-index: 5;
+    user-select: none;
+    touch-action: none;
+}
+
+/* Centered grip indicator, echoing the question-text bar handle. */
+.qtype-drawing-grader-splitter::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 28px;
+    transform: translate(-50%, -50%);
+    background-color: #adb5bd;
+    border-radius: 1px;
+}
+
+.qtype-drawing-grader-splitter:hover,
+.qtype-drawing-grader-splitter:focus {
+    background-color: #adb5bd;
+    outline: none;
+}
+
+.qtype-drawing-grader-splitter:hover::before,
+.qtype-drawing-grader-splitter:focus::before {
+    background-color: #6c757d;
+}
+
+/* While dragging, stop the drawing iframe from swallowing the pointer stream
+   (mirrors mod_assign's resize safeguard). */
+.qtype-drawing-grader-fullscreen.is-resizing iframe {
+    pointer-events: none;
+}
+
+.qtype-drawing-grader-sidebar {
+    grid-area: 1 / 3 / 2 / 4;
+    background-color: #fff;
+    border-left: 1px solid #dee2e6;
+    overflow-y: auto;
+}
+
+.grader-sidebar-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.grader-sidebar-content .student-info {
+    flex-shrink: 0;
+}
+
+.grader-sidebar-content form {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.grader-sidebar-content .form-group:last-of-type {
+    margin-top: auto;
+}
+
+.qtype-drawing-grader-nav {
+    grid-area: 2 / 1 / 3 / 4;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+/* View mode: default = both; classes override grid + visibility */
+.qtype-drawing-grader-fullscreen.viewmode-canvas {
+    grid-template-columns: 1fr 0 0;
+}
+
+.qtype-drawing-grader-fullscreen.viewmode-canvas .qtype-drawing-grader-sidebar {
+    display: none;
+}
+
+.qtype-drawing-grader-fullscreen.viewmode-sidebar {
+    grid-template-columns: 0 0 1fr;
+}
+
+.qtype-drawing-grader-fullscreen.viewmode-sidebar .qtype-drawing-grader-canvas {
+    display: none;
+}
+
+.qtype-drawing-grader-fullscreen.viewmode-sidebar .qtype-drawing-grader-sidebar {
+    grid-area: 1 / 1 / 2 / 4;
+    border-left: none;
+}
+
+/* The splitter only makes sense when both panels are visible. */
+.qtype-drawing-grader-fullscreen.viewmode-canvas .qtype-drawing-grader-splitter,
+.qtype-drawing-grader-fullscreen.viewmode-sidebar .qtype-drawing-grader-splitter {
+    display: none;
+}
+
+.qtype-drawing-grader-viewmode-btn.active {
+    background-color: #6c757d;
+    color: #fff;
+    border-color: #6c757d;
+}
+
+/* Feedback editor fullscreen toggle */
+.qtype-drawing-feedback-fullscreen-btn {
+    line-height: 1;
+}
+
+.qtype-drawing-feedback-wrap.editor-fullscreen {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #fff;
+    z-index: 1080;
+    padding: 1rem;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.qtype-drawing-feedback-wrap.editor-fullscreen > textarea,
+.qtype-drawing-feedback-wrap.editor-fullscreen .editor_atto_wrap,
+.qtype-drawing-feedback-wrap.editor-fullscreen .editor_atto_content,
+.qtype-drawing-feedback-wrap.editor-fullscreen .tox-tinymce {
+    flex: 1 1 auto;
+    /* The !important is needed to beat the inline height TinyMCE/Atto set on
+       their containers, so the editor can flex-fill the fullscreen wrapper. */
+    height: auto !important; /* stylelint-disable-line declaration-no-important */
+    min-height: 60vh;
+}
+
+/* Quick grade buttons */
+.quick-grade-btn.active {
+    font-weight: bold;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Hide Moodle chrome in embedded layout for grader */
+.pagelayout-embedded .qtype-drawing-grader-fullscreen {
+    margin: 0;
+}
+
+.pagelayout-embedded #page-wrapper {
+    padding: 0;
+}
+
+.pagelayout-embedded #page-content {
+    padding: 0;
+}
+
+.pagelayout-embedded .main-inner {
+    padding: 0;
+}
+
+/* Grader overview page styles */
+.qtype-drawing-grader-overview .card {
+    border-radius: 0.5rem;
+}
+
+.qtype-drawing-overview-sortable th[data-sortable] {
+    cursor: pointer;
+    user-select: none;
+}
+
+.qtype-drawing-overview-sortable th[data-sortable]::after {
+    content: " \2195";
+    opacity: 0.4;
+    font-size: 0.85em;
+}
+
+.qtype-drawing-overview-sortable th[aria-sort="ascending"]::after {
+    content: " \2191";
+    opacity: 1;
+}
+
+.qtype-drawing-overview-sortable th[aria-sort="descending"]::after {
+    content: " \2193";
+    opacity: 1;
+}
+
+.qtype-drawing-grader-overview .card-title {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.qtype-drawing-grader-overview .table th {
+    border-top: none;
+}
+
+
+#page-mod-quiz-report .que.drawing.manualgraded > .info {
+    display: none;
+}
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .qtype-drawing-grader-fullscreen {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr auto;
+    }
+
+    /* Stacked layout has no vertical divider to drag. */
+    .qtype-drawing-grader-splitter {
+        display: none;
+    }
+
+    .qtype-drawing-grader-canvas {
+        grid-area: 1 / 1 / 2 / 2;
+        max-height: 50vh;
+    }
+
+    .qtype-drawing-grader-sidebar {
+        grid-area: 2 / 1 / 3 / 2;
+        border-left: none;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .qtype-drawing-grader-nav {
+        grid-area: 3 / 1 / 4 / 2;
+    }
+
+    .qtype-drawing-grader-fullscreen.viewmode-canvas,
+    .qtype-drawing-grader-fullscreen.viewmode-sidebar {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   Grader loading overlay
+   ============================================ */
+
+.qtype-drawing-grader-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    opacity: 1;
+    transition: opacity 250ms ease;
+}
+
+.qtype-drawing-grader-loading.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.qtype-drawing-grader-loading-inner {
+    text-align: center;
+    max-width: 22rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .qtype-drawing-grader-loading {
+        transition: none;
+    }
 }

@@ -1,0 +1,109 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template qtype_drawing/formulation.mustache
+
+    Template purpose and description.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * none
+
+    Example context (json):
+    {
+        "uniqueattemptinputname": "id_qtype_drawing_attempt_1",
+        "inputname": "qtype_drawing_attempt_1",
+        "questionid": 1,
+        "questiontext": "Question text",
+        "currentanswer": "Answer text",
+        "original_student_answer": "Original answer text",
+        "original_bg_value": "Original background image value",
+        "original_bg_type": "original_bg_type",
+        "iframeurl": "https://example.com/drawingarea.php?attempt=1&amp;questionid=1&amp;sesskey=1234567890"
+    }
+}}
+{{^questionembed}}
+    <div class="qtext">
+        {{{questiontext}}}
+    </div>
+{{/questionembed}}
+
+{{#validationerror}}
+    <div class="validationerror">{{{.}}}</div>
+{{/validationerror}}
+
+<div class="qtype_drawing_id_{{questionid}}" data-canvas-instance-id="{{canvasinstanceid}}" id="qtype_drawing_attr_id_{{questionid}}">
+    <input type="hidden" name="{{uniqueattemptinputname}}" value="{{uniqueattemptid}}">
+    <input type="hidden" class="qtype_drawing_input" name="qtype_drawingsaving_status_{{questionid}}" value="0" id="id_qtype_drawingsaving_status_{{questionid}}">
+
+    {{#readonly}}
+    {{! READ ONLY VIEW (Student Review) }}
+
+        {{#showannotationtoggle}}
+            <span style="float:right">
+                <input type="button" value="{{#str}}showanswer,qtype_drawing{{/str}}" id="id_qtype_drawing_toggle_annotation_{{attemptuniqueid}}">
+            </span>
+        {{/showannotationtoggle}}
+        <div class="qtype_drawing_drawingwrapper_student"
+             id="qtype_drawing_drawingwrapper_{{attemptuniqueid}}"
+             style="height:{{height}}px; width:{{width}}px;">
+            {{! This is the default view shown to student/teacher }}
+            <div id="qtype_drawing_final_student_toggle_answer_{{attemptuniqueid}}" style="display: none">
+                {{{student_answer_svg_content}}}
+            </div>
+            {{! This is the annotated view, hidden by default }}
+            <div id="qtype_drawing_final_student_toggle_annotation_{{attemptuniqueid}}" style="display: block">
+                {{{annotation_svg_content}}}
+            </div>
+        </div>
+    {{/readonly}}
+
+    {{^readonly}}
+    {{! EDITABLE VIEW (Student Attempting OR Teacher Grading) }}
+
+    {{! These textareas are required by drawingarea.php to validate annotation context }}
+        <textarea id="qtype_drawing_original_bg_id_{{attemptuniqueid}}" style="display:none">{{original_bg_value}}</textarea>
+        <textarea id="qtype_drawing_original_stdanswer_id_{{attemptuniqueid}}" style="display:none">{{original_student_answer}}</textarea>
+        <input type="hidden" id="qtype_drawing_real_org_bg_{{attemptuniqueid}}" style="display:none" value="{{original_bg_type}}">
+
+        <textarea class="qtype_drawing_textarea" name="{{inputname}}" id="qtype_drawing_textarea_id_{{attemptuniqueid}}" style="display:none" data-info="{{textarea_data_info}}">{{currentanswer}}</textarea>
+
+        <input type="hidden" name="qtype_drawing_drawingevent_{{attemptuniqueid}}" id="qtype_drawing_drawingevent_{{attemptuniqueid}}" value="">
+        <input type="hidden" name="qtype_drawing_shouldreload_{{attemptuniqueid}}" id="qtype_drawing_shouldreload_{{attemptuniqueid}}" value="">
+
+        <div class="qtype_drawing_drawingwrapper" id="qtype_drawing_drawingwrapper_{{attemptuniqueid}}">
+            <span id="quiz_timer_drawing_{{attemptuniqueid}}" style="display:none; background-color:#fff"></span>
+            <span class="qtype_drawing_togglebutton" id="qtype_drawing_togglebutton_id_{{attemptuniqueid}}">{{#pix}}e/fullpage,core{{/pix}}</span>
+            <iframe
+                    src="{{{iframeurl}}}"
+                    id="qtype_drawing_editor_{{attemptuniqueid}}"
+                    onload=""
+                    style="border:0; width:100%; height:100%;">
+            </iframe>
+        </div>
+
+        <textarea style="display:none" id="qtype_drawing_background_image_value_{{attemptuniqueid}}">{{backgroundimagevalue}}</textarea>
+        <input type="hidden" style="display:none" id="qtype_drawing_background_image_type_{{attemptuniqueid}}" value="{{backgroundimagetype}}">
+        <input type="hidden" style="display:none" id="qtype_drawing_background_image_width_{{attemptuniqueid}}" value="{{width}}">
+        <input type="hidden" style="display:none" id="qtype_drawing_background_image_height_{{attemptuniqueid}}" value="{{height}}">
+    {{/readonly}}
+</div>

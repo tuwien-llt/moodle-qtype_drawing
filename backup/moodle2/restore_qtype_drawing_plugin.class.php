@@ -15,7 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides the information to restore drawing questions
  *
  * @package qtype
  * @subpackage drawing
@@ -54,7 +53,6 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
      * Process the qtype/drawing element.
      *
      * @param array $data
-     * @return void
      */
     public function process_drawing($data) {
         global $DB;
@@ -82,7 +80,6 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
      * Process the qtype/drawing drawingannotation element.
      *
      * @param array $data
-     * @return void
      */
     public function process_drawingannotation($data) {
         global $DB;
@@ -119,7 +116,7 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
     }
 
     /**
-     * Called after restoring
+     * Executed after all the questions of the restore have been processed.
      *
      * @return void
      */
@@ -130,12 +127,12 @@ class restore_qtype_drawing_plugin extends restore_qtype_plugin {
     }
 
     /**
-     * Do any re-coding necessary in the response.
+     * Recode a response as part of the restore process.
      *
-     * @param int $questionid
-     * @param int $sequencenumber
-     * @param array $response
-     * @return array
+     * @param int $questionid The restored question ID.
+     * @param int $sequencenumber The step sequence number.
+     * @param array $response The response data.
+     * @return array The recoded response data.
      */
     public function recode_response($questionid, $sequencenumber, array $response) {
         if (array_key_exists('_order', $response)) {

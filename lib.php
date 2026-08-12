@@ -24,14 +24,42 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Canonical list of the per-question drawing tool visibility options.
+ *
+ * Each name is both the qtype_drawing table column and the admin default config key
+ * (qtype_drawing/<name>). Shared by settings.php, the edit form, questiontype.php and
+ * drawingarea.php so the tool set is defined in a single place.
+ *
+ * @return string[] ordered list of tool option field names
+ */
+function qtype_drawing_tool_names() {
+    return [
+        'toolselect',
+        'tooldraw',
+        'tooltext',
+        'toolhighlighter',
+        'toolline',
+        'toolrect',
+        'toolcircle',
+        'tooleraser',
+        'toolundoredo',
+    ];
+}
 
 /**
  * Checks file access for drawing questions.
+ *
+ * @param int $course Course ID.
+ * @param stdClass $cm Course module.
+ * @param context $context Context.
+ * @param string $filearea File area.
+ * @param array $args File path arguments.
+ * @param bool $forcedownload Whether to force a download by the user agent.
+ * @param array $options Other options affecting the file serving.
+ * @return bool|stored_file The stored file object (false if not found).
  */
-function qtype_drawing_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
+function qtype_drawing_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
     global $CFG;
     require_once($CFG->libdir . '/questionlib.php');
 
@@ -45,7 +73,7 @@ function qtype_drawing_pluginfile($course, $cm, $context, $filearea, $args, $for
     if (!$args) {
         $filepath = '/';
     } else {
-        $filepath = '/'.implode('/', $args).'/';
+        $filepath = '/' . implode('/', $args) . '/';
     }
 
     // Retrieve the file from the Files API.
@@ -57,5 +85,4 @@ function qtype_drawing_pluginfile($course, $cm, $context, $filearea, $args, $for
 
     // We can now send the file back to the browser - in this case with a cache lifetime of 1 day and no filtering.
     send_stored_file($file, 86400, 0, $forcedownload, $options);
-
 }

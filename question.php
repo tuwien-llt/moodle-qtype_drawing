@@ -38,66 +38,90 @@ require_once(dirname(__FILE__) . '/renderer.php');
 class qtype_drawing_question extends question_graded_by_strategy implements question_response_answer_comparer {
     /** @var string response format */
     public string $responseformat;
-    /** @var int drawingmode */
-    public $drawingmode;
     /** @var int backgrounduploaded */
     public $backgrounduploaded;
-    /** @var int background width */
+    /** @var float canvas width in pixels */
     public $backgroundwidth;
-    /** @var int background height */
+    /** @var float canvas height in pixels */
     public $backgroundheight;
-    /** @var int preserve aspect ratio */
+    /** @var int keep the background aspect ratio */
     public $preservear;
-    /** @var string drawing options */
+    /** @var string serialized drawing options */
     public $drawingoptions;
-    /** @var int allow eraser tool */
-    public $alloweraser;
+    /** @var string JSON encoded colour palette configuration */
+    public $colorsjson;
+    /** @var int default pen size */
+    public $defaultpensize;
+    /** @var string highlighter colour as a hex value */
+    public $colorhighlighter;
+    /** @var int render the question stem inside the canvas */
+    public $questionembed;
+    /** @var int hide the editor menu */
+    public $hidemenu;
+    /** @var int show the select tool */
+    public $toolselect;
+    /** @var int show the drawing (pencil) tool */
+    public $tooldraw;
+    /** @var int show the text tool */
+    public $tooltext;
+    /** @var int show the highlighter tool */
+    public $toolhighlighter;
+    /** @var int show the line tool */
+    public $toolline;
+    /** @var int show the rectangle tool */
+    public $toolrect;
+    /** @var int show the circle tool */
+    public $toolcircle;
+    /** @var int show the eraser tool */
+    public $tooleraser;
+    /** @var int show the back/forward (undo/redo) tools */
+    public $toolundoredo;
 
     /** @var array of question_answer. */
     public $answers = [];
 
     /**
-     * Constructor.
+     * Create a new drawing question with the first-matching-answer grading strategy.
      */
     public function __construct() {
         parent::__construct(new question_first_matching_answer_grading_strategy($this));
     }
 
     /**
-     * Get the expected data types for responses.
+     * Return the data expected in the response.
      *
-     * @return array
+     * @return array Expected response fields and their PARAM types.
      */
     public function get_expected_data() {
         return ['answer' => PARAM_RAW_TRIMMED, 'uniqueuattemptid' => PARAM_RAW_TRIMMED];
     }
 
     /**
-     * Summarise the student's response.
+     * Produce a plain-text summary of a response.
      *
-     * @param array $response
-     * @return string
+     * @param array $response The response data.
+     * @return string A textual summary of the response.
      */
     public function summarise_response(array $response) {
         return get_string('no_response_summary', 'qtype_drawing');
     }
-
     /**
-     * Create a behaviour for this question.
+     * Force the manually graded behaviour for this question type.
      *
-     * @param question_attempt $qa
-     * @param string $preferredbehaviour
-     * @return question_behaviour
+     * Initially added for LMDL-294. Remove at later stage.
+     *
+     * @param question_attempt $qa The question attempt.
+     * @param string $preferredbehaviour The requested behaviour.
+     * @return question_behaviour The manualgraded behaviour.
      */
     public function make_behaviour(question_attempt $qa, $preferredbehaviour) {
         return question_engine::make_behaviour('manualgraded', $qa, $preferredbehaviour);
     }
-
     /**
-     * Check whether this response is complete.
+     * Check whether the response contains a non-empty answer.
      *
-     * @param array $response
-     * @return bool
+     * @param array $response The response data.
+     * @return bool True if the response is complete.
      */
     public function is_complete_response(array $response) {
         if (array_key_exists('answer', $response)) {
@@ -107,22 +131,20 @@ class qtype_drawing_question extends question_graded_by_strategy implements ques
         }
         return false;
     }
-
     /**
-     * Check whether this response is gradable.
+     * Check whether the response can be graded.
      *
-     * @param array $response
-     * @return bool
+     * @param array $response The response data.
+     * @return bool True if the response is gradable.
      */
     public function is_gradable_response(array $response) {
         return self::is_complete_response($response);
     }
-
     /**
-     * Get the validation error for this response.
+     * Return a validation error message for an incomplete response.
      *
-     * @param array $response
-     * @return string
+     * @param array $response The response data.
+     * @return string The error message, or an empty string if the response is gradable.
      */
     public function get_validation_error(array $response) {
         if ($this->is_gradable_response($response)) {
@@ -134,9 +156,9 @@ class qtype_drawing_question extends question_graded_by_strategy implements ques
     /**
      * Check whether two responses are the same.
      *
-     * @param array $prevresponse
-     * @param array $newresponse
-     * @return bool
+     * @param array $prevresponse The previous response data.
+     * @param array $newresponse The new response data.
+     * @return bool True if both responses are equivalent.
      */
     public function is_same_response(array $prevresponse, array $newresponse) {
         return question_utils::arrays_same_at_key_missing_is_blank(
@@ -147,38 +169,36 @@ class qtype_drawing_question extends question_graded_by_strategy implements ques
     }
 
     /**
-     * Get the answers for this question.
+     * Return the answers defined for this question.
      *
-     * @return array
+     * @return array Array of question_answer objects.
      */
     public function get_answers() {
         return $this->answers;
     }
 
     /**
-     * Get the correct response for this question.
+     * Return the correct response, which does not exist for drawing questions.
      *
-     * @return null
+     * @return null Always null, as there is no automatic correct response.
      */
     public function get_correct_response() {
         return null;
     }
-
     /**
-     * Get a summary of the right answer for this question.
+     * Produce a plain-text summary of the correct answer.
      *
-     * @return string
+     * @return string A textual summary explaining there is no correct answer.
      */
     public function get_right_answer_summary() {
         return get_string('no_correct_answer_summary', 'qtype_drawing');
     }
-
     /**
-     * Compare a response with an answer.
+     * Compare a response with an answer; drawing questions are never auto-graded.
      *
-     * @param array $response
-     * @param question_answer $answer
-     * @return bool
+     * @param array $response The response data.
+     * @param question_answer $answer The answer to compare against.
+     * @return bool Always false, grading is done manually.
      */
     public function compare_response_with_answer(array $response, question_answer $answer) {
 
@@ -192,15 +212,15 @@ class qtype_drawing_question extends question_graded_by_strategy implements ques
     }
 
     /**
-     * Check file access for this question.
+     * Check whether a user may access a file belonging to this question.
      *
-     * @param question_attempt $qa
-     * @param question_display_options $options
-     * @param string $component
-     * @param string $filearea
-     * @param array $args
-     * @param bool $forcedownload
-     * @return bool
+     * @param question_attempt $qa The question attempt being displayed.
+     * @param question_display_options $options The display options.
+     * @param string $component The component of the requested file.
+     * @param string $filearea The file area of the requested file.
+     * @param array $args Remaining file path arguments; the first entry is the item ID.
+     * @param bool $forcedownload Whether the file is being downloaded.
+     * @return bool True if access is allowed.
      */
     public function check_file_access(
         $qa,

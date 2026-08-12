@@ -1,0 +1,300 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template qtype_drawing/grader_fullscreen
+
+    Template for the fullscreen drawing question grader.
+    3-column layout: drawing area (left), grading form (right), navigation (bottom).
+
+    Classes required for JS:
+    * qtype-drawing-grader-save - Save button
+    * qtype-drawing-grader-savenext - Save and next button
+
+    Data attributes required for JS:
+    * data-qubaid - Question usage ID
+    * data-slot - Question slot
+    * data-attemptid - Attempt ID
+
+    Context variables required for this template:
+    * drawing_area_html - HTML for the drawing area
+    * studentname - Student's full name
+    * userpicture - Student's profile picture HTML
+    * slot - Question slot number
+    * attemptid - Quiz attempt ID
+    * qubaid - Question usage ID
+    * currentmark - Current mark (if graded), non-localized (dot) for the number input
+    * maxmark - Maximum possible mark, non-localized (dot) for the number input's max attribute
+    * maxmarkdisplay - Maximum possible mark, localized for display in the "/ max" label
+    * comment - Current feedback comment
+    * sesskey - Session key for form submission
+    * id - Course module ID
+    * hasnext - Boolean if there's a next attempt
+    * hasprev - Boolean if there's a previous attempt
+    * prev_url - URL to previous attempt
+    * next_url - URL to next attempt
+    * overview_url - URL back to overview
+    * saveurl - URL for saving grades
+    * currentindex - Current position in attempt list
+    * totalcount - Total number of attempts
+
+    Example context (json):
+    {
+        "drawing_area_html": "<div class=\"qtype_drawing_drawingwrapper\">Drawing content here</div>",
+        "studentname": "John Doe",
+        "userpicture": "<img src=\"/user/pix.php/1/f1.jpg\" alt=\"John Doe\">",
+        "slot": 1,
+        "attemptid": 123,
+        "qubaid": 456,
+        "currentmark": "7.50",
+        "maxmark": "10.00",
+        "comment": "Good work!",
+        "commentformat": 1,
+        "sesskey": "abc123",
+        "id": 1,
+        "hasnext": true,
+        "hasprev": true,
+        "nextid": 124,
+        "previd": 122,
+        "currentindex": 2,
+        "totalcount": 5,
+        "prev_url": "/mod/quiz/report.php?id=1&mode=drawing&slot=1&attemptid=122",
+        "next_url": "/mod/quiz/report.php?id=1&mode=drawing&slot=1&attemptid=124",
+        "overview_url": "/mod/quiz/report.php?id=1&mode=drawing",
+        "saveurl": "/mod/quiz/report.php?id=1&mode=drawing&action=savegrade"
+    }
+}}
+<div class="qtype-drawing-grader-fullscreen " data-qubaid="{{qubaid}}" data-slot="{{slot}}" data-attemptid="{{attemptid}}">
+    {{! Loading overlay — hidden by JS once the iframe signals ready }}
+    <div id="qtype-drawing-grader-loading"
+         class="qtype-drawing-grader-loading"
+         role="status"
+         aria-live="polite"
+         aria-busy="true">
+        <div class="qtype-drawing-grader-loading-inner">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"
+                 aria-hidden="true"></div>
+            <div class="mt-3 fw-semibold">{{#str}}loadinggrader, qtype_drawing{{/str}}</div>
+            <div class="text-muted small mt-1">{{#str}}loadinghint, qtype_drawing{{/str}}</div>
+        </div>
+    </div>
+
+    {{! Left column: Drawing area }}
+    <div class="qtype-drawing-grader-canvas ">
+        {{{drawing_area_html}}}
+    </div>
+
+    {{! Draggable divider between the drawing and the grading sidebar }}
+    <div class="qtype-drawing-grader-splitter"
+         role="slider" aria-orientation="vertical" tabindex="0"
+         aria-valuemin="15" aria-valuemax="70" aria-valuenow="32"
+         aria-label="{{#str}}resizepanels, qtype_drawing{{/str}}"
+         title="{{#str}}resizepanels, qtype_drawing{{/str}}"></div>
+
+    {{! Right column: Grading sidebar }}
+    <div class="qtype-drawing-grader-sidebar " >
+        <div class="grader-sidebar-content p-3">
+            {{! Student info }}
+            <div class="student-info d-flex align-items-center mb-4 pb-3 border-bottom">
+                <div class="me-3">
+                    {{{userpicture}}}
+                </div>
+                <div class="flex-grow-1 me-2">
+                    <h5 class="mb-0">{{studentname}}</h5>
+                    <small class="text-muted">
+                        {{#str}}studentposition, qtype_drawing, {"current":"{{currentindex}}","total":"{{totalcount}}"}{{/str}}
+                    </small>
+                </div>
+                <div class="ms-auto" style="min-width: 8rem;">
+                    {{#hasmultipleattempts}}
+                    <label for="grader-attempt-select" class="visually-hidden">
+                        {{#str}}selectattempt, qtype_drawing{{/str}}
+                    </label>
+                    <select id="grader-attempt-select" class="form-select form-select-sm">
+                        {{#attemptoptions}}
+                        <option value="{{attemptid}}" data-url="{{url}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                        {{/attemptoptions}}
+                    </select>
+                    {{/hasmultipleattempts}}
+                    {{^hasmultipleattempts}}
+                    <small class="text-muted">{{#str}}attempt, quiz{{/str}} {{currentattemptnumber}}</small>
+                    {{/hasmultipleattempts}}
+                </div>
+            </div>
+
+            {{! Grade form }}
+            <form id="qtype-drawing-grade-form" method="post" action="{{saveurl}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="id" value="{{id}}">
+                <input type="hidden" name="slot" value="{{slot}}">
+                <input type="hidden" name="attemptid" value="{{attemptid}}">
+                <input type="hidden" name="qubaid" value="{{qubaid}}">
+                <input type="hidden" name="action" value="savegrade">
+                <input type="hidden" name="savenext" id="savenext-field" value="0">
+                <input type="hidden" name="annotation" id="annotation-field" value="">
+                <input type="hidden" name="returnurl" id="returnurl-field" value="">
+                {{#hasnext}}
+                <input type="hidden" name="next" id="next-attempt-id" value="{{nextid}}">
+                {{/hasnext}}
+
+                {{! Mark input }}
+                <div class="mb-3">
+                    <label for="grade-mark" class="form-label">{{#str}}mark, qtype_drawing{{/str}}</label>
+                    <div class="input-group">
+                        <input type="number"
+                               class="form-control"
+                               id="grade-mark"
+                               name="mark"
+                               value="{{currentmark}}"
+                               min="0"
+                               max="{{maxmark}}"
+                               step="0.01"
+                               required>
+                        <span class="input-group-text">/ {{maxmarkdisplay}}</span>
+                    </div>
+                </div>
+
+                {{! Quick grade buttons }}
+                <div class="mb-3">
+                    <label class="form-label">{{#str}}quickgrade, qtype_drawing{{/str}}</label>
+                    <div class="btn-group btn-group-sm d-flex" role="group">
+                        <button type="button" class="btn btn-outline-danger quick-grade-btn" data-grade="0">0%</button>
+                        <button type="button" class="btn btn-outline-warning quick-grade-btn" data-grade="25">25%</button>
+                        <button type="button" class="btn btn-outline-warning quick-grade-btn" data-grade="50">50%</button>
+                        <button type="button" class="btn btn-outline-info quick-grade-btn" data-grade="75">75%</button>
+                        <button type="button" class="btn btn-outline-success quick-grade-btn" data-grade="100">100%</button>
+                    </div>
+                </div>
+
+                {{! Comment textarea }}
+                <div class="mb-3 qtype-drawing-feedback-wrap">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label for="grade-comment" class="form-label mb-0">{{#str}}feedback, qtype_drawing{{/str}}</label>
+                        <button type="button"
+                                class="btn btn-sm btn-link p-0 qtype-drawing-feedback-fullscreen-btn"
+                                title="{{#str}}feedback_fullscreen, qtype_drawing{{/str}}"
+                                aria-label="{{#str}}feedback_fullscreen, qtype_drawing{{/str}}"
+                                aria-pressed="false">
+                            <i class="fa fa-expand" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <textarea class="form-control"
+                              id="grade-comment"
+                              name="comment"
+                              rows="8"
+                              placeholder="{{#str}}feedbackplaceholder, qtype_drawing{{/str}}">{{comment}}</textarea>
+                    <input type="hidden" name="commentformat" value="1">
+                </div>
+
+                {{! Action buttons }}
+                <div class="mt-4 d-grid gap-2">
+                    <button type="submit" class="btn btn-primary qtype-drawing-grader-save">
+                        {{#pix}}i/grades, core{{/pix}}
+                        {{#str}}savegrade, qtype_drawing{{/str}}
+                    </button>
+                    {{#hasnext}}
+                    <button type="submit" class="btn btn-primary qtype-drawing-grader-savenext">
+                        {{#pix}}t/right, core{{/pix}}
+                        {{#str}}saveandnext, qtype_drawing{{/str}}
+                    </button>
+                    {{/hasnext}}
+                </div>
+            </form>
+
+            {{! Response history (moved here from the question rendering area).
+                Hidden container; opened in a Moodle modal when the button is clicked. }}
+            {{#responsehistory_html}}
+                <div class="mt-2 d-grid">
+                    <button type="button"
+                            class="btn btn-outline-secondary qtype-drawing-grader-history-btn">
+                        {{#pix}}i/log, core{{/pix}}
+                        {{#str}}responsehistory, question{{/str}}
+                    </button>
+                </div>
+                <div class="qtype-drawing-grader-history-content d-none" hidden>
+                    {{{responsehistory_html}}}
+                </div>
+            {{/responsehistory_html}}
+        </div>
+    </div>
+
+    {{! Bottom: Navigation bar }}
+    <div class="qtype-drawing-grader-nav">
+        <div class="d-flex justify-content-between align-items-center p-2 bg-light border-top">
+            {{! Overview link (left edge) }}
+            <div>
+                <a href="{{overview_url}}" class="btn btn-link">
+                    {{#pix}}i/return, core{{/pix}}
+                    {{#str}}backtooverview, qtype_drawing{{/str}}
+                </a>
+            </div>
+
+            {{! Previous + Next (centred) }}
+            <div class="d-flex">
+                {{#hasprev}}
+                <a href="{{prev_url}}" class="btn btn-outline-secondary me-2">
+                    {{#pix}}t/left, core{{/pix}}
+                    {{#str}}previousstudent, qtype_drawing{{/str}}
+                </a>
+                {{/hasprev}}
+                {{^hasprev}}
+                <button class="btn btn-outline-secondary me-2" disabled>
+                    {{#pix}}t/left, core{{/pix}}
+                    {{#str}}previousstudent, qtype_drawing{{/str}}
+                </button>
+                {{/hasprev}}
+                {{#hasnext}}
+                <a href="{{next_url}}" class="btn btn-outline-secondary">
+                    {{#str}}nextstudent, qtype_drawing{{/str}}
+                    {{#pix}}t/right, core{{/pix}}
+                </a>
+                {{/hasnext}}
+                {{^hasnext}}
+                <button class="btn btn-outline-secondary" disabled>
+                    {{#str}}nextstudent, qtype_drawing{{/str}}
+                    {{#pix}}t/right, core{{/pix}}
+                </button>
+                {{/hasnext}}
+            </div>
+
+            {{! View mode toggles (right edge) }}
+            <div class="qtype-drawing-grader-viewmode btn-group btn-group-sm" role="group"
+                 aria-label="{{#str}}viewmode, qtype_drawing{{/str}}">
+                <button type="button" class="btn btn-outline-secondary qtype-drawing-grader-viewmode-btn"
+                        data-viewmode="sidebar"
+                        title="{{#str}}viewmode_sidebar, qtype_drawing{{/str}}"
+                        aria-label="{{#str}}viewmode_sidebar, qtype_drawing{{/str}}"
+                        aria-pressed="false">
+                    <i class="fa fa-window-maximize fa-rotate-270" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary qtype-drawing-grader-viewmode-btn active"
+                        data-viewmode="both"
+                        title="{{#str}}viewmode_both, qtype_drawing{{/str}}"
+                        aria-label="{{#str}}viewmode_both, qtype_drawing{{/str}}"
+                        aria-pressed="true">
+                    <i class="fa fa-columns" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary qtype-drawing-grader-viewmode-btn"
+                        data-viewmode="canvas"
+                        title="{{#str}}viewmode_canvas, qtype_drawing{{/str}}"
+                        aria-label="{{#str}}viewmode_canvas, qtype_drawing{{/str}}"
+                        aria-pressed="false">
+                    <i class="fa fa-window-maximize fa-rotate-90" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

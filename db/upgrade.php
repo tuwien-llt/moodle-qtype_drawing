@@ -19,7 +19,7 @@
  * @package qtype_drawing
  * @author Amr Hourani amr.hourani@id.ethz.ch
  * @copyright ETHz 2016 amr.hourani@id.ethz.ch
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
@@ -104,5 +104,102 @@ function xmldb_qtype_drawing_upgrade($oldversion) {
 
         upgrade_plugin_savepoint(true, 2021081300, 'qtype', 'drawing');
     }
+
+    if ($oldversion < 2025120100) {
+        // Define field drawingmode to be dropped from qtype_drawing.
+        $table = new xmldb_table('qtype_drawing');
+        $field = new xmldb_field('drawingmode');
+
+        // Conditionally launch drop field drawingmode.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+        $field = new xmldb_field('alloweraser');
+
+        // Conditionally launch drop field alloweraser.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+        $field = new xmldb_field('colorsjson', XMLDB_TYPE_TEXT, null, null, null, null, null, 'drawingoptions');
+
+        // Conditionally launch add field colorsjson.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('defaultpensize', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'colorsjson');
+
+        // Conditionally launch add field defaultpensize.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('colormarker', XMLDB_TYPE_CHAR, '16', null, null, null, null, 'defaultpensize');
+
+        // Conditionally launch add field colormarker.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('questionembed', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'colormarker');
+
+        // Conditionally launch add field questionembed.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Drawing savepoint reached.
+        upgrade_plugin_savepoint(true, 2025120100, 'qtype', 'drawing');
+    }
+
+    if ($oldversion < 2025120200) {
+        // Rename field colormarker on table qtype_drawing to NEWNAMEGOESHERE.
+        $table = new xmldb_table('qtype_drawing');
+        $field = new xmldb_field('colormarker', XMLDB_TYPE_CHAR, '16', null, null, null, null, 'defaultpensize');
+
+        // Launch rename field colormarker.
+        $dbman->rename_field($table, $field, 'colorhighlighter');
+
+        // Drawing savepoint reached.
+        upgrade_plugin_savepoint(true, 2025120200, 'qtype', 'drawing');
+    }
+
+    if ($oldversion < 2025120201) {
+        // Add the hidemenu field — per-question switch to hide the top menu bar in the drawing canvas.
+        $table = new xmldb_table('qtype_drawing');
+        $field = new xmldb_field('hidemenu', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'questionembed');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2025120201, 'qtype', 'drawing');
+    }
+
+    if ($oldversion < 2026070400) {
+        // Add per-question drawing tool visibility switches. Default 1 (shown) so that all existing
+        // questions keep every tool available after the upgrade.
+        $table = new xmldb_table('qtype_drawing');
+
+        $tools = [
+            'toolselect' => 'hidemenu',
+            'tooldraw' => 'toolselect',
+            'tooltext' => 'tooldraw',
+            'toolhighlighter' => 'tooltext',
+            'toolline' => 'toolhighlighter',
+            'toolrect' => 'toolline',
+            'toolcircle' => 'toolrect',
+            'tooleraser' => 'toolcircle',
+            'toolundoredo' => 'tooleraser',
+        ];
+        foreach ($tools as $name => $previous) {
+            $field = new xmldb_field($name, XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', $previous);
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+
+        upgrade_plugin_savepoint(true, 2026070400, 'qtype', 'drawing');
+    }
+
     return true;
 }

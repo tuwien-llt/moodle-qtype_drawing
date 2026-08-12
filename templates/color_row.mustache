@@ -1,0 +1,65 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template qtype_drawing/color_row
+
+    Template purpose and description.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * none
+
+    Example context (json):
+    {
+    }
+}}
+<div class="d-flex align-items-center mb-2 color-row" data-id="{{id}}">
+    <div class="col-2 pl-0">
+        <input type="text" class="form-control" data-field="hex" value="{{hex}}" placeholder="#ffffff">
+    </div>
+
+    <div class="col-1 pl-3">
+        <div class="color-preview" style="width: 30px; height: 30px; background-color: {{#hex}}{{hex}}{{/hex}}{{^hex}}#ffffff{{/hex}}; border: 1px solid #ccc;"></div>
+    </div>
+
+    <div class="col-1">
+        <button type="button" class="btn btn-link text-danger p-0" data-action="delete-color" title="{{#str}} delete_color, qtype_drawing {{/str}}">
+            <i class="fa fa-trash" aria-hidden="true"></i>
+        </button>
+    </div>
+
+    <div class="col-2 text-center">
+        <input type="checkbox" data-field="avail_student" {{#avail_student}}checked{{/avail_student}}>
+    </div>
+
+    <div class="col-2 text-center">
+        <input type="checkbox" data-field="avail_trainer" {{#avail_trainer}}checked{{/avail_trainer}}>
+    </div>
+
+    <div class="col-2 text-center">
+        <input type="radio" name="default_student_group_{{uniqueid}}" data-field="def_student" {{#def_student}}checked{{/def_student}}>
+    </div>
+
+    <div class="col-2 text-center">
+        <input type="radio" name="default_trainer_group_{{uniqueid}}" data-field="def_trainer" {{#def_trainer}}checked{{/def_trainer}}>
+    </div>
+</div>

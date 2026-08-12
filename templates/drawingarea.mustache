@@ -1,0 +1,1124 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template qtype_drawing/drawingarea
+
+    Template purpose and description.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * none
+
+    Example context (json):
+    {
+    }
+}}
+
+<style>
+    *, *::before, *::after {
+        box-sizing: content-box !important;
+    }
+
+    .visually-hidden-focusable {
+        display: none;
+    }
+
+    .qtype_drawing_selectedcolor {
+        outline: 2px #4F80FF solid !important;
+    }
+
+    .qtype_drawing_color_divsquare {
+        width: 21px;
+        height: 21px;
+        margin: 4px;
+        border: 0px solid black;
+        float: left;
+        cursor: pointer;
+        cursor: hand;
+    }
+
+    .qtype_drawing_color_pallette {
+        width: 21px;
+        height: 21px;
+        margin: 4px;
+        border: 0px solid black;
+        float: left;
+        cursor: pointer;
+        cursor: hand;
+    }
+
+    .divSquarebrush {
+        width: 35%;
+        height: 20px;
+        margin: 4px;
+        border: 0px solid black;
+        float: left;
+        cursor: pointer;
+        cursor: hand;
+    }
+
+    .qtype_drawing_size_pen {
+        position: relative;
+        width: 25px;
+        height: 20px;
+        margin: 4px;
+        border: 0px solid white;
+        float: left;
+        cursor: pointer;
+        cursor: hand;
+    }
+
+    .circleBase {
+        border-radius: 50%;
+        behavior: url(PIE.htc);
+        margin: 5px;
+    }
+
+    .type1 {
+        width: 3px;
+        height: 3px;
+        background: #ddd;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .type2 {
+        width: 5px;
+        height: 5px;
+        background: #ddd;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .type3 {
+        width: 10px;
+        height: 10px;
+        background: #ddd;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .type4 {
+        width: 15px;
+        height: 15px;
+        background: #ddd;
+        position: absolute;
+        top: 80%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .type5 {
+        width: 20px;
+        height: 20px;
+        background: #ddd;
+        position: absolute;
+        top: 80%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .type6 {
+        width: 30px;
+        height: 30px;
+        background: #ddd;
+        position: absolute;
+        top: 80%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+    }
+
+    .qtype_drawing_active_selection {
+        background-color: #0cf;
+    }
+
+    .qtype_drawing_active_selection_border {
+        border: 2px solid #0cf;
+    }
+
+    #svg_editor .jPicker td.Radio input {
+        margin: 0 2px 0 0;
+    }
+/*
+    html {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    body {
+        height: 100%;
+        overflow: auto;
+    }*/
+
+    @media screen and (-webkit-min-device-pixel-ratio: 0) {
+        select,
+        textarea,
+        input {
+            font-size: 16px;
+        }
+    }
+
+    #question_text-holder {
+        background-color: #fff;
+        padding: 10px;
+        box-sizing: border-box !important;
+        /* Cap the embedded question text so a long question can't eat the canvas;
+           it scrolls instead. The drag bar below can override this height (the JS
+           sets max-height:none when an explicit height is applied). */
+        max-height: 35vh;
+        overflow-y: auto;
+    }
+
+    #question_drawing {
+        position: relative;
+    }
+
+    /* Combined drag/collapse bar between the question text and the canvas.
+       Dragging it resizes the two areas; its button hides/shows the text. */
+    #qtype_drawing_qtext_bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        height: 16px;
+        background-color: #e6e6e6;
+        border-top: 1px solid #cfcfcf;
+        border-bottom: 1px solid #cfcfcf;
+        cursor: ns-resize;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    /* A small grip indicator centred on the bar. */
+    #qtype_drawing_qtext_bar::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 44px;
+        height: 4px;
+        border-top: 1px solid #9a9a9a;
+        border-bottom: 1px solid #9a9a9a;
+        pointer-events: none;
+    }
+
+    #qtype_drawing_qtext_toggle {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin: 0 6px;
+        padding: 1px 8px;
+        background-color: #fff;
+        color: #333;
+        border: 1px solid #bcbcbc;
+        border-radius: 3px;
+        font-family: sans-serif;
+        font-size: 11px;
+        line-height: 16px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    #qtype_drawing_qtext_toggle:hover {
+        background-color: #f2f2f2;
+    }
+
+    #qtype_drawing_qtext_chevron {
+        font-size: 9px;
+        line-height: 1;
+    }
+
+    /* Collapsed state: hide the text, keep the bar as the un-hide affordance. */
+    body.qtype-drawing-qtext-collapsed #question_text-holder {
+        display: none;
+    }
+
+    body.qtype-drawing-qtext-collapsed #qtype_drawing_qtext_bar {
+        cursor: default;
+    }
+
+    /* While dragging, keep the ns-resize cursor and stop the canvas from
+       swallowing the pointer move events. */
+    body.qtype-drawing-qtext-dragging {
+        cursor: ns-resize;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    body.qtype-drawing-qtext-dragging #question_drawing {
+        pointer-events: none;
+    }
+
+    .qtype_drawing_editor_loading {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #fff;
+        opacity: 1;
+        transition: opacity 250ms ease;
+    }
+    .qtype_drawing_editor_loading.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    .qtype_drawing_editor_loading_inner {
+        text-align: center;
+        max-width: 22rem;
+        font-family: sans-serif;
+    }
+    .qtype_drawing_editor_loading_spinner {
+        width: 3rem;
+        height: 3rem;
+        border: 0.3rem solid #cfd8dc;
+        border-top-color: #4f80ff;
+        border-radius: 50%;
+        margin: 0 auto;
+        animation: qtype_drawing_spin 0.8s linear infinite;
+    }
+    .qtype_drawing_editor_loading_caption {
+        margin-top: 1rem;
+        font-weight: 600;
+        color: #333;
+    }
+    .qtype_drawing_editor_loading_hint {
+        margin-top: 0.25rem;
+        font-size: 0.85em;
+        color: #666;
+    }
+    @keyframes qtype_drawing_spin {
+        to { transform: rotate(360deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .qtype_drawing_editor_loading { transition: none; }
+        .qtype_drawing_editor_loading_spinner { animation: none; }
+    }
+</style>
+<div id="qtype-drawing-editor-loading"
+     class="qtype_drawing_editor_loading"
+     role="status"
+     aria-live="polite"
+     aria-busy="true">
+    <div class="qtype_drawing_editor_loading_inner">
+        <div class="qtype_drawing_editor_loading_spinner" aria-hidden="true"></div>
+        <div class="qtype_drawing_editor_loading_caption">
+            {{#str}}loadingeditor, qtype_drawing{{/str}}
+        </div>
+        <div class="qtype_drawing_editor_loading_hint">
+            {{#str}}loadinghint, qtype_drawing{{/str}}
+        </div>
+    </div>
+</div>
+{{#questionembed}}
+    <div id="question_text-holder">
+        {{{questiontext}}}
+    </div>
+    <div id="qtype_drawing_qtext_bar" role="separator" aria-orientation="horizontal">
+        <button type="button" id="qtype_drawing_qtext_toggle"
+                title="{{#str}}hidequestiontext,qtype_drawing{{/str}}"
+                aria-expanded="true">
+            <span id="qtype_drawing_qtext_chevron" aria-hidden="true">&#9650;</span>
+            <span id="qtype_drawing_qtext_label">{{#str}}hidequestiontext,qtype_drawing{{/str}}</span>
+        </button>
+    </div>
+{{/questionembed}}
+<div id="question_drawing">
+    <div id="svg_editor" class="{{#hidemenu}}qtype_drawing_hidemenu {{/hidemenu}}{{^toolselect}}qtype_drawing_hide_toolselect {{/toolselect}}{{^tooldraw}}qtype_drawing_hide_tooldraw {{/tooldraw}}{{^tooltext}}qtype_drawing_hide_tooltext {{/tooltext}}{{^toolhighlighter}}qtype_drawing_hide_toolhighlighter {{/toolhighlighter}}{{^toolline}}qtype_drawing_hide_toolline {{/toolline}}{{^toolrect}}qtype_drawing_hide_toolrect {{/toolrect}}{{^toolcircle}}qtype_drawing_hide_toolcircle {{/toolcircle}}{{^tooleraser}}qtype_drawing_hide_tooleraser {{/tooleraser}}{{^toolundoredo}}qtype_drawing_hide_toolundoredo {{/toolundoredo}}">
+        <div id="rulers">
+            <div id="ruler_corner"></div>
+            <div id="ruler_x">
+                <div id="ruler_x_cursor"></div>
+                <div>
+                    <canvas height="15"></canvas>
+                </div>
+            </div>
+            <div id="ruler_y">
+                <div id="ruler_y_cursor"></div>
+                <div>
+                    <canvas width="15"></canvas>
+                </div>
+            </div>
+        </div>
+        <div id="workarea" style="touch-action:pan-x pan-y;">
+            <div id="svgcanvas" style="position:relative">
+            </div>
+        </div>
+        {{^hidemenu}}
+        <div id="menu_bar">
+            <a class="menu">
+                <div class="menu_list">
+                    <div id="tool_about" class="menu_item"></div>
+                    <div class="separator"></div>
+                    <div id="tool_about" class="menu_item">Keyboard Shortcuts...</div>
+                </div>
+            </a>
+            <div class="menu">
+                <div class="menu_title">{{#str}}file,qtype_drawing{{/str}}</div>
+                <div class="menu_list" id="file_menu">
+                    <div id="tool_clear" class="menu_item">{{#str}}erasedrawing,qtype_drawing{{/str}}</div>
+                </div>
+            </div>
+            <div class="menu">
+                <div class="menu_title">{{#str}}edit,qtype_drawing{{/str}}</div>
+                <div class="menu_list" id="edit_menu">
+                    <div class="separator"></div>
+                    <div class="menu_item action_selected disabled"
+                         id="tool_cut">{{#str}}cut,qtype_drawing{{/str}} <span class="shortcut">⌘X</span></div>
+                    <div class="menu_item action_selected disabled"
+                         id="tool_copy">{{#str}}copy,qtype_drawing{{/str}} <span class="shortcut">⌘C</span></div>
+                    <div class="menu_item action_selected disabled"
+                         id="tool_paste">{{#str}}paste,qtype_drawing{{/str}} <span class="shortcut">⌘V</span></div>
+                    <div class="menu_item action_selected disabled"
+                         id="tool_clone">{{#str}}duplicate,qtype_drawing{{/str}} <span class="shortcut">⌘D</span></div>
+                    <div class="menu_item action_selected disabled"
+                         id="tool_delete">{{#str}}delete,qtype_drawing{{/str}} <span>⌫</span></div>
+                </div>
+            </div>
+            <div class="menu">
+                <div class="menu_title">{{#str}}object,qtype_drawing{{/str}}</div>
+                <div class="menu_list" id="object_menu">
+                    <div class="menu_item action_selected disabled"
+                         id="tool_move_top">{{#str}}bringtofront,qtype_drawing{{/str}}
+                        <span class="shortcut">⌘⇧↑</span></div>
+                    <div class="menu_item action_selected disabled"
+                         id="tool_move_up">{{#str}}bringforward,qtype_drawing{{/str}}
+                        <span class="shortcut">⌘↑</span></div>
+                    <div class="menu_item action_selected disabled"
+                         id="tool_move_down">{{#str}}sendbackward,qtype_drawing{{/str}}
+                        <span class="shortcut">⌘↓</span></div>
+                    <div class="menu_item action_selected disabled"
+                         id="tool_move_bottom">{{#str}}sendtoback,qtype_drawing{{/str}}
+                        <span class="shortcut">⌘⇧↓</span></div>
+                    <div class="separator"></div>
+                    <div class="menu_item action_multi_selected disabled"
+                         id="tool_group">{{#str}}groupelements,qtype_drawing{{/str}}
+                        <span class="shortcut">⌘G</span></div>
+                    <div class="menu_item action_group_selected disabled"
+                         id="tool_ungroup">{{#str}}ungroupelements,qtype_drawing{{/str}}
+                        <span class="shortcut">⌘⇧G</span></div>
+                    <div class="menu_item action_path_convert_selected disabled"
+                         id="tool_topath" style="display:none;">{{#str}}converttopath,qtype_drawing{{/str}}</div>
+                    <div class="menu_item action_path_selected disabled"
+                         id="tool_reorient" style="display:none;">{{#str}}reorientpath,qtype_drawing{{/str}}</div>
+                </div>
+            </div>
+            <div class="menu">
+                <div class="menu_title">{{#str}}view,qtype_drawing{{/str}}</div>
+                <div class="menu_list" id="view_menu">
+                    <div class="menu_item push_button_pressed"
+                         id="tool_rulers">{{#str}}viewrulers,qtype_drawing{{/str}}</div>
+                    <div class="menu_item"
+                         id="tool_wireframe" style="display:none">{{#str}}viewwireframe,qtype_drawing{{/str}}</div>
+                    <div class="menu_item"
+                         id="tool_snap">{{#str}}snaptogrid,qtype_drawing{{/str}}</div>
+                    <div class="separator"></div>
+                    <div class="menu_item"
+                         id="tool_source">{{#str}}source,qtype_drawing{{/str}} <span class="shortcut">⌘U</span></div>
+                </div>
+            </div>
+        </div>
+        {{/hidemenu}}
+        <div id="tools_top" class="tools_panel">
+            {{#useupdateannotationjs}}
+                <div id="annotation_panel" class="context_panelv">
+                    <h4>{{#str}}annotation,qtype_drawing{{/str}}</h4>
+                    <div class="annotation_tool draginput" style="width:145px;padding-bottom:2px; height:100%"
+                         id="annotation_tool">
+                      <span><input type="button" name="saveannotation" id="tool_saveannotation"
+                                   value="{{#str}}saveannotation,qtype_drawing{{/str}}"
+                                   style="background: var(--qtype-drawing-primary, #4F80FF);
+                                          color: #fff;
+                                          border-radius: 3px;
+                                          padding: 1px 6px;
+                                          border: none;
+                                          line-height: 140%;
+                                          font-size: 14px;
+                                          font-weight: bold;
+                                          font-family: sans-serif;
+                                          white-space: normal;
+                                          height:initial;">
+                      </span>
+                        <div style="padding:20px"></div>
+                        <div id="teacherannotations"
+                             style="margin-top:10px;
+                                  color: #4F80FF;
+                                  font-size:12px;
+                                  margin-left:-20px;
+                                  margin-right:1px;
+                                  text-align:left">
+                            <ul id="listofannotaions">
+                                {{#annotations_list}}
+                                    <li id="annotationelem_{{userid}}" class="annotaionelems"
+                                        data-block="block{{userid}}">
+                                        <a href="#" id="showannotationid_{{id}}" style="color:#fff"
+                                           class="tool_showannotation" data-type="0"
+                                           data-annotationid="{{id}}">{{username}}</a>
+                                        <div id="teacherannotationdate_{{userid}}">{{date}}{{ago}}</div>
+                                    </li>
+                                {{/annotations_list}}
+                                <li data-block="block0">
+                                    <a href="#" id="showoriginalanswer" style="color:#fff"
+                                       class="tool_showannotation" data-type="1"
+                                       data-annotationid="-1">{{#str}}originalanswer,qtype_drawing{{/str}}</a>
+                                </li>
+                                <li data-block="block1" onclick="methodDraw.updateAnnotationDetails()">
+                                    <a href="#" id="studentview" style="color:#fff" class="tool_showannotation"
+                                       data-type="2" data-annotationid="-1">{{#str}}studentview,qtype_drawing{{/str}}</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {{/useupdateannotationjs}}
+            <div id="canvas_panel" class="context_panel">
+
+                <div class="clearfix"></div>
+                <h4>{{#str}}drawingpresets,qtype_drawing{{/str}}</h4>
+                <div class="stroke_tool draginput" style="width:145px;padding-bottom:2px; height:100%"
+                     id="fastcolorpicks">
+
+                    <span>{{#str}}color:stroke,qtype_drawing{{/str}}</span>
+                    <div style="margin-top:15px; text-align:center;">
+                        {{#colors}}
+                            <div id="qtype_drawing_tool_color{{colorid}}"
+                                 class="qtype_drawing_color_divsquare {{#selected}}qtype_drawing_selectedcolor{{/selected}}"
+                                 data-strokeorfill="stroke" style="background:{{hex}}"></div>
+                        {{/colors}}
+                        {{#showallcolorschooser}}
+                            <div id="qtype_drawing_tool_color99" class="qtype_drawing_color_pallette" data-strokeorfill= "stroke">
+                                <img src="images/colors.png" width="22" height="22" alt="C">
+                            </div>
+                        {{/showallcolorschooser}}
+                    </div>
+                </div>
+                <div class="stroke_tool draginput" style="width:145px;padding-bottom:2px; height:100%; display:none;"
+                     id="fastcolorfillpicks">
+
+                    <span>{{#str}}color:fill,qtype_drawing{{/str}}</span>
+                    <div style="margin-top:15px; text-align:center;">
+                        {{#colors}}
+                            <div id="qtype_drawing_tool_fillcolor{{colorid}}f"
+                                 class="qtype_drawing_color_divsquare"
+                                 data-strokeorfill="fill" style="background:{{hex}}"></div>
+                        {{/colors}}
+                        {{#showallcolorschooser}}
+                            <div id="qtype_drawing_tool_color99" class="qtype_drawing_color_pallette" data-strokeorfill= "fill">
+                                <img src="images/colors.png" width="22" height="22" alt="C">
+                            </div>
+                        {{/showallcolorschooser}}
+                    </div>
+                </div>
+                <div class="stroke_tool draginput" style="width:145px;padding-bottom:2px; height:100%; display: none; "
+                     id="fastcolorhighlighterpicks">
+
+                    <span>{{#str}}color:highlighter,qtype_drawing{{/str}}</span>
+                    <div style="margin-top:15px; text-align:center;">
+                        <div id="qtype_drawing_tool_color_highlighter"
+                             class="qtype_drawing_color_divsquare"
+                             data-strokeorfill="stroke" style="background: {{colorhighlighter}};"></div>
+                    </div>
+                </div>
+                <div class="stroke_tool draginput" id="preset_sizes_panel_id"
+                     style="width:125px;padding:10px; height:70px">
+                    <span>{{#str}}size,qtype_drawing{{/str}}</span>
+                    <div>
+                        <div id="qtype_drawing_tool_pensize1"
+                             class="qtype_drawing_size_pen" data-size="1.5" data-penortext="pen" title="1px">
+                            <div class="circleBase type1"></div>
+                        </div>
+                        <div id="qtype_drawing_tool_pensize2"
+                             class="qtype_drawing_size_pen" data-size="2.5" data-penortext="pen" title="2px">
+                            <div class="circleBase type2"></div>
+                        </div>
+                        <div id="qtype_drawing_tool_pensize3"
+                             class="qtype_drawing_size_pen" data-size="3.5" data-penortext="pen" title="3px">
+                            <div class="circleBase type3 qtype_drawing_active_selection"></div>
+                        </div>
+                        <div style='clear:both'></div>
+                        <div id="qtype_drawing_tool_pensize4"
+                             class="qtype_drawing_size_pen" data-size="5" data-penortext="pen" title="5px">
+                            <div class="circleBase type4"></div>
+                        </div>
+                        <div id="qtype_drawing_tool_pensize5"
+                             class="qtype_drawing_size_pen" data-size="10" data-penortext="pen" title="10px">
+                            <div class="circleBase type5"></div>
+                        </div>
+                        <div id="qtype_drawing_tool_pensize6"
+                             class="qtype_drawing_size_pen" data-size="20" data-penortext="pen" title="20px">
+                            <div class="circleBase type6"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="stroke_panel" class=" clearfix">
+                    <div class="clearfix"></div>
+                    <div class="toolset" data-title="{{#str}}changestroke,qtype_drawing{{/str}}" id="strokewidth_div">
+                        <label>
+                            <input id="stroke_width" type="number" size="2" value="5" data-attr="stroke-width" min="1"
+                                   max="99" step="1"/>
+                            <span class="icon_label">{{#str}}strokewidth,qtype_drawing{{/str}}</span>
+                        </label>
+                    </div>
+                    <div id="where_iwant_tool_opacity"></div>
+                    <div class="stroke_tool draginput" id="strokestyle_div">
+                        <span>{{#str}}strokedash,qtype_drawing{{/str}}</span>
+                        <select id="stroke_style" data-title="{{#str}}dashstyle,qtype_drawing{{/str}}">
+                            <option selected="selected" value="none">—</option>
+                            <option value="2,2">···</option>
+                            <option value="5,5">- -</option>
+                            <option value="5,2,2,2">-·-</option>
+                            <option value="5,2,2,2,2,2">-··-</option>
+                        </select>
+                        <div class="caret"></div>
+                        <label id="stroke_style_label">—</label>
+                    </div>
+                    <span style="display:none">
+                      <h4 class="clearfix">&nbsp;</h4>
+                      <label data-title="Change canvas width">
+                      <input size="3" id="canvas_width" type="text" pattern="[0-9]*"/>
+                      <span class="icon_label">Width</span>
+                      </label>
+                      <label data-title="Change canvas height">
+                      <input id="canvas_height" size="3" type="text" pattern="[0-9]*"/>
+                      <span class="icon_label">Height</span>
+                      </label>
+                      <label data-title="Change canvas color" class="draginput">
+                         <span>Color</span>
+                         <div id="color_canvas_tools">
+                            <div class="color_tool active" id="tool_canvas">
+                               <div class="color_block">
+                                  <div id="canvas_bg"></div>
+                                  <div id="canvas_color"></div>
+                               </div>
+                            </div>
+                         </div>
+                      </label>
+                      <div class="draginput">
+                         <span>Sizes</span>
+                         <select id="resolution">
+                            <option id="selectedPredefined" selected="selected">Custom</option>
+                            <option>640x480</option>
+                            <option>800x600</option>
+                            <option>1024x768</option>
+                            <option>1280x960</option>
+                            <option>1600x1200</option>
+                            <option id="fitToContent" value="content">Fit to Content</option>
+                         </select>
+                         <div class="caret"></div>
+                         <label id="resolution_label">Custom</label>
+                      </div>
+                   </span>
+                </div>
+            </div>
+            <div id="selected_panel" class="context_panel">
+                <label id="tool_angle" data-title="{{#str}}changerotationangle,qtype_drawing{{/str}}"
+                       class="draginput" {{{displaystylefull}}}>
+                    <input id="angle" class="attr_changer" size="2" value="0" data-attr="transform"
+                           data-min="-180" data-max="180" type="text"/>
+                    <span class="icon_label">{{#str}}rotation,qtype_drawing{{/str}}</span>
+                    <div id="tool_angle_indicator">
+                        <div id="tool_angle_indicator_cursor"></div>
+                    </div>
+                </label>
+                <div id="dat_tool_opacity_pain"  {{{displaystylefull}}}>
+                    <div class="clearfix"></div>
+                    <label class="toolset" id="tool_opacity" data-title="{{#str}}changeopacity,qtype_drawing{{/str}}">
+                        <input id="group_opacity" class="attr_changer" data-attr="opacity"
+                               data-multiplier="0.01" size="3" value="100" step="5" min="0" max="100"/>
+                        <span id="group_opacityLabel" class="icon_label">{{#str}}opacity,qtype_drawing{{/str}}</span>
+                    </label>
+                </div>
+                <div class="toolset" id="tool_blur"
+                     data-title="{{#str}}changeblur,qtype_drawing{{/str}}"  {{{displaystylefull}}}>
+                    <label>
+                        <input id="blur" size="2" value="0" step=".1" min="0" max="10"/>
+                        <span class="icon_label">{{#str}}blur,qtype_drawing{{/str}}</span>
+                    </label>
+                    <div class="clearfix"></div>
+                </div>
+                <label id="cornerRadiusLabel"
+                       data-title="{{#str}}changecornerradius,qtype_drawing{{/str}}"  {{{displaystylefull}}}>
+                    <input id="rect_rx" size="3" value="0" data-attr="rx" class="attr_changer" type="text"
+                           pattern="[0-9]*"/>
+                    <span class="icon_label">{{#str}}roundness,qtype_drawing{{/str}}</span>
+                </label>
+                <div id="align_tools"  {{{displaystylefull}}}>
+                    <div class="clearfix"></div>
+                    <h4>{{#str}}align,qtype_drawing{{/str}}</h4>
+                    <div class="toolset align_buttons" id="tool_position">
+                        <label>
+                            <div class="col last clear" id="position_opts">
+                                <div class="draginput_cell" id="tool_posleft" title="Align Left"></div>
+                                <div class="draginput_cell" id="tool_poscenter" title="Align Center"></div>
+                                <div class="draginput_cell" id="tool_posright" title="Align Right"></div>
+                                <div class="draginput_cell" id="tool_postop" title="Align Top"></div>
+                                <div class="draginput_cell" id="tool_posmiddle" title="Align Middle"></div>
+                                <div class="draginput_cell" id="tool_posbottom" title="Align Bottom"></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div id="rect_panel" class="context_panel">
+                <h4 class="clearfix">{{#str}}rectangle,qtype_drawing{{/str}}</h4>
+                <label>
+                    <input id="rect_x" class="attr_changer" data-title="Change X coordinate" size="3" data-attr="x"
+                           pattern="[0-9]*"/>
+                    <span>X</span>
+                </label>
+                <label>
+                    <input id="rect_y" class="attr_changer" data-title="Change Y coordinate" size="3" data-attr="y"
+                           pattern="[0-9]*"/>
+                    <span>Y</span>
+                </label>
+                <label id="rect_width_tool attr_changer" data-title="Change rectangle width">
+                    <input id="rect_width" class="attr_changer" size="3" data-attr="width" type="text"
+                           pattern="[0-9]*"/>
+                    <span class="icon_label">{{#str}}width,qtype_drawing{{/str}}</span>
+                </label>
+                <label id="rect_height_tool" data-title="Change rectangle height">
+                    <input id="rect_height" class="attr_changer" size="3" data-attr="height" type="text"
+                           pattern="[0-9]*"/>
+                    <span class="icon_label">{{#str}}height,qtype_drawing{{/str}}</span>
+                </label>
+            </div>
+            <div id="path_panel" class="context_panel clearfix"   {{{displaystylefull}}}>
+                <h4 class="clearfix">{{#str}}path,qtype_drawing{{/str}}</h4>
+                <label>
+                    <input id="path_x" class="attr_changer"
+                           data-title="Change ellipse's cx coordinate" size="3" data-attr="x" pattern="[0-9]*"/>
+                    <span>X</span>
+                </label>
+                <label>
+                    <input id="path_y" class="attr_changer"
+                           data-title="Change ellipse's cy coordinate" size="3" data-attr="y" pattern="[0-9]*"/>
+                    <span>Y</span>
+                </label>
+            </div>
+            <div id="image_panel" class="context_panel clearfix">
+                <h4>{{#str}}image,qtype_drawing{{/str}}</h4>
+                <label>
+                    <input id="image_x" class="attr_changer" data-title="Change X coordinate" size="3" data-attr="x"
+                           pattern="[0-9]*"/>
+                    <span>X</span>
+                </label>
+                <label>
+                    <input id="image_y" class="attr_changer" data-title="Change Y coordinate" size="3" data-attr="y"
+                           pattern="[0-9]*"/>
+                    <span>Y</span>
+                </label>
+                <label>
+                    <input id="image_width" class="attr_changer"
+                           data-title="Change image width" size="3" data-attr="width" pattern="[0-9]*"/>
+                    <span class="icon_label">Width</span>
+                </label>
+                <label>
+                    <input id="image_height" class="attr_changer"
+                           data-title="Change image height" size="3" data-attr="height" pattern="[0-9]*"/>
+                    <span class="icon_label">Height</span>
+                </label>
+            </div>
+            <div id="circle_panel" class="context_panel">
+                <h4>{{#str}}circle,qtype_drawing{{/str}}</h4>
+                <label id="tool_circle_cx">
+                    <span>{{#str}}centerx,qtype_drawing{{/str}}</span>
+                    <input id="circle_cx" class="attr_changer" title="Change circle's cx coordinate" size="3"
+                           data-attr="cx"/>
+                </label>
+                <label id="tool_circle_cy">
+                    <span>{{#str}}centery,qtype_drawing{{/str}}</span>
+                    <input id="circle_cy" class="attr_changer" title="Change circle's cy coordinate" size="3"
+                           data-attr="cy"/>
+                </label>
+                <label id="tool_circle_r">
+                    <span>Radius</span>
+                    <input id="circle_r" class="attr_changer" title="Change circle's radius" size="3" data-attr="r"/>
+                </label>
+            </div>
+            <div id="ellipse_panel" class="context_panel clearfix">
+                <h4>{{#str}}ellipse,qtype_drawing{{/str}}</h4>
+                <label id="tool_ellipse_cx">
+                    <input id="ellipse_cx" class="attr_changer"
+                           data-title="Change ellipse's cx coordinate" size="3" data-attr="cx" pattern="[0-9]*"/>
+                    <span>X</span>
+                </label>
+                <label id="tool_ellipse_cy">
+                    <input id="ellipse_cy" class="attr_changer"
+                           data-title="Change ellipse's cy coordinate" size="3" data-attr="cy" pattern="[0-9]*"/>
+                    <span>Y</span>
+                </label>
+                <label id="tool_ellipse_rx">
+                    <input id="ellipse_rx" class="attr_changer"
+                           data-title="Change ellipse's x radius" size="3" data-attr="rx" pattern="[0-9]*"/>
+                    <span>{{#str}}radiusx,qtype_drawing{{/str}}</span>
+                </label>
+                <label id="tool_ellipse_ry">
+                    <input id="ellipse_ry" class="attr_changer"
+                           data-title="Change ellipse's y radius" size="3" data-attr="ry" pattern="[0-9]*"/>
+                    <span>{{#str}}radiusy,qtype_drawing{{/str}}</span>
+                </label>
+            </div>
+            <div id="line_panel" class="context_panel clearfix">
+                <h4>{{#str}}line,qtype_drawing{{/str}}</h4>
+                <label id="tool_line_x1">
+                    <input id="line_x1" class="attr_changer"
+                           data-title="Change line's starting x coordinate" size="3" data-attr="x1" pattern="[0-9]*"/>
+                    <span>{{#str}}startx,qtype_drawing{{/str}}</span>
+                </label>
+                <label id="tool_line_y1">
+                    <input id="line_y1" class="attr_changer"
+                           data-title="Change line's starting y coordinate" size="3" data-attr="y1" pattern="[0-9]*"/>
+                    <span>{{#str}}starty,qtype_drawing{{/str}}</span>
+                </label>
+                <label id="tool_line_x2">
+                    <input id="line_x2" class="attr_changer"
+                           data-title="Change line's ending x coordinate" size="3" data-attr="x2" pattern="[0-9]*"/>
+                    <span>{{#str}}endx,qtype_drawing{{/str}}</span>
+                </label>
+                <label id="tool_line_y2">
+                    <input id="line_y2" class="attr_changer"
+                           data-title="Change line's ending y coordinate" size="3" data-attr="y2" pattern="[0-9]*"/>
+                    <span>{{#str}}endy,qtype_drawing{{/str}}</span>
+                </label>
+            </div>
+            <div id="text_panel" class="context_panel">
+                <h4>{{#str}}text,qtype_drawing{{/str}}</h4>
+                <div id="advanced_drawtext_div">
+                    <label style="display:none">
+                        <input id="text_x" class="attr_changer"
+                               data-title="Change text x coordinate" size="3" data-attr="x" pattern="[0-9]*"/>
+                        <span>X</span>
+                    </label>
+                    <label style="display:none">
+                        <input id="text_y" class="attr_changer"
+                               data-title="Change text y coordinate" size="3" data-attr="y" pattern="[0-9]*"/>
+                        <span>Y</span>
+                    </label>
+                    <div class="toolset draginput select twocol" id="tool_font_family">
+                        <span>{{#str}}font,qtype_drawing{{/str}}</span>
+                        <div id="preview_font" style="font-family: Helvetica, Arial, sans-serif;">Helvetica</div>
+                        <div class="caret"></div>
+                        <input id="font_family" data-title="Change Font Family" size="12" type="hidden"/>
+                        <select id="font_family_dropdown">
+                            <option value="'Courier New', Courier, monospace">Courier</option>
+                            <option value="Helvetica, Arial, sans-serif" selected="selected">Helvetica</option>
+                            <option value="'Times New Roman', Times, serif">Times</option>
+                        </select>
+                        <div class="tool_button" id="tool_bold" data-title="Bold Text [B]">B</div>
+                        <div class="tool_button" id="tool_italic" data-title="Italic Text [I]">i</div>
+                    </div>
+                </div>
+                <label id="tool_font_size" data-title="Change Font Size">
+                    <input id="font_size" size="3" value="0"/>
+                    <span id="font_sizeLabel" class="icon_label">{{#str}}fontsize,qtype_drawing{{/str}}</span>
+                </label>
+            </div>
+            <div id="container_panel" class="context_panel clearfix"></div>
+            <div id="use_panel" class="context_panel clearfix">
+                <div class="tool_button clearfix"
+                     id="tool_unlink_use" data-title="Break link to reference element (make unique)">Break link
+                    reference
+                </div>
+            </div>
+            <div id="g_panel" class="context_panel clearfix">
+                <h4>{{#str}}group,qtype_drawing{{/str}}</h4>
+                <label>
+                    <input id="g_x" class="attr_changer"
+                           data-title="Change groups's x coordinate" size="3" data-attr="x" pattern="[0-9]*"/>
+                    <span>X</span>
+                </label>
+                <label>
+                    <input id="g_y" class="attr_changer"
+                           data-title="Change groups's y coordinate" size="3" data-attr="y" pattern="[0-9]*"/>
+                    <span>Y</span>
+                </label>
+            </div>
+            <div id="path_node_panel" class="context_panel clearfix">
+                <h4>{{#str}}editpath,qtype_drawing{{/str}}</h4>
+                <label id="tool_node_x">
+                    <input id="path_node_x" class="attr_changer" data-title="Change node's x coordinate" size="3"
+                           data-attr="x"/>
+                    <span>X</span>
+                </label>
+                <label id="tool_node_y">
+                    <input id="path_node_y" class="attr_changer" data-title="Change node's y coordinate" size="3"
+                           data-attr="y"/>
+                    <span>Y</span>
+                </label>
+                <div id="segment_type" class="draginput label">
+                    <span>{{#str}}segmenttype,qtype_drawing{{/str}}</span>
+                    <select id="seg_type" data-title="Change Segment type">
+                        <option id="straight_segments" selected="selected" value="4">
+                            {{#str}}straight,qtype_drawing{{/str}}
+                        </option>
+                        <option id="curve_segments" value="6">{{#str}}curve,qtype_drawing{{/str}}</option>
+                    </select>
+                    <div class="caret"></div>
+                    <label id="seg_type_label">{{#str}}straight,qtype_drawing{{/str}}</label>
+                </div>
+                <div class="clearfix"></div>
+                <div class="tool_button" id="tool_node_clone"
+                     title="Adds a node">{{#str}}addnode,qtype_drawing{{/str}}</div>
+                <div class="tool_button" id="tool_node_delete"
+                     title="Delete Node">{{#str}}deletenode,qtype_drawing{{/str}}</div>
+                <div class="tool_button" id="tool_openclose_path"
+                     title="Open/close sub-path">{{#str}}openpath,qtype_drawing{{/str}}</div>
+            </div>
+            <div id="multiselected_panel" class="context_panel clearfix">
+                <h4 class="hidable">{{#str}}multipleelements,qtype_drawing{{/str}}</h4>
+                <div class="toolset align_buttons" style="position: relative">
+                    <label id="tool_align_relative" style="margin-top: 10px;">
+                        <select id="align_relative_to" title="Align relative to ...">
+                            <option id="selected_objects"
+                                    value="selected">{{#str}}aligntoobjects,qtype_drawing{{/str}}</option>
+                            <option id="page" value="page">{{#str}}aligntopage,qtype_drawing{{/str}}</option>
+                        </select>
+                    </label>
+                    <h4>.</h4>
+                    <div class="col last clear">
+                        <div class="draginput_cell" id="tool_alignleft" title="Align Left"></div>
+                        <div class="draginput_cell" id="tool_aligncenter" title="Align Center"></div>
+                        <div class="draginput_cell" id="tool_alignright" title="Align Right"></div>
+                        <div class="draginput_cell" id="tool_aligntop" title="Align Top"></div>
+                        <div class="draginput_cell" id="tool_alignmiddle" title="Align Middle"></div>
+                        <div class="draginput_cell" id="tool_alignbottom" title="Align Bottom"></div>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div id="delete_panel" class="context_panel clearfix">
+                <br/>
+                <label id="tool_delete" data-title="{{#str}}deleteobject,qtype_drawing{{/str}}" class="draginput">
+                    <span class="icon_label">{{#str}}delete,qtype_drawing{{/str}}</span>
+                    <label><img src="images/deleteforever.svg" width="32" height="32" style="cursor:pointer;display: block;
+                   margin: 0 auto;" alt="X" title="{{#str}}deleteobject,qtype_drawing{{/str}}"></img></label>
+                </label>
+            </div>
+            <label style="display: none;">
+                <span class="icon_label">{{#str}}strokejoin,qtype_drawing{{/str}}</span>
+            </label>
+            <label style="display: none;">
+                <span class="icon_label">{{#str}}strokecap,qtype_drawing{{/str}}</span>
+            </label>
+            <div class="clearfix">&nbsp;</div>
+        </div>
+        <div id="cur_context_panel">
+        </div>
+        <div id="tools_left" class="tools_panel">
+            <div class="tool_button" id="tool_select" title="{{#str}}selecttool,qtype_drawing{{/str}}"></div>
+            <div class="tool_button" id="tool_fhpath" title="{{#str}}drawingtool,qtype_drawing{{/str}}"></div>
+            <div class="tool_button" id="tool_text" title="{{#str}}texttool,qtype_drawing{{/str}}"></div>
+            <div class="tool_button" id="tool_highlighter" title="{{#str}}highlightertool,qtype_drawing{{/str}}"></div>
+            <div class="tool_button" id="tool_line" title="{{#str}}linetool,qtype_drawing{{/str}}"></div>
+            <div class="separator"></div>
+            <div class="tool_button" id="tool_rect" title="{{#str}}recttool,qtype_drawing{{/str}}"></div>
+            <div class="tool_button" id="tool_ellipse" title="{{#str}}ellipsetool,qtype_drawing{{/str}}"></div>
+            <div class="tool_button" id="tool_path" style="display:none;" title="{{#str}}pathtool,qtype_drawing{{/str}}"></div>
+            <div id="color_tools" style="display:none;">
+                <div id="tool_switch" title="{{#str}}switchstrokefill,qtype_drawing{{/str}}"></div>
+                <div class="color_tool active" id="tool_fill">
+                    <label class="icon_label" title="{{#str}}changefill,qtype_drawing{{/str}}"></label>
+                    <div class="color_block">
+                        <div id="fill_bg"></div>
+                        <div id="fill_color" class="color_block"></div>
+                    </div>
+                </div>
+                <div class="color_tool" id="tool_stroke">
+                    <label class="icon_label" title="{{#str}}changestrokecolor,qtype_drawing{{/str}}"></label>
+                    <div class="color_block">
+                        <div id="stroke_bg"></div>
+                        <div id="stroke_color" class="color_block"
+                             title="{{#str}}changestrokecolor,qtype_drawing{{/str}}"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="tool_button" id="tool_zoom" style="display:none;"
+                 title="{{#str}}zoomtool,qtype_drawing{{/str}}"></div>
+            <div class="tool_button" id="tool_undo"
+                 style="background:#2f2f2c"><img src="images/undo.svg" width="30" height="30"></div>
+            <div class="tool_button" id="tool_redo"
+                 style="background:#2f2f2c"><img src="images/redo.svg" width="30" height="30"></div>
+            <div id="zoom_panel" class="tool_button2" title="{{#str}}changezoom,qtype_drawing{{/str}}">
+                <div class="" id="zoom_label">
+                    <label for="zoom_select" id="zoomLabel" class="zoom_tool icon_label"></label>
+                    <select id="zoom_select">
+                        <option value="6">6%</option>
+                        <option value="12">12%</option>
+                        <option value="16">16%</option>
+                        <option value="25">25%</option>
+                        <option value="50">50%</option>
+                        <option value="75">75%</option>
+                        <option value="100" selected="selected">100%</option>
+                        <option value="150">150%</option>
+                        <option value="200">200%</option>
+                        <option value="300">300%</option>
+                        <option value="400">400%</option>
+                        <option value="500">500%</option>
+                    </select>
+                    <input id="zoom" size="3" value="100" type="text" readonly="readonly"/>
+                </div>
+            </div>
+        </div>
+        <div id="tools_bottom" class="tools_panel">
+            <!--
+            <div id="zoom_panel" class="toolset" title="{{#str}}changezoom,qtype_drawing{{/str}}">
+                <div class="draginput select" id="zoom_label">
+                    <span  id="zoomLabel" class="zoom_tool icon_label"></span>
+                    <select id="zoom_select">
+                        <option value="6">6%</option>
+                        <option value="12">12%</option>
+                        <option value="16">16%</option>
+                        <option value="25">25%</option>
+                        <option value="50">50%</option>
+                        <option value="75">75%</option>
+                        <option value="100"  selected="selected">100%</option>
+                        <option value="150">150%</option>
+                        <option value="200">200%</option>
+                        <option value="300">300%</option>
+                        <option value="400">400%</option>
+                        <option value="500">500%</option>
+                    </select>
+                    <div class="caret"></div>
+                    <input id="zoom" size="3" value="100%" type="text" readonly="readonly" />
+                </div>
+            </div>
+            -->
+        </div>
+        <div id="color_picker"></div>
+    </div>
+    <div id="svg_source_editor">
+        <div id="svg_source_overlay"></div>
+        <div id="svg_source_container">
+            <div id="save_output_btns">
+                <p id="copy_save_note">{{#str}}copysvgsrc,qtype_drawing{{/str}}</p>
+                <button id="copy_save_done">{{#str}}done,qtype_drawing{{/str}}</button>
+            </div>
+            <form>
+                <textarea id="svg_source_textarea" spellcheck="false"></textarea>
+            </form>
+            <div id="tool_source_back" class="toolbar_button">
+                <button id="tool_source_cancel" class="cancel">{{#str}}cancel,qtype_drawing{{/str}}</button>
+                <button id="tool_source_save" class="ok">{{#str}}applychanges,qtype_drawing{{/str}}</button>
+            </div>
+        </div>
+    </div>
+    <div id="base_unit_container">
+        <select id="base_unit">
+            <option value="px">Pixels</option>
+            <option value="cm">Centimeters</option>
+            <option value="mm">Millimeters</option>
+            <option value="in">Inches</option>
+            <option value="pt">Points</option>
+            <option value="pc">Picas</option>
+            <option value="em">Ems</option>
+            <option value="ex">Exs</option>
+        </select>
+    </div>
+    <div id="svg_prefs"></div>
+    <div id="dialog_box">
+        <div id="dialog_box_overlay"></div>
+        <div id="dialog_container">
+            <div id="dialog_content"></div>
+            <div id="dialog_buttons"></div>
+        </div>
+    </div>
+    <ul id="cmenu_canvas" class="contextMenu">
+        <li><a href="#cut">{{#str}}cut,qtype_drawing{{/str}} <span class="shortcut">⌘X;</span></a></li>
+        <li><a href="#copy">{{#str}}copy,qtype_drawing{{/str}}<span class="shortcut">⌘C</span></a></li>
+        <li><a href="#paste">{{#str}}paste,qtype_drawing{{/str}}<span class="shortcut">⌘V</span></a></li>
+        <li class="separator">
+            <a href="#delete">{{#str}}delete,qtype_drawing{{/str}}<span class="shortcut">⌫</span></a></li>
+        <li class="separator">
+            <a href="#group">{{#str}}group,qtype_drawing{{/str}}<span class="shortcut">⌘G</span></a></li>
+        <li><a href="#ungroup">{{#str}}ungroup,qtype_drawing{{/str}}<span class="shortcut">⌘⇧G</span></a></li>
+        <li class="separator">
+            <a href="#move_front">{{#str}}bringtofront,qtype_drawing{{/str}}<span class="shortcut">⌘⇧↑</span></a>
+        </li>
+        <li><a href="#move_up">{{#str}}bringforward,qtype_drawing{{/str}}<span class="shortcut">⌘↑</span></a>
+        </li>
+        <li><a href="#move_down">{{#str}}sendbackward,qtype_drawing{{/str}}<span class="shortcut">⌘↓</span></a>
+        </li>
+        <li><a href="#move_back">{{#str}}sendtoback,qtype_drawing{{/str}}<span class="shortcut">⌘⇧↓</span></a>
+        </li>
+    </ul>
+    <input type="hidden" id="fhd_question_id" value="{{id}}">
+    <input type="hidden" id="fhd_width" value="{{backgroundwidth}}">
+    <input type="hidden" id="fhd_height" value="{{backgroundheight}}">
+    <div id="textedit_dialog" title="{{#str}}edittext,qtype_drawing{{/str}}">
+        <textarea id="text" name="text" cols="40" rows="8" style="width:95%; overflow: auto;"></textarea>
+    </div>
+</div>
+<script>
+        {{#js}}
+        require(['qtype_drawing/drawingarea'], function (DrawingArea) {
+            DrawingArea.init({
+                str: {
+                    comment: "{{#str}}drawingcomment,qtype_drawing{{/str}}",
+                    newconfirmationmsg: "{{#str}}newconfirmationmsg,qtype_drawing{{/str}}",
+                    eraseconfirmationmsg: "{{#str}}eraseconfirmationmsg,qtype_drawing{{/str}}",
+                    parsingerror: "{{#str}}parsingerror,qtype_drawing{{/str}}",
+                    ignorechanges: "{{#str}}ignorechanges,qtype_drawing{{/str}}",
+                    ok: "{{#str}}ok,qtype_drawing{{/str}}",
+                    cancel: "{{#str}}cancel,qtype_drawing{{/str}}",
+                    eyedroppertool: "{{#str}}eyedroppertool,qtype_drawing{{/str}}",
+                    shapelibrary: "{{#str}}shapelibrary,qtype_drawing{{/str}}",
+                    drawmarkers: "{{#str}}drawmarkers,qtype_drawing{{/str}}",
+                    solidcolor: "{{#str}}solidcolor,qtype_drawing{{/str}}",
+                    lingrad: "{{#str}}lingrad,qtype_drawing{{/str}}",
+                    radgrad: "{{#str}}radgrad,qtype_drawing{{/str}}",
+                    new: "{{#str}}new,qtype_drawing{{/str}}",
+                    current: "{{#str}}current,qtype_drawing{{/str}}",
+                    viewgrid: "{{#str}}viewgrid,qtype_drawing{{/str}}",
+                    annotationsaved: "{{#str}}annotationsaved,qtype_drawing{{/str}}",
+                    saving: "{{#str}}saving,qtype_drawing{{/str}}",
+                    saveannotation: "{{#str}}saveannotation,qtype_drawing{{/str}}",
+                    hidequestiontext: "{{#str}}hidequestiontext,qtype_drawing{{/str}}",
+                    showquestiontext: "{{#str}}showquestiontext,qtype_drawing{{/str}}"
+                },
+                baseurl: "{{base_url}}",
+                jsrev: "{{jsrev}}",
+                //  fhd_display_mode: "{{reducedmode}}",
+                questionid: {{id}},
+                sesskey: "{{sesskey}}",
+                stid: {{stid}},
+                attemptid: "{{attemptid}}",
+                attemptcount: {{attemptcount}},
+                defaultpensize: {{defaultpensize}},
+                uniquefieldnameattemptid: "{{uniquefieldnameattemptid}}",
+                defaultColor: "{{defaultcolor.hex}}",
+                colorhighlighter: "{{colorhighlighter}}",
+                enabledtools: {{{enabledtoolsjson}}},
+            useupdateannotationjs: {{#useupdateannotationjs}}true{{/useupdateannotationjs}}{{^useupdateannotationjs}}false{{/useupdateannotationjs}}
+            });
+        });
+        {{/js}}
+</script>

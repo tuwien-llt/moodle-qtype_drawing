@@ -15,22 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Privacy provider for question type drawing.
+ * Privacy Subsystem implementation for qtype_drawing.
  *
  * @package    qtype_drawing
- * @copyright  ETH Zurich LET <amr.hourani@id.ethz.ch>
+ * @copyright  2018 Andrew Nicols <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 namespace qtype_drawing\privacy;
 
-
 /**
- * Privacy provider implementation for drawing question type.
+ * Privacy Subsystem for qtype_drawing implementing null_provider.
  *
- * The drawing question type does not store personal user data.
- *
- * @copyright  ETH Zurich LET <amr.hourani@id.ethz.ch>
+ * @copyright  2018 Andrew Nicols <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements \core_privacy\local\metadata\null_provider {
