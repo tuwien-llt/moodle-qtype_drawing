@@ -308,6 +308,10 @@ class qtype_drawing_renderer extends qtype_renderer {
                 'attemptcount' => $attemptcount,
                 'readonly' => $iframereadonlyparam,
                 'sesskey' => sesskey(),
+                // Usage id + slot let drawingarea.php rewrite @@PLUGINFILE@@ URLs in the
+                // question text to the same attempt-scoped URLs used on the parent page.
+                'qubaid' => $qa->get_usage_id(),
+                'slot' => $qa->get_slot(),
             ];
             $data['iframeurl'] = new moodle_url('/question/type/drawing/drawingarea.php', $iframeparams);
 
