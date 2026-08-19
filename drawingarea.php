@@ -63,6 +63,19 @@ if (!$fhd = $DB->get_record('qtype_drawing', ['questionid' => $id])) {
     die("No such question.");
 }
 
+// Questions created before the 2025120100 upgrade have NULL in the option columns added by it
+// (defaultpensize, colorsjson, colorhighlighter): the upgrade did not backfill existing rows.
+// Fall back to the admin defaults at display time so those questions keep loading. empty()
+// also covers '' and the 0 an XML import of such a question stores in the int column. The
+// hardcoded values behind the config are a last resort for an unconfigured/broken config.
+$drawingconfig = get_config('qtype_drawing');
+if (empty($fhd->defaultpensize)) {
+    $fhd->defaultpensize = empty($drawingconfig->defaultpensize) ? 1 : $drawingconfig->defaultpensize;
+}
+if (empty($fhd->colorhighlighter)) {
+    $fhd->colorhighlighter = empty($drawingconfig->colorhighlighter) ? '#ff0' : $drawingconfig->colorhighlighter;
+}
+
 $stylesheetsurls = [
     new moodle_url('/question/type/drawing/lib/jgraduate/css/jPicker.css'),
     new moodle_url('/question/type/drawing/lib/jgraduate/css/jgraduate.css'),
@@ -142,7 +155,7 @@ $context = [
     'questionembed' => $fhd->questionembed == 1,
     'hidemenu' => !empty($fhd->hidemenu),
     'questiontext' => $questiontext,
-    'defaultpensize' => $fhd->defaultpensize,
+    'defaultpensize' => (int) $fhd->defaultpensize,
     'stid' => $stid,
     'attemptid' => strip_tags($attemptid),
     'uniquefieldnameattemptid' => strip_tags($uniquefieldnameattemptid),
