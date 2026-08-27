@@ -425,14 +425,24 @@ class qtype_drawing extends question_type {
      * @return array List of color objects (e.g., [['hex' => '#ff0000', 'selected' => true], ...])
      */
     public static function get_colors_for_template($teacherview, $colorsjson) {
-        // 1. Decode the JSON configuration
-        if (empty($colorsjson)) {
-            return [];
+        // 1. Decode the JSON configuration. Old questions (created before the 2025120100
+        // upgrade, which did not backfill the new column) have an empty colorsjson; fall back
+        // to the admin default palette then, and also when the stored value is invalid JSON.
+        $config = null;
+        foreach ([$colorsjson, get_config('qtype_drawing', 'colorsjson')] as $json) {
+            if (empty($json)) {
+                continue;
+            }
+            $decoded = json_decode($json);
+            if (json_last_error() === JSON_ERROR_NONE && isset($decoded->colors)) {
+                $config = $decoded;
+                break;
+            }
         }
-
-        $config = json_decode($colorsjson);
-        if (json_last_error() !== JSON_ERROR_NONE || !isset($config->colors)) {
-            return [];
+        if ($config === null) {
+            // Even the admin default is unusable: degrade to an empty palette, keeping the
+            // tuple shape the caller destructures.
+            return [[], null, false];
         }
 
         $showallcolorschooser = false;
