@@ -40,6 +40,13 @@ require_once(dirname(__FILE__) . '/lib.php');
  */
 class qtype_drawing extends question_type {
     /**
+     * Question is manually graded.
+     */
+    public function is_manual_graded() {
+        return true;
+    }
+
+    /**
      * Return the table name and column names of the extra question fields.
      *
      * @return array The options table name followed by its column names.
