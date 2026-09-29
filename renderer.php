@@ -54,6 +54,30 @@ class qtype_drawing_renderer extends qtype_renderer {
         return  '';
     }
 
+    /**
+     * Strips script tags, on* handlers and javascript: URIs out of drawing SVG.
+     *
+     * @param string|null $markup The raw SVG/HTML fragment.
+     * @return string|null cleaned markup.
+     */
+    protected static function clean_drawing_markup($markup) {
+        if ($markup === null || $markup === '') {
+            return $markup;
+        }
+        // Patterns for the markup we strip out.
+        $patterns = [
+            // <script>/<foreignObject> pairs. \1 makes sure the tags match.
+            '#<(script|foreignObject)\b[^>]*>.*?</\1\s*>#is',
+            // Stray unpaired tags - an unclosed <script> still runs.
+            '#</?(?:script|foreignObject)\b[^>]*>#i',
+            // on* handlers, quoted or bare. [\s/] catches src=x/onerror= too.
+            '#[\s/]on\w+\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>]+)#i',
+            // javascript: URIs. \3 is whichever quote we opened with.
+            '#\b(href|xlink:href|src)(\s*=\s*)(["\'])\s*javascript:[^"\']*\3#i',
+        ];
+        return preg_replace($patterns, ['', '', '', '$1$2$3#$3'], $markup);
+    }
+
     private static function isblue($array) {
         if ($array[0] == 0 && $array[1] == 0 && $array[2] == 255) {
             return true;
@@ -125,7 +149,7 @@ class qtype_drawing_renderer extends qtype_renderer {
         if($background === null || !isset($background)){
             $background = array(null, null, null);
         }
-        $studentanswer = $qa->get_last_qt_var('answer');
+        $studentanswer = self::clean_drawing_markup($qa->get_last_qt_var('answer'));
         self::translate_to_js($this->page);
         $isannotator = 0;
         if (empty($question->contextid)) {
@@ -268,9 +292,9 @@ class qtype_drawing_renderer extends qtype_renderer {
             } else {
 
                 $canvas .= "<textarea id=\"qtype_drawing_original_bg_id_".$attemptid.$uniquefieldnameattemptid."\"
-                style=\"display:none\">$background[1]</textarea>";
+                style=\"display:none\">".s($background[1])."</textarea>";
                 $canvas .= "<textarea id=\"qtype_drawing_original_stdanswer_id_".$attemptid.$uniquefieldnameattemptid."\"
-                style=\"display:none\">$studentanswer</textarea>";
+                style=\"display:none\">".s($studentanswer)."</textarea>";
 
                 $annotationstr = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                        id="baseSVGannotation" width="'.$canvasinfo->backgroundwidth.'"
@@ -483,7 +507,7 @@ class qtype_drawing_renderer extends qtype_renderer {
 
 				<textarea style="display:none"
                   id="qtype_drawing_background_image_value_'.$attemptid.$uniquefieldnameattemptid.'">'.
-                  $background[1].'</textarea>
+                  s($background[1]).'</textarea>
 				<input type="hidden" style="display:none"
                id="qtype_drawing_background_image_type_'.$attemptid.$uniquefieldnameattemptid.'"
                value="'.$background[0].'">

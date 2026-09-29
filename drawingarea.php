@@ -103,11 +103,11 @@ if (has_capability('mod/quiz:grade', context::instance_by_id($question->contexti
          var qtype_drawing_str_saving = "<?php print_string("saving", "qtype_drawing");?>";
          var qtype_drawing_str_saveannotation = "<?php print_string("saveannotation", "qtype_drawing");?>";
          var questionid = <?php echo $id;?>;
-         var sesskey = '<?php echo strip_tags($sesskey);?>';
+         var sesskey = <?php echo json_encode($sesskey);?>;
          var stid = <?php echo $stid;?>;
-         var attemptid = '<?php echo strip_tags($attemptid);?>';
+         var attemptid = <?php echo json_encode($attemptid);?>;
          var attemptcount = '<?php echo $attemptcount;?>';
-         var uniquefieldnameattemptid = '<?php echo strip_tags($uniquefieldnameattemptid);?>';
+         var uniquefieldnameattemptid = <?php echo json_encode($uniquefieldnameattemptid);?>;
       </script>
       <script type="text/javascript"
               src="<?php echo $CFG->wwwroot.'/question/type/drawing/';?>lib/jquery.js"></script>
