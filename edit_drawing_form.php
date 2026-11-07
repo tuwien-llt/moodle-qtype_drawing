@@ -17,8 +17,7 @@
 /**
  * Defines the editing form for the drawing question type.
  *
- * @package qtype
- * @subpackage drawing
+ * @package qtype_drawing
  * @copyright ETH Zurich LET <amr.hourani@id.ethz.ch>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

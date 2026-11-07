@@ -18,8 +18,7 @@
 /**
  * Unit tests for the drawing question type class.
  *
- * @package    qtype
- * @subpackage drawing
+ * @package    qtype_drawing
  * @copyright  2020 ETH Zurich
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
